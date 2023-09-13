@@ -1,0 +1,6 @@
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGeneratro_DataAccess\bin\Debug\CodeGeneratro_DataAccess.dll
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGeneratro_DataAccess\bin\Debug\CodeGeneratro_DataAccess.pdb
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGeneratro_DataAccess\obj\Debug\CodeGenerator_DataAccess.csproj.AssemblyReference.cache
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGeneratro_DataAccess\obj\Debug\CodeGenerator_DataAccess.csproj.CoreCompileInputs.cache
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGeneratro_DataAccess\obj\Debug\CodeGeneratro_DataAccess.dll
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGeneratro_DataAccess\obj\Debug\CodeGeneratro_DataAccess.pdb

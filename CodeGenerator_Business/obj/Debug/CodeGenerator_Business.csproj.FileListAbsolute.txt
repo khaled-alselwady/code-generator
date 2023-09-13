@@ -1,0 +1,9 @@
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGenerator_Business\bin\Debug\CodeGenerator_Business.dll
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGenerator_Business\bin\Debug\CodeGenerator_Business.pdb
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGenerator_Business\bin\Debug\CodeGeneratro_DataAccess.dll
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGenerator_Business\bin\Debug\CodeGeneratro_DataAccess.pdb
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGenerator_Business\obj\Debug\CodeGenerator_Business.csproj.AssemblyReference.cache
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGenerator_Business\obj\Debug\CodeGenerator_Business.csproj.CoreCompileInputs.cache
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGenerator_Business\obj\Debug\CodeGenerator_Business.csproj.CopyComplete
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGenerator_Business\obj\Debug\CodeGenerator_Business.dll
+D:\Learning Programming\C# & Database Connectivity\Code Generator\CodeGenerator_Business\obj\Debug\CodeGenerator_Business.pdb

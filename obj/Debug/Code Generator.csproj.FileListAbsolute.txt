@@ -1,0 +1,15 @@
+D:\Learning Programming\C# & Database Connectivity\Code Generator\bin\Debug\Code Generator.exe.config
+D:\Learning Programming\C# & Database Connectivity\Code Generator\bin\Debug\Code Generator.exe
+D:\Learning Programming\C# & Database Connectivity\Code Generator\bin\Debug\Code Generator.pdb
+D:\Learning Programming\C# & Database Connectivity\Code Generator\obj\Debug\Code Generator.csproj.AssemblyReference.cache
+D:\Learning Programming\C# & Database Connectivity\Code Generator\obj\Debug\Code_Generator.Form1.resources
+D:\Learning Programming\C# & Database Connectivity\Code Generator\obj\Debug\Code_Generator.Properties.Resources.resources
+D:\Learning Programming\C# & Database Connectivity\Code Generator\obj\Debug\Code Generator.csproj.GenerateResource.cache
+D:\Learning Programming\C# & Database Connectivity\Code Generator\obj\Debug\Code Generator.csproj.CoreCompileInputs.cache
+D:\Learning Programming\C# & Database Connectivity\Code Generator\obj\Debug\Code Generator.exe
+D:\Learning Programming\C# & Database Connectivity\Code Generator\obj\Debug\Code Generator.pdb
+D:\Learning Programming\C# & Database Connectivity\Code Generator\bin\Debug\CodeGenerator_Business.dll
+D:\Learning Programming\C# & Database Connectivity\Code Generator\bin\Debug\CodeGeneratro_DataAccess.dll
+D:\Learning Programming\C# & Database Connectivity\Code Generator\bin\Debug\CodeGenerator_Business.pdb
+D:\Learning Programming\C# & Database Connectivity\Code Generator\bin\Debug\CodeGeneratro_DataAccess.pdb
+D:\Learning Programming\C# & Database Connectivity\Code Generator\obj\Debug\Code Generator.csproj.CopyComplete
