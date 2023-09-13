@@ -26,7 +26,7 @@ namespace Code_Generator
             InitializeComponent();
         }
 
-        private bool _DoesTableHaveUsernameColumn()
+        private bool _DoesTableHaveColumn(string Column)
         {
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
@@ -37,28 +37,7 @@ namespace Code_Generator
                 {
                     string ColumnName = firstItem.SubItems[0].Text;
 
-                    if (ColumnName.ToLower() == "username")
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private bool _DoesTableHavePasswordColumn()
-        {
-            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
-
-                if (firstItem.SubItems.Count > 0)
-                {
-                    string ColumnName = firstItem.SubItems[0].Text;
-
-                    if (ColumnName.ToLower() == "password")
+                    if (ColumnName.ToLower() == Column.ToLower())
                     {
                         return true;
                     }
@@ -70,7 +49,7 @@ namespace Code_Generator
 
         private bool _DoesTableHaveUsernameAndPassword()
         {
-            return (_DoesTableHaveUsernameColumn() && _DoesTableHavePasswordColumn());
+            return (_DoesTableHaveColumn("username") && _DoesTableHaveColumn("password"));
         }
 
         private void _FillListViewWithTablesName()
