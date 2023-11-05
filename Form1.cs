@@ -724,7 +724,7 @@ namespace Code_Generator
 
             if (_IsLogin)
             {
-                query += "string query = " + $"@\"if not Exist (select found = 1 from {_TableName} where Username = @Username)"
+                query += "string query = " + $"@\"if not Exists (select found = 1 from {_TableName} where Username = @Username)"
                     + Environment.NewLine + "begin" + Environment.NewLine + $"insert into {_TableName} (";
             }
             else
