@@ -724,7 +724,7 @@ namespace Code_Generator
 
             if (_IsLogin)
             {
-                query += "string query = " + $"@\"if not exists (select found = 1 from {_TableName} where Username = @Username)"
+                query += "string query = " + $"@\"if not Exist (select found = 1 from {_TableName} where Username = @Username)"
                     + Environment.NewLine + "begin" + Environment.NewLine + $"insert into {_TableName} (";
             }
             else
@@ -1060,11 +1060,11 @@ namespace Code_Generator
 
         }
 
-        private void _CreateIsExistsMethod()
+        private void _CreateDoesExistMethod()
         {
             txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static bool Is{_TableSingleName}Exists{_MakeParametersForDeleteMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist{_MakeParametersForDeleteMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
 
             txtDataAccessLayer.Text += "bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
 
@@ -1078,11 +1078,9 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine + "connection.Open();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlDataReader reader = command.ExecuteReader();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = reader.HasRows;" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "reader.Close();" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "IsFound = (result != null);" + Environment.NewLine + "}" + Environment.NewLine;
 
             txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
 
@@ -1095,11 +1093,11 @@ namespace Code_Generator
             txtDataAccessLayer.Text += "return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
         }
 
-        private void _CreateIsExistsMethodForUsername()
+        private void _CreateDoesExistMethodForUsername()
         {
             txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static bool Is{_TableSingleName}Exists(string Username)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist(string Username)" + Environment.NewLine + "{" + Environment.NewLine;
 
             txtDataAccessLayer.Text += "bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
 
@@ -1113,11 +1111,9 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine + "connection.Open();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlDataReader reader = command.ExecuteReader();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = reader.HasRows;" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "reader.Close();" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "IsFound = (result != null);" + Environment.NewLine + "}" + Environment.NewLine;
 
             txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
 
@@ -1130,11 +1126,11 @@ namespace Code_Generator
             txtDataAccessLayer.Text += "return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
         }
 
-        private void _CreateIsExistsMethodForUsernameAndPassword()
+        private void _CreateDoesExistMethodForUsernameAndPassword()
         {
             txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static bool Is{_TableSingleName}Exists(string Username, string Password)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist(string Username, string Password)" + Environment.NewLine + "{" + Environment.NewLine;
 
             txtDataAccessLayer.Text += "bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
 
@@ -1150,11 +1146,9 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine + "connection.Open();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlDataReader reader = command.ExecuteReader();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = reader.HasRows;" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "reader.Close();" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "IsFound = (result != null);" + Environment.NewLine + "}" + Environment.NewLine;
 
             txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
 
@@ -1679,13 +1673,13 @@ namespace Code_Generator
             return Text.Trim();
         }
 
-        private string _GetIsExistsMethodInBusinessLayer()
+        private string _GetDoesExistMethodInBusinessLayer()
         {
             string Text = string.Empty;
 
-            Text += $"public static bool Is{_TableSingleName}Exists{_MakeParametersForDeleteMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
+            Text += $"public static bool Does{_TableSingleName}Exist{_MakeParametersForDeleteMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
 
-            Text += $"return cls{_TableSingleName}Data.Is{_TableSingleName}Exists({_TableSingleName}ID);" + Environment.NewLine + "}" + Environment.NewLine;
+            Text += $"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist({_TableSingleName}ID);" + Environment.NewLine + "}" + Environment.NewLine;
 
             return Text.Trim();
         }
@@ -1983,24 +1977,24 @@ namespace Code_Generator
             return Text.Trim();
         }
 
-        private string _GetIsUsernameExistsMethodInBusinessLayer()
+        private string _GetDoesUsernameExistMethodInBusinessLayer()
         {
             string Text = string.Empty;
 
-            Text += $"public static bool Is{_TableSingleName}Exists(string Username)" + Environment.NewLine + "{" + Environment.NewLine;
+            Text += $"public static bool Does{_TableSingleName}Exist(string Username)" + Environment.NewLine + "{" + Environment.NewLine;
 
-            Text += $"return cls{_TableSingleName}Data.Is{_TableSingleName}Exists(Username);" + Environment.NewLine + "}" + Environment.NewLine;
+            Text += $"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username);" + Environment.NewLine + "}" + Environment.NewLine;
 
             return Text.Trim();
         }
 
-        private string _GetIsUsernameAndPasswordExistsMethodInBusinessLayer()
+        private string _GetDoesUsernameAndPasswordExistMethodInBusinessLayer()
         {
             string Text = string.Empty;
 
-            Text += $"public static bool Is{_TableSingleName}Exists(string Username, string Password)" + Environment.NewLine + "{" + Environment.NewLine;
+            Text += $"public static bool Does{_TableSingleName}Exist(string Username, string Password)" + Environment.NewLine + "{" + Environment.NewLine;
 
-            Text += $"return cls{_TableSingleName}Data.Is{_TableSingleName}Exists(Username, Password);" + Environment.NewLine + "}" + Environment.NewLine;
+            Text += $"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username, Password);" + Environment.NewLine + "}" + Environment.NewLine;
 
             return Text.Trim();
         }
@@ -2036,13 +2030,13 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += _GetDeleteMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _GetIsExistsMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _GetDoesExistMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
 
             if (_IsLogin)
             {
-                txtDataAccessLayer.Text += _GetIsUsernameExistsMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
+                txtDataAccessLayer.Text += _GetDoesUsernameExistMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
 
-                txtDataAccessLayer.Text += _GetIsUsernameAndPasswordExistsMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
+                txtDataAccessLayer.Text += _GetDoesUsernameAndPasswordExistMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
             }
 
             txtDataAccessLayer.Text += _GetAllMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
@@ -2058,9 +2052,9 @@ namespace Code_Generator
             _CreateAddNewMethod();
             _CreateUpdateMethod();
             _CreateDeleteMethod();
-            _CreateIsExistsMethod();
-            _CreateIsExistsMethodForUsername();
-            _CreateIsExistsMethodForUsernameAndPassword();
+            _CreateDoesExistMethod();
+            _CreateDoesExistMethodForUsername();
+            _CreateDoesExistMethodForUsernameAndPassword();
             _CreateGetAllMethod();
         }
 
@@ -2070,7 +2064,7 @@ namespace Code_Generator
             _CreateAddNewMethod();
             _CreateUpdateMethod();
             _CreateDeleteMethod();
-            _CreateIsExistsMethod();
+            _CreateDoesExistMethod();
             _CreateGetAllMethod();
         }
 

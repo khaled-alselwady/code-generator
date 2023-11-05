@@ -28,3 +28,18 @@ C:\Users\PC\Desktop\repos\obj\Debug\Code Generator.csproj.CoreCompileInputs.cach
 C:\Users\PC\Desktop\repos\obj\Debug\Code Generator.csproj.CopyComplete
 C:\Users\PC\Desktop\repos\obj\Debug\Code Generator.exe
 C:\Users\PC\Desktop\repos\obj\Debug\Code Generator.pdb
+C:\Users\PC\Desktop\Code_Generator\bin\Debug\Code Generator.exe.config
+C:\Users\PC\Desktop\Code_Generator\bin\Debug\Code Generator.exe
+C:\Users\PC\Desktop\Code_Generator\bin\Debug\Code Generator.pdb
+C:\Users\PC\Desktop\Code_Generator\bin\Debug\CodeGenerator_Business.dll
+C:\Users\PC\Desktop\Code_Generator\bin\Debug\CodeGeneratro_DataAccess.dll
+C:\Users\PC\Desktop\Code_Generator\bin\Debug\CodeGenerator_Business.pdb
+C:\Users\PC\Desktop\Code_Generator\bin\Debug\CodeGeneratro_DataAccess.pdb
+C:\Users\PC\Desktop\Code_Generator\obj\Debug\Code Generator.csproj.AssemblyReference.cache
+C:\Users\PC\Desktop\Code_Generator\obj\Debug\Code_Generator.Form1.resources
+C:\Users\PC\Desktop\Code_Generator\obj\Debug\Code_Generator.Properties.Resources.resources
+C:\Users\PC\Desktop\Code_Generator\obj\Debug\Code Generator.csproj.GenerateResource.cache
+C:\Users\PC\Desktop\Code_Generator\obj\Debug\Code Generator.csproj.CoreCompileInputs.cache
+C:\Users\PC\Desktop\Code_Generator\obj\Debug\Code Generator.csproj.CopyComplete
+C:\Users\PC\Desktop\Code_Generator\obj\Debug\Code Generator.exe
+C:\Users\PC\Desktop\Code_Generator\obj\Debug\Code Generator.pdb
