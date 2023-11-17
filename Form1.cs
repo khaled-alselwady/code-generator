@@ -281,7 +281,7 @@ namespace Code_Generator
 
         private void _CreateFindMethod()
         {
-            txtDataAccessLayer.Text = $"public static bool Get{_TableSingleName}InfoByID{_MakeParametersForFindMethod()}";
+            txtDataAccessLayer.Text += $"public static bool Get{_TableSingleName}InfoByID{_MakeParametersForFindMethod()}";
 
             txtDataAccessLayer.Text += Environment.NewLine + "{" + Environment.NewLine;
 
@@ -459,7 +459,7 @@ namespace Code_Generator
 
         private void _CreateFindMethodForUsername()
         {
-            txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += Environment.NewLine;
 
             txtDataAccessLayer.Text += $"public static bool Get{_TableSingleName}InfoByUsername{_MakeParametersForFindMethodForUsername()}";
 
@@ -637,7 +637,7 @@ namespace Code_Generator
 
         private void _CreateFindMethodForUsernameAndPassword()
         {
-            txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += Environment.NewLine;
 
             txtDataAccessLayer.Text += $"public static bool Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindMethodForUsernameAndPassword()}";
 
@@ -882,7 +882,7 @@ namespace Code_Generator
 
         private void _CreateAddNewMethod()
         {
-            txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += Environment.NewLine;
 
             txtDataAccessLayer.Text += $"public static int AddNew{_TableSingleName}{_MakeParametersForAddNewMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
 
@@ -978,7 +978,7 @@ namespace Code_Generator
 
         private void _CreateUpdateMethod()
         {
-            txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += Environment.NewLine;
 
             txtDataAccessLayer.Text += $"public static bool Update{_TableSingleName}{_MakeParametersForUpdateMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
 
@@ -1030,7 +1030,7 @@ namespace Code_Generator
 
         private void _CreateDeleteMethod()
         {
-            txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += Environment.NewLine;
 
             txtDataAccessLayer.Text += $"public static bool Delete{_TableSingleName}{_MakeParametersForDeleteMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
 
@@ -1062,7 +1062,7 @@ namespace Code_Generator
 
         private void _CreateDoesExistMethod()
         {
-            txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += Environment.NewLine;
 
             txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist{_MakeParametersForDeleteMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
 
@@ -1095,7 +1095,7 @@ namespace Code_Generator
 
         private void _CreateDoesExistMethodForUsername()
         {
-            txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += Environment.NewLine;
 
             txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist(string Username)" + Environment.NewLine + "{" + Environment.NewLine;
 
@@ -1128,7 +1128,7 @@ namespace Code_Generator
 
         private void _CreateDoesExistMethodForUsernameAndPassword()
         {
-            txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += Environment.NewLine;
 
             txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist(string Username, string Password)" + Environment.NewLine + "{" + Environment.NewLine;
 
@@ -1163,7 +1163,7 @@ namespace Code_Generator
 
         private void _CreateGetAllMethod()
         {
-            txtDataAccessLayer.Text += Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += Environment.NewLine;
 
             txtDataAccessLayer.Text += $"public static DataTable GetAll{_TableName}()" + Environment.NewLine + "{" + Environment.NewLine;
 
@@ -2039,9 +2039,9 @@ namespace Code_Generator
                 txtDataAccessLayer.Text += _GetDoesUsernameAndPasswordExistMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
             }
 
-            txtDataAccessLayer.Text += _GetAllMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _GetAllMethodInBusinessLayer() + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "}";
         }
 
         private void _DataAccessAsLoginInfo()
@@ -2079,6 +2079,8 @@ namespace Code_Generator
             {
                 txtDataAccessLayer.Clear();
 
+                txtDataAccessLayer.Text += $"public class cls{_TableSingleName}Data" + Environment.NewLine + "{" + Environment.NewLine;
+
                 if (_IsLogin)
                 {
                     _DataAccessAsLoginInfo();
@@ -2087,6 +2089,8 @@ namespace Code_Generator
                 {
                     _DataAccessAsNormal();
                 }
+
+                txtDataAccessLayer.Text += "}";
             }
         }
 
