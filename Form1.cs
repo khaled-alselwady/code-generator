@@ -149,7 +149,7 @@ namespace Code_Generator
 
         private string _GetConnectionString()
         {
-            return "SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString);";
+            return "SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString)";
         }
 
         private string _MakeParametersForFindMethod()
@@ -285,45 +285,65 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += Environment.NewLine + "{" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _GetConnectionString() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    try" + Environment.NewLine + "    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"string query = @\"select * from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine + "{" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlCommand command = new SqlCommand(query, connection);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"    string query = @\"select * from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Open();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlDataReader reader = command.ExecuteReader();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "if (reader.Read())" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                using (SqlDataReader reader = command.ExecuteReader())" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "// The record was found" + Environment.NewLine + "IsFound = true;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _FillTheVariableWithDataThatComingFromDatabase() + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    if (reader.Read())" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "else" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "// The record was not found" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        // The record was found" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = false;" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        IsFound = true;" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "reader.Close();" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += _FillTheVariableWithDataThatComingFromDatabase() + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = false;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    else" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "finally" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Close();" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        // The record was not found" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        IsFound = false;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "                }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
         }
 
         private string _MakeParametersForFindMethodForUsername()
@@ -461,49 +481,69 @@ namespace Code_Generator
         {
             txtDataAccessLayer.Text += Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static bool Get{_TableSingleName}InfoByUsername{_MakeParametersForFindMethodForUsername()}";
+            txtDataAccessLayer.Text += $"public static bool Get{_TableSingleName}InfoByUsername{_MakeParametersForFindMethodForUsername()}" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "{" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _GetConnectionString() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    try" + Environment.NewLine + "    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"string query = @\"select * from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine + "        {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlCommand command = new SqlCommand(query, connection);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"            string query = @\"select * from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Open();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlDataReader reader = command.ExecuteReader();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "if (reader.Read())" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                using (SqlDataReader reader = command.ExecuteReader())" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "// The record was found" + Environment.NewLine + "IsFound = true;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _FillTheVariableWithDataThatComingFromDatabaseForUsername() + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    if (reader.Read())" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "else" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "// The record was not found" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        // The record was found" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = false;" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        IsFound = true;" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "reader.Close();" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += _FillTheVariableWithDataThatComingFromDatabaseForUsername() + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = false;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    else" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "finally" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Close();" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        // The record was not found" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        IsFound = false;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "                }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
         }
 
         private string _MakeParametersForFindMethodForUsernameAndPassword()
@@ -639,51 +679,71 @@ namespace Code_Generator
         {
             txtDataAccessLayer.Text += Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static bool Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindMethodForUsernameAndPassword()}";
+            txtDataAccessLayer.Text += $"public static bool Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindMethodForUsernameAndPassword()}" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "{" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _GetConnectionString() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    try" + Environment.NewLine + "    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"string query = @\"select * from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS AND Password = @Password COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine + "        {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlCommand command = new SqlCommand(query, connection);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"            string query = @\"select * from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS AND Password = @Password COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"command.Parameters.AddWithValue(\"@Password\", Password);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Open();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlDataReader reader = command.ExecuteReader();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Password\", Password);" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "if (reader.Read())" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                using (SqlDataReader reader = command.ExecuteReader())" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "// The record was found" + Environment.NewLine + "IsFound = true;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _FillTheVariableWithDataThatComingFromDatabaseForUsernameAndPassword() + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    if (reader.Read())" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "else" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "// The record was not found" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        // The record was found" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = false;" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        IsFound = true;" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "reader.Close();" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += _FillTheVariableWithDataThatComingFromDatabaseForUsernameAndPassword() + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = false;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    else" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "finally" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Close();" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        // The record was not found" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                        IsFound = false;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "                }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
         }
 
         private string _MakeParametersForAddNewMethod()
@@ -888,34 +948,43 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "// This function will return the new person id if succeeded and -1 if not" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"int {_TableSingleName}ID = -1;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"    int {_TableSingleName}ID = -1;" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _GetConnectionString() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    try" + Environment.NewLine + "    {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine + "        {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += _GetQueryForAddNewMethod() + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlCommand command = new SqlCommand(query, connection);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
             txtDataAccessLayer.Text += _FillParametersInTheCommand() + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine + "connection.Open();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                if (result != null && int.TryParse(result.ToString(), out int InsertID))" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "if (result != null && int.TryParse(result.ToString(), out int InsertID))" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"{_TableSingleName}ID = InsertID;" + Environment.NewLine + "}" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                    {_TableSingleName}ID = InsertID;" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "finally" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Close();" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"return {_TableSingleName}ID;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine + "    {" + Environment.NewLine + Environment.NewLine;
 
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += $"    return {_TableSingleName}ID;" + Environment.NewLine + "}" + Environment.NewLine;
         }
 
         private string _MakeParametersForUpdateMethod()
@@ -980,33 +1049,49 @@ namespace Code_Generator
         {
             txtDataAccessLayer.Text += Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static bool Update{_TableSingleName}{_MakeParametersForUpdateMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"public static bool Update{_TableSingleName}{_MakeParametersForUpdateMethod()}" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "int RowAffected = 0;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "{" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _GetConnectionString() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    int RowAffected = 0;" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += _GetQueryForUpdateMethod() + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlCommand command = new SqlCommand(query, connection);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine;
 
             txtDataAccessLayer.Text += _FillParametersInTheCommand() + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine + "connection.Open();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                RowAffected = command.ExecuteNonQuery();" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "RowAffected = command.ExecuteNonQuery();" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "finally" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Close();" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "return (RowAffected > 0);" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += $"    return (RowAffected > 0);" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "}" + Environment.NewLine;
         }
 
         private string _MakeParametersForDeleteMethod()
@@ -1032,168 +1117,259 @@ namespace Code_Generator
         {
             txtDataAccessLayer.Text += Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static bool Delete{_TableSingleName}{_MakeParametersForDeleteMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"public static bool Delete{_TableSingleName}{_MakeParametersForDeleteMethod()}" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "int RowAffected = 0;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "{" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _GetConnectionString() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    int RowAffected = 0;" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"string query = @\"delete {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlCommand command = new SqlCommand(query, connection);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine + "connection.Open();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "RowAffected = command.ExecuteNonQuery();" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"            string query = @\"delete {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "finally" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Close();" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "return (RowAffected > 0);" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                RowAffected = command.ExecuteNonQuery();" + Environment.NewLine;
 
+            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += $"    return (RowAffected > 0);" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "}" + Environment.NewLine;
         }
 
         private void _CreateDoesExistMethod()
         {
             txtDataAccessLayer.Text += Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist{_MakeParametersForDeleteMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist{_MakeParametersForDeleteMethod()}" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "{" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _GetConnectionString() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"string query = @\"select found = 1 from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlCommand command = new SqlCommand(query, connection);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine + "connection.Open();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = (result != null);" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"            string query = @\"select found = 1 from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = false;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "finally" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Close();" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                IsFound = (result != null);" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "}" + Environment.NewLine;
         }
 
         private void _CreateDoesExistMethodForUsername()
         {
             txtDataAccessLayer.Text += Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist(string Username)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist(string Username)" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "{" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _GetConnectionString() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"string query = @\"select found = 1 from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlCommand command = new SqlCommand(query, connection);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine + "connection.Open();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = (result != null);" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"            string query = @\"select found = 1 from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = false;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "finally" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Close();" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                IsFound = (result != null);" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "}" + Environment.NewLine;
         }
 
         private void _CreateDoesExistMethodForUsernameAndPassword()
         {
             txtDataAccessLayer.Text += Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist(string Username, string Password)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist(string Username, string Password)" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "{" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _GetConnectionString() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"string query = @\"select found = 1 from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS and Password = @Password COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlCommand command = new SqlCommand(query, connection);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"command.Parameters.AddWithValue(\"@Password\", Password);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine + "connection.Open();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"            string query = @\"select found = 1 from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS and Password = @Password COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = (result != null);" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "IsFound = false;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "finally" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Password\", Password);" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Close();" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                IsFound = (result != null);" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "}" + Environment.NewLine;
         }
 
         private void _CreateGetAllMethod()
         {
             txtDataAccessLayer.Text += Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static DataTable GetAll{_TableName}()" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"public static DataTable GetAll{_TableName}()" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "DataTable dt = new DataTable();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "{" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += _GetConnectionString() + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    DataTable dt = new DataTable();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"string query = @\"select * from {_TableName}\";" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlCommand command = new SqlCommand(query, connection);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "try" + Environment.NewLine + "{" + Environment.NewLine + "connection.Open();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "SqlDataReader reader = command.ExecuteReader();" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "if (reader.HasRows)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "dt.Load(reader);" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"            string query = @\"select * from {_TableName}\";" + Environment.NewLine + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "reader.Close();" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "catch (Exception ex)" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                using (SqlDataReader reader = command.ExecuteReader())" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "finally" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "connection.Close();" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    if (reader.HasRows)" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "return dt;" + Environment.NewLine + "}" + Environment.NewLine;
+            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "                        dt.Load(reader);" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "                }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    {" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "    return dt;" + Environment.NewLine;
+
+            txtDataAccessLayer.Text += "}" + Environment.NewLine;
         }
 
         private string _MakeParametersForBusinessLayer()
