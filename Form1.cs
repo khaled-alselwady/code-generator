@@ -111,45 +111,60 @@ namespace Code_Generator
 
         private string _GetDataTypeCSharp(string DataType)
         {
-
-            switch (DataType)
+            switch (DataType.ToLower())
             {
-                case "int": return "int";
+                case "int":
+                    return "int";
 
-                case "bigint": return "long";
+                case "bigint":
+                    return "long";
 
-                case "float": return "float";
+                case "float":
+                    return "float";
 
-                case "decimal": return "decimal";
+                case "decimal":
+                case "money":
+                case "smallmoney":
+                    return "decimal";
 
-                case "money": return "decimal";
+                case "smallint":
+                    return "short";
 
-                case "smallmoney": return "decimal";
+                case "tinyint":
+                    return "byte";
 
-                case "smallint": return "short";
+                case "nvarchar":
+                case "varchar":
+                case "char":
+                    return "string";
 
-                case "tinyint": return "byte";
+                case "datetime":
+                case "date":
+                case "smalldatetime":
+                case "datetime2":
+                    return "DateTime";
 
-                case "nvarchar": return "string";
+                case "time":
+                    return "TimeSpan";
 
-                case "varchar": return "string";
+                case "bit":
+                    return "bool";
 
-                case "char": return "char";
-
-                case "datetime": return "DateTime";
-
-                case "date": return "DateTime";
-
-                case "bit": return "bool";
-
-                default: return "string";
-
+                default:
+                    return "string";
             }
         }
 
         private string _GetConnectionString()
         {
             return "SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString)";
+        }
+
+        private bool _IsDataTypeString(string DateType)
+        {
+            string Result = _GetDataTypeCSharp(DateType);
+
+            return (Result.ToLower() == "string");
         }
 
         private string _MakeParametersForFindMethod()
@@ -167,15 +182,22 @@ namespace Code_Generator
                 {
                     string ColumnName = firstItem.SubItems[0].Text;
                     string DataType = firstItem.SubItems[1].Text;
-                    //string IsNullable = firstItem.SubItems[2].Text;
+                    string IsNullable = firstItem.SubItems[2].Text;
 
                     if (i == 0)
                     {
-                        Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                        Parameters += _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
                     }
                     else
                     {
-                        Parameters += "ref " + _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                        if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                        {
+                            Parameters += "ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                        }
+                        else
+                        {
+                            Parameters += "ref " + _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                        }
                     }
 
                 }
@@ -205,72 +227,22 @@ namespace Code_Generator
                     string DataType = SecondItem.SubItems[1].Text;
                     string IsNullable = SecondItem.SubItems[2].Text;
 
-                    if (IsNullable == "YES")
+                    if (IsNullable.ToUpper() == "YES")
                     {
-                        switch (DataType)
+                        if (!_IsDataTypeString(DataType))
                         {
-                            case "int":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0;";
-                                break;
-
-                            case "bigint":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0;";
-                                break;
-
-                            case "float":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0f;";
-                                break;
-
-                            case "decimal":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0M;";
-                                break;
-
-                            case "money":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0M;";
-                                break;
-
-                            case "smallmoney":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0M;";
-                                break;
-
-                            case "smallint":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : (short)0;";
-                                break;
-
-                            case "tinyint":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : (byte)0;";
-                                break;
-
-                            case "nvarchar":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : string.Empty;";
-                                break;
-
-                            case "varchar":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : string.Empty;";
-                                break;
-
-                            case "char":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : ' ';";
-                                break;
-
-                            case "datetime":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : DateTime.Now;";
-                                break;
-
-                            case "date":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : DateTime.Now;";
-                                break;
-
-                            case "bit":
-                                Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : false;";
-                                break;
+                            Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;";
+                        }
+                        else
+                        {
+                            Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)})reader[\"{ColumnName}\"] : null;";
                         }
 
                         Text += Environment.NewLine;
                     }
                     else
                     {
-                        Text += ColumnName + " = (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"];" + Environment.NewLine;
+                        Text += ColumnName + " = " + $"({_GetDataTypeCSharp(DataType)})" + "reader[\"" + ColumnName + "\"];" + Environment.NewLine;
                     }
                 }
 
@@ -299,7 +271,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);" + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += "                using (SqlDataReader reader = command.ExecuteReader())" + Environment.NewLine;
 
@@ -361,16 +333,30 @@ namespace Code_Generator
                 {
                     string ColumnName = firstItem.SubItems[0].Text;
                     string DataType = firstItem.SubItems[1].Text;
+                    string IsNullable = firstItem.SubItems[2].Text;
 
-                    if (ColumnName.ToLower() == "username")
+                    if (i == 0)
                     {
-                        Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                        Parameters += "ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
                     }
                     else
                     {
-                        Parameters += "ref " + _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                        if (ColumnName.ToLower() == "username")
+                        {
+                            Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                        }
+                        else
+                        {
+                            if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                            {
+                                Parameters += "ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                            }
+                            else
+                            {
+                                Parameters += "ref " + _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                            }
+                        }
                     }
-
                 }
 
             }
@@ -398,80 +384,37 @@ namespace Code_Generator
                     string DataType = FirstValue.SubItems[1].Text;
                     string IsNullable = FirstValue.SubItems[2].Text;
 
+
                     if (ColumnName.ToLower() != "username")
                     {
+
+                        if (i == 0)
+                        {
+                            Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;";
+                            Text += Environment.NewLine;
+
+                            continue;
+                        }
+
                         if (IsNullable == "YES")
                         {
-                            switch (DataType)
+                            if (!_IsDataTypeString(DataType))
                             {
-                                case "int":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0;";
-                                    break;
-
-                                case "bigint":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0;";
-                                    break;
-
-                                case "float":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0f;";
-                                    break;
-
-                                case "decimal":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0M;";
-                                    break;
-
-                                case "money":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0M;";
-                                    break;
-
-                                case "smallmoney":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0M;";
-                                    break;
-
-                                case "smallint":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : (short)0;";
-                                    break;
-
-                                case "tinyint":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : (byte)0;";
-                                    break;
-
-                                case "nvarchar":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : string.Empty;";
-                                    break;
-
-                                case "varchar":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : string.Empty;";
-                                    break;
-
-                                case "char":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : ' ';";
-                                    break;
-
-                                case "datetime":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : DateTime.Now;";
-                                    break;
-
-                                case "date":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : DateTime.Now;";
-                                    break;
-
-                                case "bit":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : false;";
-                                    break;
+                                Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;";
+                            }
+                            else
+                            {
+                                Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)})reader[\"{ColumnName}\"] : null;";
                             }
 
                             Text += Environment.NewLine;
                         }
                         else
                         {
-                            Text += ColumnName + " = (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"];" + Environment.NewLine;
+                            Text += ColumnName + " = " + $"({_GetDataTypeCSharp(DataType)})" + "reader[\"" + ColumnName + "\"];" + Environment.NewLine;
                         }
                     }
-
-
                 }
-
             }
 
             return Text.Trim();
@@ -561,6 +504,14 @@ namespace Code_Generator
                 {
                     string ColumnName = firstItem.SubItems[0].Text;
                     string DataType = firstItem.SubItems[1].Text;
+                    string IsNullable = firstItem.SubItems[2].Text;
+
+                    if (i == 0)
+                    {
+                        Parameters += "ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+
+                        continue;
+                    }
 
                     if (ColumnName.ToLower() == "username" || ColumnName.ToLower() == "password")
                     {
@@ -568,7 +519,14 @@ namespace Code_Generator
                     }
                     else
                     {
-                        Parameters += "ref " + _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                        if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                        {
+                            Parameters += "ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                        }
+                        else
+                        {
+                            Parameters += "ref " + _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                        }
                     }
 
                 }
@@ -600,72 +558,30 @@ namespace Code_Generator
 
                     if (ColumnName.ToLower() != "username" && ColumnName.ToLower() != "password")
                     {
+                        if (i == 0)
+                        {
+                            Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;";
+                            Text += Environment.NewLine;
+
+                            continue;
+                        }
+
                         if (IsNullable == "YES")
                         {
-                            switch (DataType)
+                            if (!_IsDataTypeString(DataType))
                             {
-                                case "int":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0;";
-                                    break;
-
-                                case "bigint":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0;";
-                                    break;
-
-                                case "float":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0f;";
-                                    break;
-
-                                case "decimal":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0M;";
-                                    break;
-
-                                case "money":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0M;";
-                                    break;
-
-                                case "smallmoney":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : 0M;";
-                                    break;
-
-                                case "smallint":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : (short)0;";
-                                    break;
-
-                                case "tinyint":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : (byte)0;";
-                                    break;
-
-                                case "nvarchar":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : string.Empty;";
-                                    break;
-
-                                case "varchar":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : string.Empty;";
-                                    break;
-
-                                case "char":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : ' ';";
-                                    break;
-
-                                case "datetime":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : DateTime.Now;";
-                                    break;
-
-                                case "date":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : DateTime.Now;";
-                                    break;
-
-                                case "bit":
-                                    Text += ColumnName + " = (reader[\"" + ColumnName + "\"] != DBNull.Value) ? (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"] : false;";
-                                    break;
+                                Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;";
+                            }
+                            else
+                            {
+                                Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)})reader[\"{ColumnName}\"] : null;";
                             }
 
                             Text += Environment.NewLine;
                         }
                         else
                         {
-                            Text += ColumnName + " = (" + _GetDataTypeCSharp(DataType) + ")reader[\"" + ColumnName + "\"];" + Environment.NewLine;
+                            Text += ColumnName + " = " + $"({_GetDataTypeCSharp(DataType)})" + "reader[\"" + ColumnName + "\"];" + Environment.NewLine;
                         }
                     }
                 }
@@ -761,8 +677,16 @@ namespace Code_Generator
                 {
                     string ColumnName = SecondRow.SubItems[0].Text;
                     string DataType = SecondRow.SubItems[1].Text;
+                    string IsNullable = SecondRow.SubItems[2].Text;
 
-                    Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                    if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                    {
+                        Parameters += _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                    }
+                    else
+                    {
+                        Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                    }
                 }
 
             }
@@ -860,74 +784,11 @@ namespace Code_Generator
                 if (SecondItem.SubItems.Count > 0)
                 {
                     string ColumnName = SecondItem.SubItems[0].Text;
-                    string DataType = SecondItem.SubItems[1].Text;
                     string IsNullable = SecondItem.SubItems[2].Text;
 
                     if (IsNullable == "YES")
                     {
-                        switch (DataType)
-                        {
-
-                            case "int":
-                                Text += $"if ({ColumnName} <= 0)" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "bigint":
-                                Text += $"if ({ColumnName} <= 0)" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "float":
-                                Text += $"if ({ColumnName} <= 0)" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "decimal":
-                                Text += $"if ({ColumnName} <= 0)" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "money":
-                                Text += $"if ({ColumnName} <= 0)" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "smallmoney":
-                                Text += $"if ({ColumnName} <= 0)" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "tinyint":
-                                Text += $"if ({ColumnName} <= 0)" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "smallint":
-                                Text += $"if ({ColumnName} <= 0)" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "nvarchar":
-                                Text += $"if (string.IsNullOrWhiteSpace({ColumnName}))" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "varchar":
-                                Text += $"if (string.IsNullOrWhiteSpace({ColumnName}))" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "char":
-                                Text += $"if ({ColumnName} == ' ')" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "datetime":
-                                Text += $"if ({ColumnName} == DateTime.Now)" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "date":
-                                Text += $"if ({ColumnName} == DateTime.Now)" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                            case "bit":
-                                Text += $"if (!{ColumnName})" + Environment.NewLine + "{" + Environment.NewLine;
-                                break;
-
-                        }
-
-                        Text += $"command.Parameters.AddWithValue(\"@{ColumnName}\", DBNull.Value);" + Environment.NewLine + "}" + Environment.NewLine;
-                        Text += "else" + Environment.NewLine + "{" + Environment.NewLine + $"command.Parameters.AddWithValue(\"@{ColumnName}\", {ColumnName});" + Environment.NewLine + "}" + Environment.NewLine;
+                        Text += $"command.Parameters.AddWithValue(\"@{ColumnName}\", (object){ColumnName} ?? DBNull.Value);" + Environment.NewLine;
                     }
                     else
                     {
@@ -944,11 +805,11 @@ namespace Code_Generator
         {
             txtDataAccessLayer.Text += Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"public static int AddNew{_TableSingleName}{_MakeParametersForAddNewMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"public static int? AddNew{_TableSingleName}{_MakeParametersForAddNewMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "// This function will return the new person id if succeeded and -1 if not" + Environment.NewLine;
+            txtDataAccessLayer.Text += "// This function will return the new person id if succeeded and null if not" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"    int {_TableSingleName}ID = -1;" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"    int? {_TableSingleName}ID = null;" + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += "    try" + Environment.NewLine + "    {" + Environment.NewLine;
 
@@ -1002,8 +863,23 @@ namespace Code_Generator
                 {
                     string ColumnName = SecondRow.SubItems[0].Text;
                     string DataType = SecondRow.SubItems[1].Text;
+                    string IsNullable = SecondRow.SubItems[2].Text;
 
-                    Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                    if (i == 0)
+                    {
+                        Parameters += _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                    }
+                    else
+                    {
+                        if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                        {
+                            Parameters += _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                        }
+                        else
+                        {
+                            Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                        }
+                    }
                 }
 
             }
@@ -1071,7 +947,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);" + Environment.NewLine;
 
             txtDataAccessLayer.Text += _FillParametersInTheCommand() + Environment.NewLine + Environment.NewLine;
 
@@ -1107,7 +983,7 @@ namespace Code_Generator
                 string ColumnName = SecondRow.SubItems[0].Text;
                 string DataType = SecondRow.SubItems[1].Text;
 
-                Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ")";
+                Parameters += _GetDataTypeCSharp(DataType) + "? " + ColumnName + ")";
             }
 
             return Parameters.Trim();
@@ -1139,7 +1015,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);" + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += "                RowAffected = command.ExecuteNonQuery();" + Environment.NewLine;
 
@@ -1186,7 +1062,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "            {" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", {_TableSingleName}ID);" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);" + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += "                object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
 
@@ -1385,8 +1261,23 @@ namespace Code_Generator
                 {
                     string ColumnName = firstItem.SubItems[0].Text;
                     string DataType = firstItem.SubItems[1].Text;
+                    string IsNullable = firstItem.SubItems[2].Text;
 
-                    Parameters += "public " + _GetDataTypeCSharp(DataType) + " " + ColumnName + " { get; set; }" + Environment.NewLine;
+                    if (i == 0)
+                    {
+                        Parameters += "public " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + " { get; set; }" + Environment.NewLine;
+                    }
+                    else
+                    {
+                        if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                        {
+                            Parameters += "public " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + " { get; set; }" + Environment.NewLine;
+                        }
+                        else
+                        {
+                            Parameters += "public " + _GetDataTypeCSharp(DataType) + " " + ColumnName + " { get; set; }" + Environment.NewLine;
+                        }
+                    }
                 }
 
             }
@@ -1409,70 +1300,70 @@ namespace Code_Generator
                 {
                     string ColumnName = firstItem.SubItems[0].Text;
                     string DataType = firstItem.SubItems[1].Text;
+                    string IsNullable = firstItem.SubItems[2].Text;
 
-                    switch (DataType)
+                    if (i == 0)
                     {
-
-                        case "int":
-                            Constructor += $"this.{ColumnName} = -1;" + Environment.NewLine;
-                            break;
-
-                        case "bigint":
-                            Constructor += $"this.{ColumnName} = -1;" + Environment.NewLine;
-                            break;
-
-                        case "float":
-                            Constructor += $"this.{ColumnName} = -1F;" + Environment.NewLine;
-                            break;
-
-                        case "decimal":
-                            Constructor += $"this.{ColumnName} = -1M;" + Environment.NewLine;
-                            break;
-
-                        case "money":
-                            Constructor += $"this.{ColumnName} = -1M;" + Environment.NewLine;
-                            break;
-
-                        case "smallmoney":
-                            Constructor += $"this.{ColumnName} = -1M;" + Environment.NewLine;
-                            break;
-
-                        case "tinyint":
-                            Constructor += $"this.{ColumnName} = 0;" + Environment.NewLine;
-                            break;
-
-                        case "smallint":
-                            Constructor += $"this.{ColumnName} = -1;" + Environment.NewLine;
-                            break;
-
-                        case "nvarchar":
-                            Constructor += $"this.{ColumnName} = string.Empty;" + Environment.NewLine;
-                            break;
-
-                        case "varchar":
-                            Constructor += $"this.{ColumnName} = string.Empty;" + Environment.NewLine;
-                            break;
-
-                        case "char":
-                            Constructor += $"this.{ColumnName} = ' ';" + Environment.NewLine;
-                            break;
-
-                        case "datetime":
-                            Constructor += $"this.{ColumnName} = DateTime.Now;" + Environment.NewLine;
-                            break;
-
-                        case "date":
-                            Constructor += $"this.{ColumnName} = DateTime.Now;" + Environment.NewLine;
-                            break;
-
-                        case "bit":
-                            Constructor += $"this.{ColumnName} = false;" + Environment.NewLine;
-                            break;
-
+                        Constructor += $"this.{ColumnName} = null;" + Environment.NewLine;
                     }
+                    else
+                    {
+                        if (IsNullable.ToUpper() == "YES")
+                        {
+                            Constructor += $"this.{ColumnName} = null;" + Environment.NewLine;
+                        }
+                        else
+                        {
+                            switch (DataType.ToLower())
+                            {
+                                case "int":
+                                case "bigint":
+                                    Constructor += $"this.{ColumnName} = -1;" + Environment.NewLine;
+                                    break;
 
+                                case "float":
+                                    Constructor += $"this.{ColumnName} = -1F;" + Environment.NewLine;
+                                    break;
+
+                                case "decimal":
+                                case "money":
+                                case "smallmoney":
+                                    Constructor += $"this.{ColumnName} = -1M;" + Environment.NewLine;
+                                    break;
+
+                                case "tinyint":
+                                    Constructor += $"this.{ColumnName} = 0;" + Environment.NewLine;
+                                    break;
+
+                                case "smallint":
+                                    Constructor += $"this.{ColumnName} = -1;" + Environment.NewLine;
+                                    break;
+
+                                case "nvarchar":
+                                case "varchar":
+                                case "char":
+                                    Constructor += $"this.{ColumnName} = string.Empty;" + Environment.NewLine;
+                                    break;
+
+                                case "datetime":
+                                case "date":
+                                case "smalldatetime":
+                                case "datetime2":
+                                    Constructor += $"this.{ColumnName} = DateTime.Now;" + Environment.NewLine;
+                                    break;
+
+                                case "time":
+                                    Constructor += $"this.{ColumnName} = DateTime.Now.TimeOfDay;" + Environment.NewLine;
+                                    break;
+
+                                case "bit":
+                                    Constructor += $"this.{ColumnName} = false;" + Environment.NewLine;
+                                    break;
+                            }
+
+                        }
+                    }
                 }
-
             }
 
             Constructor += Environment.NewLine + "Mode = enMode.AddNew;" + Environment.NewLine + "}" + Environment.NewLine;
@@ -1495,70 +1386,10 @@ namespace Code_Generator
                 {
                     string ColumnName = firstItem.SubItems[0].Text;
                     string DataType = firstItem.SubItems[1].Text;
+                    string IsNullable = firstItem.SubItems[2].Text;
 
-                    switch (DataType)
-                    {
-
-                        case "int":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "bigint":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "float":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "decimal":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "money":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "smallmoney":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "tinyint":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "smallint":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "nvarchar":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "varchar":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "char":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "datetime":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "date":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                        case "bit":
-                            Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                            break;
-
-                    }
-
+                    Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
                 }
-
             }
 
             Constructor += Environment.NewLine + "Mode = enMode.Update;" + Environment.NewLine + "}" + Environment.NewLine;
@@ -1605,7 +1436,7 @@ namespace Code_Generator
 
             Text += $"this.{_TableSingleName}ID = cls{_TableSingleName}Data.AddNew{_TableSingleName}{_MakeParametersForAddNewMethodInBusinessLayer()}" + Environment.NewLine + Environment.NewLine;
 
-            Text += $"return (this.{_TableSingleName}ID != -1);" + Environment.NewLine + "}";
+            Text += $"return (this.{_TableSingleName}ID.HasValue);" + Environment.NewLine + "}";
 
             return Text.Trim();
         }
@@ -1685,65 +1516,70 @@ namespace Code_Generator
                 {
                     string ColumnName = SecondRow.SubItems[0].Text;
                     string DataType = SecondRow.SubItems[1].Text;
+                    string IsNullable = SecondRow.SubItems[2].Text;
 
-                    switch (DataType)
+                    if (IsNullable.ToUpper() == "YES")
                     {
+                        if (!_IsDataTypeString(DataType))
+                        {
+                            Variable += _GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine;
+                        }
+                        else
+                        {
+                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = null;" + Environment.NewLine;
+                        }
+                    }
+                    else
+                    {
+                        switch (DataType.ToLower())
+                        {
+                            case "int":
+                            case "bigint":
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
+                                break;
 
-                        case "int":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                            break;
+                            case "float":
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;" + Environment.NewLine;
+                                break;
 
-                        case "bigint":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                            break;
+                            case "decimal":
+                            case "money":
+                            case "smallmoney":
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
+                                break;
 
-                        case "float":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;" + Environment.NewLine;
-                            break;
+                            case "tinyint":
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;" + Environment.NewLine;
+                                break;
 
-                        case "decimal":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                            break;
+                            case "smallint":
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
+                                break;
 
-                        case "money":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                            break;
+                            case "nvarchar":
+                            case "varchar":
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
+                                break;
 
-                        case "smallmoney":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                            break;
+                            case "char":
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = ' ';" + Environment.NewLine;
+                                break;
 
-                        case "tinyint":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;" + Environment.NewLine;
-                            break;
+                            case "datetime":
+                            case "date":
+                            case "smalldatetime":
+                            case "datetime2":
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
+                                break;
 
-                        case "smallint":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                            break;
+                            case "time":
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now.TimeOfDay;" + Environment.NewLine;
+                                break;
 
-                        case "nvarchar":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
-                            break;
-
-                        case "varchar":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
-                            break;
-
-                        case "char":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = ' ';" + Environment.NewLine;
-                            break;
-
-                        case "datetime":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
-                            break;
-
-                        case "date":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
-                            break;
-
-                        case "bit":
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;" + Environment.NewLine;
-                            break;
+                            case "bit":
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;" + Environment.NewLine;
+                                break;
+                        }
 
                     }
                 }
@@ -1884,68 +1720,76 @@ namespace Code_Generator
                 {
                     string ColumnName = FirstRow.SubItems[0].Text;
                     string DataType = FirstRow.SubItems[1].Text;
+                    string IsNullable = FirstRow.SubItems[2].Text;
 
                     if (ColumnName.ToLower() != "username")
                     {
-                        switch (DataType)
+                        if (i == 0)
                         {
+                            Variable += _GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine;
 
-                            case "int":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                break;
+                            continue;
+                        }
 
-                            case "bigint":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                break;
+                        if (IsNullable.ToUpper() == "YES")
+                        {
+                            if (!_IsDataTypeString(DataType))
+                            {
+                                Variable += _GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine;
+                            }
+                            else
+                            {
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = null;" + Environment.NewLine;
+                            }
+                        }
+                        else
+                        {
+                            switch (DataType.ToLower())
+                            {
+                                case "int":
+                                case "bigint":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
+                                    break;
 
-                            case "float":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;" + Environment.NewLine;
-                                break;
+                                case "float":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;" + Environment.NewLine;
+                                    break;
 
-                            case "decimal":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                                break;
+                                case "decimal":
+                                case "money":
+                                case "smallmoney":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
+                                    break;
 
-                            case "money":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                                break;
+                                case "tinyint":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;" + Environment.NewLine;
+                                    break;
 
-                            case "smallmoney":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                                break;
+                                case "smallint":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
+                                    break;
 
-                            case "tinyint":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;" + Environment.NewLine;
-                                break;
+                                case "nvarchar":
+                                case "varchar":
+                                case "char":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
+                                    break;
 
-                            case "smallint":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                break;
+                                case "datetime":
+                                case "date":
+                                case "smalldatetime":
+                                case "datetime2":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
+                                    break;
 
-                            case "nvarchar":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
-                                break;
+                                case "time":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now.TimeOfDay;" + Environment.NewLine;
+                                    break;
 
-                            case "varchar":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
-                                break;
-
-                            case "char":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = ' ';" + Environment.NewLine;
-                                break;
-
-                            case "datetime":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
-                                break;
-
-                            case "date":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
-                                break;
-
-                            case "bit":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;" + Environment.NewLine;
-                                break;
-
+                                case "bit":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;" + Environment.NewLine;
+                                    break;
+                            }
                         }
                     }
                 }
@@ -2025,68 +1869,76 @@ namespace Code_Generator
                 {
                     string ColumnName = FirstRow.SubItems[0].Text;
                     string DataType = FirstRow.SubItems[1].Text;
+                    string IsNullable = FirstRow.SubItems[2].Text;
 
                     if (ColumnName.ToLower() != "username" && ColumnName.ToLower() != "password")
                     {
-                        switch (DataType)
+                        if (i == 0)
                         {
+                            Variable += _GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine;
 
-                            case "int":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                break;
+                            continue;
+                        }
 
-                            case "bigint":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                break;
+                        if (IsNullable.ToUpper() == "YES")
+                        {
+                            if (!_IsDataTypeString(DataType))
+                            {
+                                Variable += _GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine;
+                            }
+                            else
+                            {
+                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = null;" + Environment.NewLine;
+                            }
+                        }
+                        else
+                        {
+                            switch (DataType.ToLower())
+                            {
+                                case "int":
+                                case "bigint":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
+                                    break;
 
-                            case "float":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;" + Environment.NewLine;
-                                break;
+                                case "float":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;" + Environment.NewLine;
+                                    break;
 
-                            case "decimal":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                                break;
+                                case "decimal":
+                                case "money":
+                                case "smallmoney":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
+                                    break;
 
-                            case "money":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                                break;
+                                case "tinyint":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;" + Environment.NewLine;
+                                    break;
 
-                            case "smallmoney":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                                break;
+                                case "smallint":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
+                                    break;
 
-                            case "tinyint":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;" + Environment.NewLine;
-                                break;
+                                case "nvarchar":
+                                case "varchar":
+                                case "char":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
+                                    break;
 
-                            case "smallint":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                break;
+                                case "datetime":
+                                case "date":
+                                case "smalldatetime":
+                                case "datetime2":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
+                                    break;
 
-                            case "nvarchar":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
-                                break;
+                                case "time":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now.TimeOfDay;" + Environment.NewLine;
+                                    break;
 
-                            case "varchar":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
-                                break;
-
-                            case "char":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = ' ';" + Environment.NewLine;
-                                break;
-
-                            case "datetime":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
-                                break;
-
-                            case "date":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
-                                break;
-
-                            case "bit":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;" + Environment.NewLine;
-                                break;
-
+                                case "bit":
+                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;" + Environment.NewLine;
+                                    break;
+                            }
                         }
                     }
                 }

@@ -50,14 +50,14 @@
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Tahoma", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.Color.MediumBlue;
-            this.label1.Location = new System.Drawing.Point(551, -2);
+            this.label1.Location = new System.Drawing.Point(1, 1);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(406, 58);
+            this.label1.Size = new System.Drawing.Size(1582, 58);
             this.label1.TabIndex = 0;
             this.label1.Text = "Code Generator";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // listviewColumnsInfo
             // 
@@ -71,7 +71,7 @@
             this.listviewColumnsInfo.LabelEdit = true;
             this.listviewColumnsInfo.Location = new System.Drawing.Point(447, 131);
             this.listviewColumnsInfo.Name = "listviewColumnsInfo";
-            this.listviewColumnsInfo.Size = new System.Drawing.Size(407, 455);
+            this.listviewColumnsInfo.Size = new System.Drawing.Size(474, 455);
             this.listviewColumnsInfo.TabIndex = 7;
             this.listviewColumnsInfo.UseCompatibleStateImageBehavior = false;
             this.listviewColumnsInfo.View = System.Windows.Forms.View.Details;
@@ -80,17 +80,17 @@
             // listColumnName
             // 
             this.listColumnName.Text = "Column Name";
-            this.listColumnName.Width = 150;
+            this.listColumnName.Width = 220;
             // 
             // listDataType
             // 
             this.listDataType.Text = "Data Type";
-            this.listDataType.Width = 110;
+            this.listDataType.Width = 140;
             // 
             // listAllowNull
             // 
             this.listAllowNull.Text = "Allow Null";
-            this.listAllowNull.Width = 140;
+            this.listAllowNull.Width = 110;
             // 
             // label6
             // 
@@ -194,6 +194,7 @@
             // comboDatabaseName
             // 
             this.comboDatabaseName.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.comboDatabaseName.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboDatabaseName.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboDatabaseName.FormattingEnabled = true;
             this.comboDatabaseName.Location = new System.Drawing.Point(210, 85);
@@ -215,7 +216,7 @@
             this.listviewTablesName.LabelEdit = true;
             this.listviewTablesName.Location = new System.Drawing.Point(82, 131);
             this.listviewTablesName.Name = "listviewTablesName";
-            this.listviewTablesName.Size = new System.Drawing.Size(145, 455);
+            this.listviewTablesName.Size = new System.Drawing.Size(171, 455);
             this.listviewTablesName.TabIndex = 15;
             this.listviewTablesName.UseCompatibleStateImageBehavior = false;
             this.listviewTablesName.View = System.Windows.Forms.View.Details;
@@ -224,7 +225,7 @@
             // columnHeader1
             // 
             this.columnHeader1.Text = "Table Name";
-            this.columnHeader1.Width = 140;
+            this.columnHeader1.Width = 180;
             // 
             // lblNumberOfTablesRecords
             // 
@@ -267,6 +268,7 @@
             this.Controls.Add(this.label6);
             this.Controls.Add(this.listviewColumnsInfo);
             this.Controls.Add(this.label1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "Form1";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
