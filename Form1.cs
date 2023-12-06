@@ -160,6 +160,16 @@ namespace Code_Generator
             return "SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString)";
         }
 
+        private string _CreateCatchBlockWithIsFound()
+        {
+            return "catch (SqlException ex)\r\n{\r\n    IsFound = false;\r\n\r\n    clsLogError.LogError(\"Database Exception\", ex);\r\n}\r\ncatch (Exception ex)\r\n{\r\n    IsFound = false;\r\n\r\n    clsLogError.LogError(\"General Exception\", ex);\r\n}";
+        }
+
+        private string _CreateCatchBlockWithoutIsFound()
+        {
+            return "catch (SqlException ex)\r\n{\r\n    clsLogError.LogError(\"Database Exception\", ex);\r\n}\r\ncatch (Exception ex)\r\n{\r\n    clsLogError.LogError(\"General Exception\", ex);\r\n}";
+        }
+
         private bool _IsDataTypeString(string DateType)
         {
             string Result = _GetDataTypeCSharp(DateType);
@@ -307,13 +317,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
         }
@@ -478,13 +482,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
         }
@@ -651,13 +649,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
         }
@@ -841,9 +833,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine + "    {" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _CreateCatchBlockWithoutIsFound() + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += $"    return {_TableSingleName}ID;" + Environment.NewLine + "}" + Environment.NewLine;
         }
@@ -959,11 +949,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _CreateCatchBlockWithoutIsFound() + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += $"    return (RowAffected > 0);" + Environment.NewLine;
 
@@ -1025,11 +1011,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _CreateCatchBlockWithoutIsFound() + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += $"    return (RowAffected > 0);" + Environment.NewLine;
 
@@ -1074,13 +1056,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine;
 
@@ -1125,13 +1101,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine;
 
@@ -1178,13 +1148,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        IsFound = false;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine;
 
@@ -1237,11 +1201,7 @@ namespace Code_Generator
 
             txtDataAccessLayer.Text += "    }" + Environment.NewLine;
 
-            txtDataAccessLayer.Text += "    catch (SqlException ex)" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine + Environment.NewLine;
+            txtDataAccessLayer.Text += _CreateCatchBlockWithoutIsFound() + Environment.NewLine + Environment.NewLine;
 
             txtDataAccessLayer.Text += "    return dt;" + Environment.NewLine;
 
