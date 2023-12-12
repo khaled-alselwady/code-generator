@@ -35,7 +35,7 @@
             this.listAllowNull = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.label6 = new System.Windows.Forms.Label();
             this.lblNumberOfColumnsRecords = new System.Windows.Forms.Label();
-            this.txtDataAccessLayer = new System.Windows.Forms.TextBox();
+            this.txtData = new System.Windows.Forms.TextBox();
             this.btnShowDateAccessLayer = new System.Windows.Forms.Button();
             this.btnCopy = new System.Windows.Forms.Button();
             this.btnShowBusinessLayer = new System.Windows.Forms.Button();
@@ -113,15 +113,15 @@
             this.lblNumberOfColumnsRecords.TabIndex = 10;
             this.lblNumberOfColumnsRecords.Text = "0";
             // 
-            // txtDataAccessLayer
+            // txtData
             // 
-            this.txtDataAccessLayer.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtDataAccessLayer.Location = new System.Drawing.Point(993, 131);
-            this.txtDataAccessLayer.Multiline = true;
-            this.txtDataAccessLayer.Name = "txtDataAccessLayer";
-            this.txtDataAccessLayer.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtDataAccessLayer.Size = new System.Drawing.Size(495, 479);
-            this.txtDataAccessLayer.TabIndex = 11;
+            this.txtData.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtData.Location = new System.Drawing.Point(993, 131);
+            this.txtData.Multiline = true;
+            this.txtData.Name = "txtData";
+            this.txtData.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtData.Size = new System.Drawing.Size(495, 479);
+            this.txtData.TabIndex = 11;
             // 
             // btnShowDateAccessLayer
             // 
@@ -263,7 +263,7 @@
             this.Controls.Add(this.btnShowBusinessLayer);
             this.Controls.Add(this.btnCopy);
             this.Controls.Add(this.btnShowDateAccessLayer);
-            this.Controls.Add(this.txtDataAccessLayer);
+            this.Controls.Add(this.txtData);
             this.Controls.Add(this.lblNumberOfColumnsRecords);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.listviewColumnsInfo);
@@ -288,7 +288,7 @@
         private System.Windows.Forms.ColumnHeader listAllowNull;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label lblNumberOfColumnsRecords;
-        private System.Windows.Forms.TextBox txtDataAccessLayer;
+        private System.Windows.Forms.TextBox txtData;
         private System.Windows.Forms.Button btnShowDateAccessLayer;
         private System.Windows.Forms.Button btnCopy;
         private System.Windows.Forms.Button btnShowBusinessLayer;

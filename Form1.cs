@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
@@ -20,6 +21,8 @@ namespace Code_Generator
         private string _TableName = string.Empty;
         private string _TableSingleName = string.Empty;
         private bool _IsLogin = false;
+
+        private StringBuilder _TempText = new StringBuilder();
 
         public Form1()
         {
@@ -155,6 +158,15 @@ namespace Code_Generator
             }
         }
 
+        private bool _IsDataTypeString(string DateType)
+        {
+            string Result = _GetDataTypeCSharp(DateType);
+
+            return (Result.ToLower() == "string");
+        }
+
+        #region Data Access Layer
+
         private string _GetConnectionString()
         {
             return "SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString)";
@@ -170,23 +182,15 @@ namespace Code_Generator
             return "catch (SqlException ex)\r\n{\r\n    clsLogError.LogError(\"Database Exception\", ex);\r\n}\r\ncatch (Exception ex)\r\n{\r\n    clsLogError.LogError(\"General Exception\", ex);\r\n}";
         }
 
-        private bool _IsDataTypeString(string DateType)
-        {
-            string Result = _GetDataTypeCSharp(DateType);
-
-            return (Result.ToLower() == "string");
-        }
-
         private string _MakeParametersForFindMethod()
         {
-            string Parameters = string.Empty;
+            StringBuilder Parameters = new StringBuilder();
 
-            Parameters = "(";
+            Parameters.Append("(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
-
-                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+                ListViewItem firstItem = listviewColumnsInfo.Items[i];
 
                 if (firstItem.SubItems.Count > 0)
                 {
@@ -196,40 +200,37 @@ namespace Code_Generator
 
                     if (i == 0)
                     {
-                        Parameters += _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                        Parameters.Append(_GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ");
                     }
                     else
                     {
                         if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
                         {
-                            Parameters += "ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                            Parameters.Append("ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ");
                         }
                         else
                         {
-                            Parameters += "ref " + _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                            Parameters.Append("ref " + _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ");
                         }
                     }
-
                 }
-
             }
 
             // To remove the ", " from the end of the text
-            Parameters = Parameters.Remove(Parameters.Length - 2);
+            Parameters.Length -= 2;
 
-            Parameters += ")";
+            Parameters.Append(")");
 
-            return Parameters.Trim();
+            return Parameters.ToString().Trim();
         }
 
         private string _FillTheVariableWithDataThatComingFromDatabase()
         {
-            string Text = string.Empty;
+            StringBuilder Text = new StringBuilder();
 
             for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
             {
-
-                ListViewItem SecondItem = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+                ListViewItem SecondItem = listviewColumnsInfo.Items[i];
 
                 if (SecondItem.SubItems.Count > 0)
                 {
@@ -241,97 +242,81 @@ namespace Code_Generator
                     {
                         if (!_IsDataTypeString(DataType))
                         {
-                            Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;";
+                            Text.Append($"{ColumnName} = (reader[\"{ColumnName}\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;");
                         }
                         else
                         {
-                            Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)})reader[\"{ColumnName}\"] : null;";
+                            Text.Append($"{ColumnName} = (reader[\"{ColumnName}\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)})reader[\"{ColumnName}\"] : null;");
                         }
 
-                        Text += Environment.NewLine;
+                        Text.AppendLine();
                     }
                     else
                     {
-                        Text += ColumnName + " = " + $"({_GetDataTypeCSharp(DataType)})" + "reader[\"" + ColumnName + "\"];" + Environment.NewLine;
+                        Text.AppendLine($"{ColumnName} = ({_GetDataTypeCSharp(DataType)})reader[\"{ColumnName}\"];");
                     }
                 }
-
             }
 
-            return Text.Trim();
+            return Text.ToString().Trim();
         }
 
         private void _CreateFindMethod()
         {
-            txtDataAccessLayer.Text += $"public static bool Get{_TableSingleName}InfoByID{_MakeParametersForFindMethod()}";
+            _TempText.Append($"public static bool Get{_TableSingleName}InfoByID{_MakeParametersForFindMethod()}");
+            _TempText.AppendLine();
+            _TempText.AppendLine("{");
 
-            txtDataAccessLayer.Text += Environment.NewLine + "{" + Environment.NewLine;
+            _TempText.AppendLine("    bool IsFound = false;");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            _TempText.AppendLine("    try");
+            _TempText.AppendLine("    {");
+            _TempText.AppendLine($"        using ({_GetConnectionString()})");
+            _TempText.AppendLine("        {");
+            _TempText.AppendLine("            connection.Open();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    try" + Environment.NewLine + "    {" + Environment.NewLine;
+            _TempText.AppendLine($"    string query = @\"select * from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine + "{" + Environment.NewLine;
+            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine("            {");
+            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
+            _TempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
+            _TempText.AppendLine("                {");
+            _TempText.AppendLine("                    if (reader.Read())");
+            _TempText.AppendLine("                    {");
+            _TempText.AppendLine("                        // The record was found");
+            _TempText.AppendLine("                        IsFound = true;");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += $"    string query = @\"select * from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                using (SqlDataReader reader = command.ExecuteReader())" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    if (reader.Read())" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        // The record was found" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        IsFound = true;" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _FillTheVariableWithDataThatComingFromDatabase() + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    else" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        // The record was not found" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        IsFound = false;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
+            _TempText.AppendLine(_FillTheVariableWithDataThatComingFromDatabase());
+            _TempText.AppendLine("                    }");
+            _TempText.AppendLine("                    else");
+            _TempText.AppendLine("                    {");
+            _TempText.AppendLine("                        // The record was not found");
+            _TempText.AppendLine("                        IsFound = false;");
+            _TempText.AppendLine("                    }");
+            _TempText.AppendLine("                }");
+            _TempText.AppendLine("            }");
+            _TempText.AppendLine("        }");
+            _TempText.AppendLine("    }");
+            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _TempText.AppendLine();
+            _TempText.AppendLine("    return IsFound;");
+            _TempText.AppendLine("}");
         }
 
         private string _MakeParametersForFindMethodForUsername()
         {
-            string Parameters = string.Empty;
-
-            Parameters = "(";
+            StringBuilder Parameters = new StringBuilder("(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
-
-                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+                ListViewItem firstItem = listviewColumnsInfo.Items[i];
 
                 if (firstItem.SubItems.Count > 0)
                 {
@@ -341,46 +326,44 @@ namespace Code_Generator
 
                     if (i == 0)
                     {
-                        Parameters += "ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                        Parameters.Append("ref ").Append(_GetDataTypeCSharp(DataType)).Append("? ").Append(ColumnName).Append(", ");
                     }
                     else
                     {
                         if (ColumnName.ToLower() == "username")
                         {
-                            Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                            Parameters.Append(_GetDataTypeCSharp(DataType)).Append(" ").Append(ColumnName).Append(", ");
                         }
                         else
                         {
                             if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
                             {
-                                Parameters += "ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                                Parameters.Append("ref ").Append(_GetDataTypeCSharp(DataType)).Append("? ").Append(ColumnName).Append(", ");
                             }
                             else
                             {
-                                Parameters += "ref " + _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                                Parameters.Append("ref ").Append(_GetDataTypeCSharp(DataType)).Append(" ").Append(ColumnName).Append(", ");
                             }
                         }
                     }
                 }
-
             }
 
             // To remove the ", " from the end of the text
-            Parameters = Parameters.Remove(Parameters.Length - 2);
+            Parameters.Length -= 2;
 
-            Parameters += ")";
+            Parameters.Append(")");
 
-            return Parameters.Trim();
+            return Parameters.ToString().Trim();
         }
 
         private string _FillTheVariableWithDataThatComingFromDatabaseForUsername()
         {
-            string Text = string.Empty;
+            StringBuilder Text = new StringBuilder();
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
-
-                ListViewItem FirstValue = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+                ListViewItem FirstValue = listviewColumnsInfo.Items[i];
 
                 if (FirstValue.SubItems.Count > 0)
                 {
@@ -388,15 +371,20 @@ namespace Code_Generator
                     string DataType = FirstValue.SubItems[1].Text;
                     string IsNullable = FirstValue.SubItems[2].Text;
 
-
                     if (ColumnName.ToLower() != "username")
                     {
-
                         if (i == 0)
                         {
-                            Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;";
-                            Text += Environment.NewLine;
-
+                            Text.Append(ColumnName)
+                                .Append(" = ")
+                                .Append("(reader[\"")
+                                .Append(ColumnName)
+                                .Append("\"] != DBNull.Value) ? (")
+                                .Append(_GetDataTypeCSharp(DataType))
+                                .Append("?)reader[\"")
+                                .Append(ColumnName)
+                                .Append("\"] : null;")
+                                .AppendLine();
                             continue;
                         }
 
@@ -404,99 +392,104 @@ namespace Code_Generator
                         {
                             if (!_IsDataTypeString(DataType))
                             {
-                                Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;";
+                                Text.Append(ColumnName)
+                                    .Append(" = ")
+                                    .Append("(reader[\"")
+                                    .Append(ColumnName)
+                                    .Append("\"] != DBNull.Value) ? (")
+                                    .Append(_GetDataTypeCSharp(DataType))
+                                    .Append("?)reader[\"")
+                                    .Append(ColumnName)
+                                    .Append("\"] : null;")
+                                    .AppendLine();
                             }
                             else
                             {
-                                Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)})reader[\"{ColumnName}\"] : null;";
+                                Text.Append(ColumnName)
+                                    .Append(" = ")
+                                    .Append("(reader[\"")
+                                    .Append(ColumnName)
+                                    .Append("\"] != DBNull.Value) ? (")
+                                    .Append(_GetDataTypeCSharp(DataType))
+                                    .Append(")reader[\"")
+                                    .Append(ColumnName)
+                                    .Append("\"] : null;")
+                                    .AppendLine();
                             }
-
-                            Text += Environment.NewLine;
                         }
                         else
                         {
-                            Text += ColumnName + " = " + $"({_GetDataTypeCSharp(DataType)})" + "reader[\"" + ColumnName + "\"];" + Environment.NewLine;
+                            Text.Append(ColumnName)
+                                .Append(" = ")
+                                .Append("(")
+                                .Append(_GetDataTypeCSharp(DataType))
+                                .Append(")reader[\"")
+                                .Append(ColumnName)
+                                .Append("\"];")
+                                .AppendLine();
                         }
                     }
                 }
             }
 
-            return Text.Trim();
+            return Text.ToString().Trim();
         }
 
         private void _CreateFindMethodForUsername()
         {
-            txtDataAccessLayer.Text += Environment.NewLine;
+            _TempText.AppendLine();
+            _TempText.AppendLine($"public static bool Get{_TableSingleName}InfoByUsername{_MakeParametersForFindMethodForUsername()}");
+            _TempText.AppendLine("{");
+            _TempText.AppendLine("    bool IsFound = false;");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += $"public static bool Get{_TableSingleName}InfoByUsername{_MakeParametersForFindMethodForUsername()}" + Environment.NewLine;
+            _TempText.AppendLine("    try");
+            _TempText.AppendLine("    {");
+            _TempText.AppendLine($"        using ({_GetConnectionString()})");
+            _TempText.AppendLine("        {");
+            _TempText.AppendLine("            connection.Open();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "{" + Environment.NewLine;
+            _TempText.AppendLine($"            string query = @\"select * from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS\";");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine("            {");
+            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    try" + Environment.NewLine + "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine + "        {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"            string query = @\"select * from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                using (SqlDataReader reader = command.ExecuteReader())" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    if (reader.Read())" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        // The record was found" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        IsFound = true;" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _FillTheVariableWithDataThatComingFromDatabaseForUsername() + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    else" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        // The record was not found" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        IsFound = false;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
+            _TempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
+            _TempText.AppendLine("                {");
+            _TempText.AppendLine("                    if (reader.Read())");
+            _TempText.AppendLine("                    {");
+            _TempText.AppendLine("                        // The record was found");
+            _TempText.AppendLine("                        IsFound = true;");
+            _TempText.AppendLine(_FillTheVariableWithDataThatComingFromDatabaseForUsername());
+            _TempText.AppendLine("                    }");
+            _TempText.AppendLine("                    else");
+            _TempText.AppendLine("                    {");
+            _TempText.AppendLine("                        // The record was not found");
+            _TempText.AppendLine("                        IsFound = false;");
+            _TempText.AppendLine("                    }");
+            _TempText.AppendLine("                }");
+            _TempText.AppendLine("            }");
+            _TempText.AppendLine("        }");
+            _TempText.AppendLine("    }");
+            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _TempText.AppendLine();
+            _TempText.AppendLine("    return IsFound;");
+            _TempText.AppendLine("}");
         }
 
         private string _MakeParametersForFindMethodForUsernameAndPassword()
         {
-            string Parameters = string.Empty;
+            StringBuilder Parameters = new StringBuilder();
 
-            Parameters = "(";
+            Parameters.Append("(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
-
-                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+                ListViewItem firstItem = listviewColumnsInfo.Items[i];
 
                 if (firstItem.SubItems.Count > 0)
                 {
@@ -506,47 +499,58 @@ namespace Code_Generator
 
                     if (i == 0)
                     {
-                        Parameters += "ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
-
+                        Parameters.Append("ref ")
+                            .Append(_GetDataTypeCSharp(DataType))
+                            .Append("? ")
+                            .Append(ColumnName)
+                            .Append(", ");
                         continue;
                     }
 
                     if (ColumnName.ToLower() == "username" || ColumnName.ToLower() == "password")
                     {
-                        Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                        Parameters.Append(_GetDataTypeCSharp(DataType))
+                            .Append(" ")
+                            .Append(ColumnName)
+                            .Append(", ");
                     }
                     else
                     {
                         if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
                         {
-                            Parameters += "ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                            Parameters.Append("ref ")
+                                .Append(_GetDataTypeCSharp(DataType))
+                                .Append("? ")
+                                .Append(ColumnName)
+                                .Append(", ");
                         }
                         else
                         {
-                            Parameters += "ref " + _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                            Parameters.Append("ref ")
+                                .Append(_GetDataTypeCSharp(DataType))
+                                .Append(" ")
+                                .Append(ColumnName)
+                                .Append(", ");
                         }
                     }
-
                 }
-
             }
 
             // To remove the ", " from the end of the text
-            Parameters = Parameters.Remove(Parameters.Length - 2);
+            Parameters.Length -= 2;
 
-            Parameters += ")";
+            Parameters.Append(")");
 
-            return Parameters.Trim();
+            return Parameters.ToString().Trim();
         }
 
         private string _FillTheVariableWithDataThatComingFromDatabaseForUsernameAndPassword()
         {
-            string Text = string.Empty;
+            StringBuilder Text = new StringBuilder();
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
-
-                ListViewItem FirstValue = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+                ListViewItem FirstValue = listviewColumnsInfo.Items[i];
 
                 if (FirstValue.SubItems.Count > 0)
                 {
@@ -558,8 +562,15 @@ namespace Code_Generator
                     {
                         if (i == 0)
                         {
-                            Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;";
-                            Text += Environment.NewLine;
+                            Text.Append(ColumnName)
+                                .Append(" = (reader[\"")
+                                .Append(ColumnName)
+                                .Append("\"] != DBNull.Value) ? (")
+                                .Append(_GetDataTypeCSharp(DataType))
+                                .Append("?)reader[\"")
+                                .Append(ColumnName)
+                                .Append("\"] : null;")
+                                .AppendLine();
 
                             continue;
                         }
@@ -568,101 +579,99 @@ namespace Code_Generator
                         {
                             if (!_IsDataTypeString(DataType))
                             {
-                                Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;";
+                                Text.Append(ColumnName)
+                                    .Append(" = (reader[\"")
+                                    .Append(ColumnName)
+                                    .Append("\"] != DBNull.Value) ? (")
+                                    .Append(_GetDataTypeCSharp(DataType))
+                                    .Append("?)reader[\"")
+                                    .Append(ColumnName)
+                                    .Append("\"] : null;")
+                                    .AppendLine();
                             }
                             else
                             {
-                                Text += ColumnName + " = " + "(reader[\"" + ColumnName + $"\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)})reader[\"{ColumnName}\"] : null;";
+                                Text.Append(ColumnName)
+                                    .Append(" = (reader[\"")
+                                    .Append(ColumnName)
+                                    .Append("\"] != DBNull.Value) ? (")
+                                    .Append(_GetDataTypeCSharp(DataType))
+                                    .Append(")reader[\"")
+                                    .Append(ColumnName)
+                                    .Append("\"] : null;")
+                                    .AppendLine();
                             }
-
-                            Text += Environment.NewLine;
                         }
                         else
                         {
-                            Text += ColumnName + " = " + $"({_GetDataTypeCSharp(DataType)})" + "reader[\"" + ColumnName + "\"];" + Environment.NewLine;
+                            Text.Append(ColumnName)
+                                .Append(" = (")
+                                .Append(_GetDataTypeCSharp(DataType))
+                                .Append(")reader[\"")
+                                .Append(ColumnName)
+                                .Append("\"];")
+                                .AppendLine();
                         }
                     }
                 }
-
             }
 
-            return Text.Trim();
+            return Text.ToString().Trim();
         }
 
         private void _CreateFindMethodForUsernameAndPassword()
         {
-            txtDataAccessLayer.Text += Environment.NewLine;
+            _TempText.AppendLine();
+            _TempText.AppendLine($"public static bool Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindMethodForUsernameAndPassword()}");
+            _TempText.AppendLine("{");
+            _TempText.AppendLine("    bool IsFound = false;");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += $"public static bool Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindMethodForUsernameAndPassword()}" + Environment.NewLine;
+            _TempText.AppendLine("    try");
+            _TempText.AppendLine("    {");
+            _TempText.AppendLine($"        using ({_GetConnectionString()})");
+            _TempText.AppendLine("        {");
+            _TempText.AppendLine("            connection.Open();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "{" + Environment.NewLine;
+            _TempText.AppendLine($"            string query = @\"select * from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS AND Password = @Password COLLATE SQL_Latin1_General_CP1_CS_AS\";");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine("            {");
+            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
+            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Password\", Password);");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    try" + Environment.NewLine + "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine + "        {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"            string query = @\"select * from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS AND Password = @Password COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Password\", Password);" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                using (SqlDataReader reader = command.ExecuteReader())" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    if (reader.Read())" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        // The record was found" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        IsFound = true;" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _FillTheVariableWithDataThatComingFromDatabaseForUsernameAndPassword() + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    else" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        // The record was not found" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        IsFound = false;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine + "}" + Environment.NewLine;
+            _TempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
+            _TempText.AppendLine("                {");
+            _TempText.AppendLine("                    if (reader.Read())");
+            _TempText.AppendLine("                    {");
+            _TempText.AppendLine("                        // The record was found");
+            _TempText.AppendLine("                        IsFound = true;");
+            _TempText.AppendLine(_FillTheVariableWithDataThatComingFromDatabaseForUsernameAndPassword());
+            _TempText.AppendLine("                    }");
+            _TempText.AppendLine("                    else");
+            _TempText.AppendLine("                    {");
+            _TempText.AppendLine("                        // The record was not found");
+            _TempText.AppendLine("                        IsFound = false;");
+            _TempText.AppendLine("                    }");
+            _TempText.AppendLine("                }");
+            _TempText.AppendLine("            }");
+            _TempText.AppendLine("        }");
+            _TempText.AppendLine("    }");
+            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _TempText.AppendLine();
+            _TempText.AppendLine("    return IsFound;");
+            _TempText.AppendLine("}");
         }
 
         private string _MakeParametersForAddNewMethod()
         {
-            string Parameters = string.Empty;
-
-            Parameters = "(";
+            StringBuilder Parameters = new StringBuilder("(");
 
             for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
             {
-
                 ListViewItem SecondRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
 
                 if (SecondRow.SubItems.Count > 0)
@@ -673,1363 +682,462 @@ namespace Code_Generator
 
                     if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
                     {
-                        Parameters += _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                        Parameters.Append(_GetDataTypeCSharp(DataType)).Append("? ").Append(ColumnName).Append(", ");
                     }
                     else
                     {
-                        Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                        Parameters.Append(_GetDataTypeCSharp(DataType)).Append(" ").Append(ColumnName).Append(", ");
                     }
                 }
-
             }
 
             // To remove the ", " from the end of the text
             if (Parameters.Length >= 2)
             {
-                Parameters = Parameters.Remove(Parameters.Length - 2);
+                Parameters.Length -= 2;
             }
 
-            Parameters += ")";
+            Parameters.Append(")");
 
-            return Parameters.Trim();
+            return Parameters.ToString().Trim();
         }
 
         private string _GetQueryForAddNewMethod()
         {
-            string query = string.Empty;
+            StringBuilder query = new StringBuilder();
 
             if (_IsLogin)
             {
-                query += "string query = " + $"@\"if not Exists (select found = 1 from {_TableName} where Username = @Username)"
-                    + Environment.NewLine + "begin" + Environment.NewLine + $"insert into {_TableName} (";
+                query.AppendLine($"string query = @\"if not Exists (select found = 1 from {_TableName} where Username = @Username)");
+                query.AppendLine("begin");
+                query.Append($"insert into {_TableName} (");
             }
             else
             {
-                query += "string query = " + $"@\"insert into {_TableName} (";
+                query.Append($"string query = @\"insert into {_TableName} (");
             }
-
 
             // Print the header of the columns
             for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
             {
-
                 ListViewItem SecondItem = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
 
                 if (SecondItem.SubItems.Count > 0)
                 {
                     string ColumnName = SecondItem.SubItems[0].Text;
-
-                    query += ColumnName + ", ";
+                    query.Append(ColumnName).Append(", ");
                 }
-
             }
 
-            // To remove the ", " from the end of the query
-            query = query.Remove(query.Length - 2);
+            // Remove the ", " from the end of the query
+            query.Length -= 2;
 
-            query += ")" + Environment.NewLine;
+            query.AppendLine(")");
 
-            query += "values (";
+            query.Append("values (");
 
             // Print the values
             for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
             {
-
                 ListViewItem SecondItem = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
 
                 if (SecondItem.SubItems.Count > 0)
                 {
                     string ColumnName = SecondItem.SubItems[0].Text;
-
-                    query += "@" + ColumnName + ", ";
+                    query.Append("@").Append(ColumnName).Append(", ");
                 }
-
             }
 
-            // To remove the ", " from the end of the query
-            query = query.Remove(query.Length - 2);
+            // Remove the ", " from the end of the query
+            query.Length -= 2;
 
-            query += ")" + Environment.NewLine;
+            query.AppendLine(")");
 
             if (_IsLogin)
             {
-                query += "select scope_identity()" + Environment.NewLine + "end\";";
+                query.AppendLine("select scope_identity()");
+                query.Append("end\";");
             }
             else
             {
-                query += "select scope_identity()\";";
+                query.Append("select scope_identity()\";");
             }
 
-
-            return query;
+            return query.ToString();
         }
 
         private string _FillParametersInTheCommand()
         {
-            string Text = string.Empty;
+            StringBuilder Text = new StringBuilder();
 
             for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
             {
+                ListViewItem secondItem = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
 
-                ListViewItem SecondItem = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
-
-                if (SecondItem.SubItems.Count > 0)
+                if (secondItem.SubItems.Count > 0)
                 {
-                    string ColumnName = SecondItem.SubItems[0].Text;
-                    string IsNullable = SecondItem.SubItems[2].Text;
+                    string columnName = secondItem.SubItems[0].Text;
+                    string isNullable = secondItem.SubItems[2].Text;
 
-                    if (IsNullable == "YES")
+                    Text.Append($"command.Parameters.AddWithValue(\"@{columnName}\", ");
+
+                    if (isNullable == "YES")
                     {
-                        Text += $"command.Parameters.AddWithValue(\"@{ColumnName}\", (object){ColumnName} ?? DBNull.Value);" + Environment.NewLine;
+                        Text.Append($"(object){columnName} ?? DBNull.Value");
                     }
                     else
                     {
-                        Text += $"command.Parameters.AddWithValue(\"@{ColumnName}\", {ColumnName});" + Environment.NewLine;
+                        Text.Append(columnName);
                     }
-                }
 
+                    Text.AppendLine(");");
+                }
             }
 
-            return Text.Trim();
+            return Text.ToString().Trim();
         }
 
         private void _CreateAddNewMethod()
         {
-            txtDataAccessLayer.Text += Environment.NewLine;
+            _TempText.AppendLine();
+            _TempText.AppendLine($"public static int? AddNew{_TableSingleName}{_MakeParametersForAddNewMethod()}");
+            _TempText.AppendLine("{");
+            _TempText.AppendLine("// This function will return the new person id if succeeded and null if not");
+            _TempText.AppendLine($"    int? {_TableSingleName}ID = null;");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += $"public static int? AddNew{_TableSingleName}{_MakeParametersForAddNewMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
+            _TempText.AppendLine("    try");
+            _TempText.AppendLine("    {");
+            _TempText.AppendLine($"        using ({_GetConnectionString()})");
+            _TempText.AppendLine("        {");
+            _TempText.AppendLine("            connection.Open();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "// This function will return the new person id if succeeded and null if not" + Environment.NewLine;
+            _TempText.AppendLine(_GetQueryForAddNewMethod());
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += $"    int? {_TableSingleName}ID = null;" + Environment.NewLine + Environment.NewLine;
+            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine("            {");
+            _TempText.AppendLine(_FillParametersInTheCommand());
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    try" + Environment.NewLine + "    {" + Environment.NewLine;
+            _TempText.AppendLine("                object result = command.ExecuteScalar();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine + "        {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _GetQueryForAddNewMethod() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _FillParametersInTheCommand() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                if (result != null && int.TryParse(result.ToString(), out int InsertID))" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"                    {_TableSingleName}ID = InsertID;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _CreateCatchBlockWithoutIsFound() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"    return {_TableSingleName}ID;" + Environment.NewLine + "}" + Environment.NewLine;
+            _TempText.AppendLine("                if (result != null && int.TryParse(result.ToString(), out int InsertID))");
+            _TempText.AppendLine("                {");
+            _TempText.AppendLine($"                    {_TableSingleName}ID = InsertID;");
+            _TempText.AppendLine("                }");
+            _TempText.AppendLine("            }");
+            _TempText.AppendLine("        }");
+            _TempText.AppendLine("    }");
+            _TempText.AppendLine(_CreateCatchBlockWithoutIsFound());
+            _TempText.AppendLine();
+            _TempText.AppendLine($"    return {_TableSingleName}ID;");
+            _TempText.AppendLine("}");
         }
 
         private string _MakeParametersForUpdateMethod()
         {
-            string Parameters = string.Empty;
-
-            Parameters = "(";
+            StringBuilder Parameters = new StringBuilder("(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
+                ListViewItem secondRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
 
-                ListViewItem SecondRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
-
-                if (SecondRow.SubItems.Count > 0)
+                if (secondRow.SubItems.Count > 0)
                 {
-                    string ColumnName = SecondRow.SubItems[0].Text;
-                    string DataType = SecondRow.SubItems[1].Text;
-                    string IsNullable = SecondRow.SubItems[2].Text;
+                    string columnName = secondRow.SubItems[0].Text;
+                    string dataType = secondRow.SubItems[1].Text;
+                    string isNullable = secondRow.SubItems[2].Text;
 
                     if (i == 0)
                     {
-                        Parameters += _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                        Parameters.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + ", ");
                     }
                     else
                     {
-                        if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                        if (isNullable.ToUpper() == "YES" && !_IsDataTypeString(dataType))
                         {
-                            Parameters += _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ";
+                            Parameters.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + ", ");
                         }
                         else
                         {
-                            Parameters += _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ";
+                            Parameters.Append(_GetDataTypeCSharp(dataType) + " " + columnName + ", ");
                         }
                     }
                 }
-
             }
 
             // To remove the ", " from the end of the text
-            Parameters = Parameters.Remove(Parameters.Length - 2);
+            Parameters.Length -= 2;
 
-            Parameters += ")";
+            Parameters.Append(")");
 
-            return Parameters.Trim();
+            return Parameters.ToString().Trim();
         }
 
         private string _GetQueryForUpdateMethod()
         {
-            string query = string.Empty;
+            StringBuilder query = new StringBuilder();
 
-            query += "string query = " + $"@\"Update {_TableName}" + Environment.NewLine + "set ";
+            query.Append("string query = ")
+                 .Append($"@\"Update {_TableName}")
+                 .AppendLine()
+                 .Append("set ");
 
             // Print the header of the columns
             for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
             {
-
-                ListViewItem SecondItem = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+                ListViewItem SecondItem = listviewColumnsInfo.Items[i];
 
                 if (SecondItem.SubItems.Count > 0)
                 {
                     string ColumnName = SecondItem.SubItems[0].Text;
-
-                    query += ColumnName + " = @" + ColumnName + "," + Environment.NewLine;
+                    query.Append($"{ColumnName} = @{ColumnName},")
+                         .AppendLine();
                 }
-
             }
 
-            // To remove the ", " from the end of the query
-            query = query.Remove(query.Length - 3);
+            // Remove the trailing ", " from the end of the query
+            query.Remove(query.Length - 3, 3);
 
-            query += Environment.NewLine + $"where {_TableSingleName}ID = @{_TableSingleName}ID\";";
+            query.AppendLine()
+                 .Append($"where {_TableSingleName}ID = @{_TableSingleName}ID\";");
 
-            return query;
+            return query.ToString();
         }
 
         private void _CreateUpdateMethod()
         {
-            txtDataAccessLayer.Text += Environment.NewLine;
+            _TempText.AppendLine();
+            _TempText.AppendLine($"public static bool Update{_TableSingleName}{_MakeParametersForUpdateMethod()}");
+            _TempText.AppendLine("{");
+            _TempText.AppendLine("    int RowAffected = 0;");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += $"public static bool Update{_TableSingleName}{_MakeParametersForUpdateMethod()}" + Environment.NewLine;
+            _TempText.AppendLine("    try");
+            _TempText.AppendLine("    {");
+            _TempText.AppendLine($"        using ({_GetConnectionString()})");
+            _TempText.AppendLine("        {");
+            _TempText.AppendLine("            connection.Open();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "{" + Environment.NewLine;
+            _TempText.AppendLine(_GetQueryForUpdateMethod());
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    int RowAffected = 0;" + Environment.NewLine + Environment.NewLine;
+            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine("            {");
+            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
+            _TempText.AppendLine(_FillParametersInTheCommand());
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _GetQueryForUpdateMethod() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _FillParametersInTheCommand() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                RowAffected = command.ExecuteNonQuery();" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _CreateCatchBlockWithoutIsFound() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"    return (RowAffected > 0);" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "}" + Environment.NewLine;
+            _TempText.AppendLine("                RowAffected = command.ExecuteNonQuery();");
+            _TempText.AppendLine("            }");
+            _TempText.AppendLine("        }");
+            _TempText.AppendLine("    }");
+            _TempText.AppendLine(_CreateCatchBlockWithoutIsFound());
+            _TempText.AppendLine();
+            _TempText.AppendLine($"    return (RowAffected > 0);");
+            _TempText.AppendLine("}");
         }
 
         private string _MakeParametersForDeleteMethod()
         {
-            string Parameters = string.Empty;
+            StringBuilder parameters = new StringBuilder("(");
 
-            Parameters = "(";
+            ListViewItem secondRow = listviewColumnsInfo.Items[0]; // Access the second row (index 0)
 
-            ListViewItem SecondRow = listviewColumnsInfo.Items[0]; // Access the second row (index 0)
-
-            if (SecondRow.SubItems.Count > 0)
+            if (secondRow.SubItems.Count > 0)
             {
-                string ColumnName = SecondRow.SubItems[0].Text;
-                string DataType = SecondRow.SubItems[1].Text;
+                string columnName = secondRow.SubItems[0].Text;
+                string dataType = secondRow.SubItems[1].Text;
 
-                Parameters += _GetDataTypeCSharp(DataType) + "? " + ColumnName + ")";
+                parameters.Append(_GetDataTypeCSharp(dataType))
+                          .Append("? ")
+                          .Append(columnName)
+                          .Append(")");
             }
 
-            return Parameters.Trim();
+            return parameters.ToString().Trim();
         }
 
         private void _CreateDeleteMethod()
         {
-            txtDataAccessLayer.Text += Environment.NewLine;
+            _TempText.AppendLine();
+            _TempText.AppendLine($"public static bool Delete{_TableSingleName}{_MakeParametersForDeleteMethod()}");
+            _TempText.AppendLine("{");
+            _TempText.AppendLine("    int RowAffected = 0;");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += $"public static bool Delete{_TableSingleName}{_MakeParametersForDeleteMethod()}" + Environment.NewLine;
+            _TempText.AppendLine("    try");
+            _TempText.AppendLine("    {");
+            _TempText.AppendLine($"        using ({_GetConnectionString()})");
+            _TempText.AppendLine("        {");
+            _TempText.AppendLine("            connection.Open();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "{" + Environment.NewLine;
+            _TempText.AppendLine($"            string query = @\"delete {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    int RowAffected = 0;" + Environment.NewLine + Environment.NewLine;
+            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine("            {");
+            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"            string query = @\"delete {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                RowAffected = command.ExecuteNonQuery();" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _CreateCatchBlockWithoutIsFound() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"    return (RowAffected > 0);" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "}" + Environment.NewLine;
+            _TempText.AppendLine("                RowAffected = command.ExecuteNonQuery();");
+            _TempText.AppendLine("            }");
+            _TempText.AppendLine("        }");
+            _TempText.AppendLine("    }");
+            _TempText.AppendLine(_CreateCatchBlockWithoutIsFound());
+            _TempText.AppendLine();
+            _TempText.AppendLine($"    return (RowAffected > 0);");
+            _TempText.AppendLine("}");
         }
 
         private void _CreateDoesExistMethod()
         {
-            txtDataAccessLayer.Text += Environment.NewLine;
+            _TempText.AppendLine();
+            _TempText.AppendLine($"public static bool Does{_TableSingleName}Exist{_MakeParametersForDeleteMethod()}");
+            _TempText.AppendLine("{");
+            _TempText.AppendLine("    bool IsFound = false;");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist{_MakeParametersForDeleteMethod()}" + Environment.NewLine;
+            _TempText.AppendLine("    try");
+            _TempText.AppendLine("    {");
+            _TempText.AppendLine($"        using ({_GetConnectionString()})");
+            _TempText.AppendLine("        {");
+            _TempText.AppendLine("            connection.Open();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "{" + Environment.NewLine;
+            _TempText.AppendLine($"            string query = @\"select found = 1 from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine("            {");
+            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
+            _TempText.AppendLine("                object result = command.ExecuteScalar();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"            string query = @\"select found = 1 from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                IsFound = (result != null);" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "}" + Environment.NewLine;
+            _TempText.AppendLine("                IsFound = (result != null);");
+            _TempText.AppendLine("            }");
+            _TempText.AppendLine("        }");
+            _TempText.AppendLine("    }");
+            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _TempText.AppendLine();
+            _TempText.AppendLine("    return IsFound;");
+            _TempText.AppendLine("}");
         }
 
         private void _CreateDoesExistMethodForUsername()
         {
-            txtDataAccessLayer.Text += Environment.NewLine;
+            _TempText.AppendLine();
+            _TempText.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username)");
+            _TempText.AppendLine("{");
+            _TempText.AppendLine("    bool IsFound = false;");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist(string Username)" + Environment.NewLine;
+            _TempText.AppendLine("    try");
+            _TempText.AppendLine("    {");
+            _TempText.AppendLine($"        using ({_GetConnectionString()})");
+            _TempText.AppendLine("        {");
+            _TempText.AppendLine("            connection.Open();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "{" + Environment.NewLine;
+            _TempText.AppendLine($"            string query = @\"select found = 1 from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS\";");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine("            {");
+            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
+            _TempText.AppendLine("                object result = command.ExecuteScalar();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"            string query = @\"select found = 1 from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                IsFound = (result != null);" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "}" + Environment.NewLine;
+            _TempText.AppendLine("                IsFound = (result != null);");
+            _TempText.AppendLine("            }");
+            _TempText.AppendLine("        }");
+            _TempText.AppendLine("    }");
+            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _TempText.AppendLine();
+            _TempText.AppendLine("    return IsFound;");
+            _TempText.AppendLine("}");
         }
 
         private void _CreateDoesExistMethodForUsernameAndPassword()
         {
-            txtDataAccessLayer.Text += Environment.NewLine;
+            _TempText.AppendLine();
+            _TempText.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username, string Password)");
+            _TempText.AppendLine("{");
+            _TempText.AppendLine("    bool IsFound = false;");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += $"public static bool Does{_TableSingleName}Exist(string Username, string Password)" + Environment.NewLine;
+            _TempText.AppendLine("    try");
+            _TempText.AppendLine("    {");
+            _TempText.AppendLine($"        using ({_GetConnectionString()})");
+            _TempText.AppendLine("        {");
+            _TempText.AppendLine("            connection.Open();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "{" + Environment.NewLine;
+            _TempText.AppendLine($"            string query = @\"select found = 1 from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS and Password = @Password COLLATE SQL_Latin1_General_CP1_CS_AS\";");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    bool IsFound = false;" + Environment.NewLine + Environment.NewLine;
+            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine("            {");
+            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
+            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Password\", Password);");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
+            _TempText.AppendLine("                object result = command.ExecuteScalar();");
+            _TempText.AppendLine();
 
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"            string query = @\"select found = 1 from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS and Password = @Password COLLATE SQL_Latin1_General_CP1_CS_AS\";" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Username\", Username);" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"                command.Parameters.AddWithValue(\"@Password\", Password);" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                object result = command.ExecuteScalar();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                IsFound = (result != null);" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _CreateCatchBlockWithIsFound() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    return IsFound;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "}" + Environment.NewLine;
+            _TempText.AppendLine("                IsFound = (result != null);");
+            _TempText.AppendLine("            }");
+            _TempText.AppendLine("        }");
+            _TempText.AppendLine("    }");
+            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _TempText.AppendLine();
+            _TempText.AppendLine("    return IsFound;");
+            _TempText.AppendLine("}");
         }
 
         private void _CreateGetAllMethod()
         {
-            txtDataAccessLayer.Text += Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"public static DataTable GetAll{_TableName}()" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "{" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    DataTable dt = new DataTable();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    try" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        using (" + _GetConnectionString() + ")" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            connection.Open();" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += $"            string query = @\"select * from {_TableName}\";" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            using (SqlCommand command = new SqlCommand(query, connection))" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                using (SqlDataReader reader = command.ExecuteReader())" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    if (reader.HasRows)" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    {" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                        dt.Load(reader);" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "                }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "            }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "        }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    }" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _CreateCatchBlockWithoutIsFound() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "    return dt;" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "}" + Environment.NewLine;
-        }
-
-        private string _MakeParametersForBusinessLayer()
-        {
-            string Parameters = string.Empty;
-
-            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
-
-                if (firstItem.SubItems.Count > 0)
-                {
-                    string ColumnName = firstItem.SubItems[0].Text;
-                    string DataType = firstItem.SubItems[1].Text;
-                    string IsNullable = firstItem.SubItems[2].Text;
-
-                    if (i == 0)
-                    {
-                        Parameters += "public " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + " { get; set; }" + Environment.NewLine;
-                    }
-                    else
-                    {
-                        if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
-                        {
-                            Parameters += "public " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + " { get; set; }" + Environment.NewLine;
-                        }
-                        else
-                        {
-                            Parameters += "public " + _GetDataTypeCSharp(DataType) + " " + ColumnName + " { get; set; }" + Environment.NewLine;
-                        }
-                    }
-                }
-
-            }
-
-            return Parameters.Trim();
-        }
-
-        private string _GetPublicConstructor()
-        {
-            string Constructor = string.Empty;
-
-            Constructor += $"public cls{_TableSingleName}()" + Environment.NewLine + "{" + Environment.NewLine;
-
-            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
-
-                if (firstItem.SubItems.Count > 0)
-                {
-                    string ColumnName = firstItem.SubItems[0].Text;
-                    string DataType = firstItem.SubItems[1].Text;
-                    string IsNullable = firstItem.SubItems[2].Text;
-
-                    if (i == 0)
-                    {
-                        Constructor += $"this.{ColumnName} = null;" + Environment.NewLine;
-                    }
-                    else
-                    {
-                        if (IsNullable.ToUpper() == "YES")
-                        {
-                            Constructor += $"this.{ColumnName} = null;" + Environment.NewLine;
-                        }
-                        else
-                        {
-                            switch (DataType.ToLower())
-                            {
-                                case "int":
-                                case "bigint":
-                                    Constructor += $"this.{ColumnName} = -1;" + Environment.NewLine;
-                                    break;
-
-                                case "float":
-                                    Constructor += $"this.{ColumnName} = -1F;" + Environment.NewLine;
-                                    break;
-
-                                case "decimal":
-                                case "money":
-                                case "smallmoney":
-                                    Constructor += $"this.{ColumnName} = -1M;" + Environment.NewLine;
-                                    break;
-
-                                case "tinyint":
-                                    Constructor += $"this.{ColumnName} = 0;" + Environment.NewLine;
-                                    break;
-
-                                case "smallint":
-                                    Constructor += $"this.{ColumnName} = -1;" + Environment.NewLine;
-                                    break;
-
-                                case "nvarchar":
-                                case "varchar":
-                                case "char":
-                                    Constructor += $"this.{ColumnName} = string.Empty;" + Environment.NewLine;
-                                    break;
-
-                                case "datetime":
-                                case "date":
-                                case "smalldatetime":
-                                case "datetime2":
-                                    Constructor += $"this.{ColumnName} = DateTime.Now;" + Environment.NewLine;
-                                    break;
-
-                                case "time":
-                                    Constructor += $"this.{ColumnName} = DateTime.Now.TimeOfDay;" + Environment.NewLine;
-                                    break;
-
-                                case "bit":
-                                    Constructor += $"this.{ColumnName} = false;" + Environment.NewLine;
-                                    break;
-                            }
-
-                        }
-                    }
-                }
-            }
-
-            Constructor += Environment.NewLine + "Mode = enMode.AddNew;" + Environment.NewLine + "}" + Environment.NewLine;
-
-            return Constructor.Trim();
-        }
-
-        private string _GetPrivateConstructor()
-        {
-            string Constructor = string.Empty;
-
-            Constructor += $"private cls{_TableSingleName}{_MakeParametersForUpdateMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
-
-            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
-
-                if (firstItem.SubItems.Count > 0)
-                {
-                    string ColumnName = firstItem.SubItems[0].Text;
-                    string DataType = firstItem.SubItems[1].Text;
-                    string IsNullable = firstItem.SubItems[2].Text;
-
-                    Constructor += $"this.{ColumnName} = {ColumnName};" + Environment.NewLine;
-                }
-            }
-
-            Constructor += Environment.NewLine + "Mode = enMode.Update;" + Environment.NewLine + "}" + Environment.NewLine;
-
-            return Constructor.Trim();
-        }
-
-        private string _MakeParametersForAddNewMethodInBusinessLayer()
-        {
-            string Parameters = string.Empty;
-
-            Parameters = "(";
-
-            for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem SecondRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
-
-                if (SecondRow.SubItems.Count > 0)
-                {
-                    string ColumnName = SecondRow.SubItems[0].Text;
-
-                    Parameters += "this." + ColumnName + ", ";
-                }
-
-            }
-
-            // To remove the ", " from the end of the text
-            if (Parameters.Length >= 2)
-            {
-                Parameters = Parameters?.Remove(Parameters.Length - 2);
-            }
-
-            Parameters += ");";
-
-            return Parameters.Trim();
-        }
-
-        private string _GetAddNewInBusinessLayer()
-        {
-            string Text = string.Empty;
-
-            Text += $"private bool _AddNew{_TableSingleName}()" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += $"this.{_TableSingleName}ID = cls{_TableSingleName}Data.AddNew{_TableSingleName}{_MakeParametersForAddNewMethodInBusinessLayer()}" + Environment.NewLine + Environment.NewLine;
-
-            Text += $"return (this.{_TableSingleName}ID.HasValue);" + Environment.NewLine + "}";
-
-            return Text.Trim();
-        }
-
-        private string _MakeParametersForUpdateMethodInBusinessLayer()
-        {
-            string Parameters = string.Empty;
-
-            Parameters = "(";
-
-            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem FirstRow = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
-
-                if (FirstRow.SubItems.Count > 0)
-                {
-                    string ColumnName = FirstRow.SubItems[0].Text;
-
-                    Parameters += "this." + ColumnName + ", ";
-                }
-
-            }
-
-            // To remove the ", " from the end of the text
-            Parameters = Parameters.Remove(Parameters.Length - 2);
-
-            Parameters += ");";
-
-            return Parameters.Trim();
-        }
-
-        private string _GetUpdateInBusinessLayer()
-        {
-            string Text = string.Empty;
-
-            Text += $"private bool _Update{_TableSingleName}()" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += $"return cls{_TableSingleName}Data.Update{_TableSingleName}{_MakeParametersForUpdateMethodInBusinessLayer()}" + Environment.NewLine + "}";
-
-            return Text.Trim();
-        }
-
-        private string _GetSaveMethod()
-        {
-            string Text = string.Empty;
-
-            Text += "public bool Save()" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += "switch (Mode)" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += "case enMode.AddNew:" + Environment.NewLine;
-
-            Text += $"if (_AddNew{_TableSingleName}())" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += "Mode = enMode.Update;" + Environment.NewLine + "return true;" + Environment.NewLine + "}" + Environment.NewLine;
-
-            Text += "else" + Environment.NewLine + "{" + Environment.NewLine + "return false;" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
-
-            Text += "case enMode.Update:" + Environment.NewLine + $"return _Update{_TableSingleName}();" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
-
-            Text += "return false;" + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine;
-
-            return Text.Trim();
-        }
-
-        private string _MakeInitialParametersForFindMethodInBusinessLayer()
-        {
-            string Variable = string.Empty;
-
-            for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem SecondRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
-
-                if (SecondRow.SubItems.Count > 0)
-                {
-                    string ColumnName = SecondRow.SubItems[0].Text;
-                    string DataType = SecondRow.SubItems[1].Text;
-                    string IsNullable = SecondRow.SubItems[2].Text;
-
-                    if (IsNullable.ToUpper() == "YES")
-                    {
-                        if (!_IsDataTypeString(DataType))
-                        {
-                            Variable += _GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine;
-                        }
-                        else
-                        {
-                            Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = null;" + Environment.NewLine;
-                        }
-                    }
-                    else
-                    {
-                        switch (DataType.ToLower())
-                        {
-                            case "int":
-                            case "bigint":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                break;
-
-                            case "float":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;" + Environment.NewLine;
-                                break;
-
-                            case "decimal":
-                            case "money":
-                            case "smallmoney":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                                break;
-
-                            case "tinyint":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;" + Environment.NewLine;
-                                break;
-
-                            case "smallint":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                break;
-
-                            case "nvarchar":
-                            case "varchar":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
-                                break;
-
-                            case "char":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = ' ';" + Environment.NewLine;
-                                break;
-
-                            case "datetime":
-                            case "date":
-                            case "smalldatetime":
-                            case "datetime2":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
-                                break;
-
-                            case "time":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now.TimeOfDay;" + Environment.NewLine;
-                                break;
-
-                            case "bit":
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;" + Environment.NewLine;
-                                break;
-                        }
-
-                    }
-                }
-
-            }
-
-            return Variable.Trim();
-        }
-
-        private string _MakeParametersForFindMethodInBusinessLayer()
-        {
-            string Parameters = string.Empty;
-
-            Parameters = "(";
-
-            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
-
-                if (firstItem.SubItems.Count > 0)
-                {
-                    string ColumnName = firstItem.SubItems[0].Text;
-
-                    if (i == 0)
-                    {
-                        Parameters += ColumnName + ", ";
-                    }
-                    else
-                    {
-                        Parameters += "ref " + ColumnName + ", ";
-                    }
-
-                }
-
-            }
-
-            // To remove the ", " from the end of the text
-            Parameters = Parameters.Remove(Parameters.Length - 2);
-
-            Parameters += ");" + Environment.NewLine;
-
-            return Parameters.Trim();
-        }
-
-        private string _MakeReturnParametersForFindMethodInBusinessLayer()
-        {
-            string Parameters = string.Empty;
-
-            Parameters = $"return new cls{_TableSingleName}(";
-
-            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
-
-                if (firstItem.SubItems.Count > 0)
-                {
-                    string ColumnName = firstItem.SubItems[0].Text;
-
-                    Parameters += ColumnName + ", ";
-                }
-
-            }
-
-            // To remove the ", " from the end of the text
-            Parameters = Parameters.Remove(Parameters.Length - 2);
-
-            Parameters += ");" + Environment.NewLine;
-
-            return Parameters.Trim();
-        }
-
-        private string _GetFindMethodInBusinessLayer()
-        {
-            string Text = string.Empty;
-
-            Text += $"public static cls{_TableSingleName} Find{_MakeParametersForDeleteMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += _MakeInitialParametersForFindMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-
-            Text += $"bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByID{_MakeParametersForFindMethodInBusinessLayer()}" + Environment.NewLine + Environment.NewLine;
-
-            Text += "if (IsFound)" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += _MakeReturnParametersForFindMethodInBusinessLayer() + "}" + Environment.NewLine;
-
-            Text += "else" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += "return null;" + Environment.NewLine + "}" + Environment.NewLine + "}" + Environment.NewLine;
-
-            return Text.Trim();
-        }
-
-        private string _GetDeleteMethodInBusinessLayer()
-        {
-            string Text = string.Empty;
-
-            Text += $"public static bool Delete{_TableSingleName}{_MakeParametersForDeleteMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += $"return cls{_TableSingleName}Data.Delete{_TableSingleName}({_TableSingleName}ID);" + Environment.NewLine + "}" + Environment.NewLine;
-
-            return Text.Trim();
-        }
-
-        private string _GetDoesExistMethodInBusinessLayer()
-        {
-            string Text = string.Empty;
-
-            Text += $"public static bool Does{_TableSingleName}Exist{_MakeParametersForDeleteMethod()}" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += $"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist({_TableSingleName}ID);" + Environment.NewLine + "}" + Environment.NewLine;
-
-            return Text.Trim();
-        }
-
-        private string _GetAllMethodInBusinessLayer()
-        {
-            string Text = string.Empty;
-
-            Text += $"public static DataTable GetAll{_TableName}()" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += $"return cls{_TableSingleName}Data.GetAll{_TableName}();" + Environment.NewLine + "}" + Environment.NewLine;
-
-            return Text.Trim();
-        }
-
-        private string _MakeInitialParametersForFindUsernameMethodInBusinessLayer()
-        {
-            string Variable = string.Empty;
-
-            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem FirstRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
-
-                if (FirstRow.SubItems.Count > 0)
-                {
-                    string ColumnName = FirstRow.SubItems[0].Text;
-                    string DataType = FirstRow.SubItems[1].Text;
-                    string IsNullable = FirstRow.SubItems[2].Text;
-
-                    if (ColumnName.ToLower() != "username")
-                    {
-                        if (i == 0)
-                        {
-                            Variable += _GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine;
-
-                            continue;
-                        }
-
-                        if (IsNullable.ToUpper() == "YES")
-                        {
-                            if (!_IsDataTypeString(DataType))
-                            {
-                                Variable += _GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine;
-                            }
-                            else
-                            {
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = null;" + Environment.NewLine;
-                            }
-                        }
-                        else
-                        {
-                            switch (DataType.ToLower())
-                            {
-                                case "int":
-                                case "bigint":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                    break;
-
-                                case "float":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;" + Environment.NewLine;
-                                    break;
-
-                                case "decimal":
-                                case "money":
-                                case "smallmoney":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                                    break;
-
-                                case "tinyint":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;" + Environment.NewLine;
-                                    break;
-
-                                case "smallint":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                    break;
-
-                                case "nvarchar":
-                                case "varchar":
-                                case "char":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
-                                    break;
-
-                                case "datetime":
-                                case "date":
-                                case "smalldatetime":
-                                case "datetime2":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
-                                    break;
-
-                                case "time":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now.TimeOfDay;" + Environment.NewLine;
-                                    break;
-
-                                case "bit":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;" + Environment.NewLine;
-                                    break;
-                            }
-                        }
-                    }
-                }
-
-            }
-
-            return Variable.Trim();
-        }
-
-        private string _MakeParametersForFindUsernameMethodInBusinessLayer()
-        {
-            string Parameters = string.Empty;
-
-            Parameters = "(";
-
-            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
-
-                if (firstItem.SubItems.Count > 0)
-                {
-                    string ColumnName = firstItem.SubItems[0].Text;
-
-                    if (ColumnName.ToLower() == "username")
-                    {
-                        Parameters += ColumnName + ", ";
-                    }
-                    else
-                    {
-                        Parameters += "ref " + ColumnName + ", ";
-                    }
-
-                }
-
-            }
-
-            // To remove the ", " from the end of the text
-            Parameters = Parameters.Remove(Parameters.Length - 2);
-
-            Parameters += ");" + Environment.NewLine;
-
-            return Parameters.Trim();
-        }
-
-        private string _GetFindUsernameMethodInBusinessLayer()
-        {
-            string Text = string.Empty;
-
-            Text += $"public static cls{_TableSingleName} Find(string Username)" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += _MakeInitialParametersForFindUsernameMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-
-            Text += $"bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsername{_MakeParametersForFindUsernameMethodInBusinessLayer()}" + Environment.NewLine + Environment.NewLine;
-
-            Text += "if (IsFound)" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += _MakeReturnParametersForFindMethodInBusinessLayer() + "}" + Environment.NewLine;
-
-            Text += "else" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += "return null;" + Environment.NewLine + "}" + Environment.NewLine + "}" + Environment.NewLine;
-
-            return Text.Trim();
-        }
-
-        private string _MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer()
-        {
-            string Variable = string.Empty;
-
-            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem FirstRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
-
-                if (FirstRow.SubItems.Count > 0)
-                {
-                    string ColumnName = FirstRow.SubItems[0].Text;
-                    string DataType = FirstRow.SubItems[1].Text;
-                    string IsNullable = FirstRow.SubItems[2].Text;
-
-                    if (ColumnName.ToLower() != "username" && ColumnName.ToLower() != "password")
-                    {
-                        if (i == 0)
-                        {
-                            Variable += _GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine;
-
-                            continue;
-                        }
-
-                        if (IsNullable.ToUpper() == "YES")
-                        {
-                            if (!_IsDataTypeString(DataType))
-                            {
-                                Variable += _GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine;
-                            }
-                            else
-                            {
-                                Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = null;" + Environment.NewLine;
-                            }
-                        }
-                        else
-                        {
-                            switch (DataType.ToLower())
-                            {
-                                case "int":
-                                case "bigint":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                    break;
-
-                                case "float":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;" + Environment.NewLine;
-                                    break;
-
-                                case "decimal":
-                                case "money":
-                                case "smallmoney":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine;
-                                    break;
-
-                                case "tinyint":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;" + Environment.NewLine;
-                                    break;
-
-                                case "smallint":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine;
-                                    break;
-
-                                case "nvarchar":
-                                case "varchar":
-                                case "char":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine;
-                                    break;
-
-                                case "datetime":
-                                case "date":
-                                case "smalldatetime":
-                                case "datetime2":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine;
-                                    break;
-
-                                case "time":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now.TimeOfDay;" + Environment.NewLine;
-                                    break;
-
-                                case "bit":
-                                    Variable += _GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;" + Environment.NewLine;
-                                    break;
-                            }
-                        }
-                    }
-                }
-
-            }
-
-            return Variable.Trim();
-        }
-
-        private string _MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()
-        {
-            string Parameters = string.Empty;
-
-            Parameters = "(";
-
-            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
-            {
-
-                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
-
-                if (firstItem.SubItems.Count > 0)
-                {
-                    string ColumnName = firstItem.SubItems[0].Text;
-
-                    if (ColumnName.ToLower() == "username" || ColumnName.ToLower() == "password")
-                    {
-                        Parameters += ColumnName + ", ";
-                    }
-                    else
-                    {
-                        Parameters += "ref " + ColumnName + ", ";
-                    }
-
-                }
-
-            }
-
-            // To remove the ", " from the end of the text
-            Parameters = Parameters.Remove(Parameters.Length - 2);
-
-            Parameters += ");" + Environment.NewLine;
-
-            return Parameters.Trim();
-        }
-
-        private string _GetFindUsernameAndPasswordMethodInBusinessLayer()
-        {
-            string Text = string.Empty;
-
-            Text += $"public static cls{_TableSingleName} Find(string Username, string Password)" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += _MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-
-            Text += $"bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()}" + Environment.NewLine + Environment.NewLine;
-
-            Text += "if (IsFound)" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += _MakeReturnParametersForFindMethodInBusinessLayer() + "}" + Environment.NewLine;
-
-            Text += "else" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += "return null;" + Environment.NewLine + "}" + Environment.NewLine + "}" + Environment.NewLine;
-
-            return Text.Trim();
-        }
-
-        private string _GetDoesUsernameExistMethodInBusinessLayer()
-        {
-            string Text = string.Empty;
-
-            Text += $"public static bool Does{_TableSingleName}Exist(string Username)" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += $"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username);" + Environment.NewLine + "}" + Environment.NewLine;
-
-            return Text.Trim();
-        }
-
-        private string _GetDoesUsernameAndPasswordExistMethodInBusinessLayer()
-        {
-            string Text = string.Empty;
-
-            Text += $"public static bool Does{_TableSingleName}Exist(string Username, string Password)" + Environment.NewLine + "{" + Environment.NewLine;
-
-            Text += $"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username, Password);" + Environment.NewLine + "}" + Environment.NewLine;
-
-            return Text.Trim();
-        }
-
-        private void _CreateBusinessLayer()
-        {
-            txtDataAccessLayer.Text += $"public class cls{_TableSingleName}" + Environment.NewLine + "{" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "public enum enMode { AddNew = 0, Update = 1 };" + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "public enMode Mode = enMode.AddNew;" + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _MakeParametersForBusinessLayer() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _GetPublicConstructor() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _GetPrivateConstructor() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _GetAddNewInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _GetUpdateInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _GetSaveMethod() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _GetFindMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-
-            if (_IsLogin)
-            {
-                txtDataAccessLayer.Text += _GetFindUsernameMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-
-                txtDataAccessLayer.Text += _GetFindUsernameAndPasswordMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-            }
-
-            txtDataAccessLayer.Text += _GetDeleteMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-
-            txtDataAccessLayer.Text += _GetDoesExistMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-
-            if (_IsLogin)
-            {
-                txtDataAccessLayer.Text += _GetDoesUsernameExistMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-
-                txtDataAccessLayer.Text += _GetDoesUsernameAndPasswordExistMethodInBusinessLayer() + Environment.NewLine + Environment.NewLine;
-            }
-
-            txtDataAccessLayer.Text += _GetAllMethodInBusinessLayer() + Environment.NewLine;
-
-            txtDataAccessLayer.Text += "}";
+            _TempText.AppendLine();
+            _TempText.AppendLine($"public static DataTable GetAll{_TableName}()");
+            _TempText.AppendLine("{");
+            _TempText.AppendLine("    DataTable dt = new DataTable();");
+            _TempText.AppendLine();
+
+            _TempText.AppendLine("    try");
+            _TempText.AppendLine("    {");
+            _TempText.AppendLine($"        using ({_GetConnectionString()})");
+            _TempText.AppendLine("        {");
+            _TempText.AppendLine("            connection.Open();");
+            _TempText.AppendLine();
+
+            _TempText.AppendLine($"            string query = @\"select * from {_TableName}\";");
+            _TempText.AppendLine();
+
+            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine("            {");
+            _TempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
+            _TempText.AppendLine("                {");
+            _TempText.AppendLine("                    if (reader.HasRows)");
+            _TempText.AppendLine("                    {");
+            _TempText.AppendLine("                        dt.Load(reader);");
+            _TempText.AppendLine("                    }");
+            _TempText.AppendLine("                }");
+            _TempText.AppendLine("            }");
+            _TempText.AppendLine("        }");
+            _TempText.AppendLine("    }");
+            _TempText.AppendLine(_CreateCatchBlockWithoutIsFound());
+            _TempText.AppendLine();
+            _TempText.AppendLine("    return dt;");
+            _TempText.AppendLine("}");
         }
 
         private void _DataAccessAsLoginInfo()
@@ -2055,6 +1163,794 @@ namespace Code_Generator
             _CreateDoesExistMethod();
             _CreateGetAllMethod();
         }
+        #endregion
+
+        #region Business Layer
+
+        private string _MakeParametersForBusinessLayer()
+        {
+            StringBuilder Parameters = new StringBuilder();
+
+            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+
+                if (firstItem.SubItems.Count > 0)
+                {
+                    string ColumnName = firstItem.SubItems[0].Text;
+                    string DataType = firstItem.SubItems[1].Text;
+                    string IsNullable = firstItem.SubItems[2].Text;
+
+                    if (i == 0)
+                    {
+                        Parameters.AppendLine($"public {_GetDataTypeCSharp(DataType)}? {ColumnName} {{ get; set; }}");
+                    }
+                    else
+                    {
+                        if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                        {
+                            Parameters.AppendLine($"public {_GetDataTypeCSharp(DataType)}? {ColumnName} {{ get; set; }}");
+                        }
+                        else
+                        {
+                            Parameters.AppendLine($"public {_GetDataTypeCSharp(DataType)} {ColumnName} {{ get; set; }}");
+                        }
+                    }
+                }
+            }
+
+            return Parameters.ToString().Trim();
+        }
+
+        private string _GetPublicConstructor()
+        {
+            StringBuilder Constructor = new StringBuilder();
+
+            Constructor.AppendLine($"public cls{_TableSingleName}()");
+            Constructor.AppendLine("{");
+
+            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+
+                if (firstItem.SubItems.Count > 0)
+                {
+                    string ColumnName = firstItem.SubItems[0].Text;
+                    string DataType = firstItem.SubItems[1].Text;
+                    string IsNullable = firstItem.SubItems[2].Text;
+
+                    if (i == 0)
+                    {
+                        Constructor.AppendLine($"    this.{ColumnName} = null;");
+                    }
+                    else
+                    {
+                        if (IsNullable.ToUpper() == "YES")
+                        {
+                            Constructor.AppendLine($"    this.{ColumnName} = null;");
+                        }
+                        else
+                        {
+                            switch (DataType.ToLower())
+                            {
+                                case "int":
+                                case "bigint":
+                                    Constructor.AppendLine($"    this.{ColumnName} = -1;");
+                                    break;
+
+                                case "float":
+                                    Constructor.AppendLine($"    this.{ColumnName} = -1F;");
+                                    break;
+
+                                case "decimal":
+                                case "money":
+                                case "smallmoney":
+                                    Constructor.AppendLine($"    this.{ColumnName} = -1M;");
+                                    break;
+
+                                case "tinyint":
+                                    Constructor.AppendLine($"    this.{ColumnName} = 0;");
+                                    break;
+
+                                case "smallint":
+                                    Constructor.AppendLine($"    this.{ColumnName} = -1;");
+                                    break;
+
+                                case "nvarchar":
+                                case "varchar":
+                                case "char":
+                                    Constructor.AppendLine($"    this.{ColumnName} = string.Empty;");
+                                    break;
+
+                                case "datetime":
+                                case "date":
+                                case "smalldatetime":
+                                case "datetime2":
+                                    Constructor.AppendLine($"    this.{ColumnName} = DateTime.Now;");
+                                    break;
+
+                                case "time":
+                                    Constructor.AppendLine($"    this.{ColumnName} = DateTime.Now.TimeOfDay;");
+                                    break;
+
+                                case "bit":
+                                    Constructor.AppendLine($"    this.{ColumnName} = false;");
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            Constructor.AppendLine("    Mode = enMode.AddNew;");
+            Constructor.AppendLine("}");
+
+            return Constructor.ToString().Trim();
+        }
+
+        private string _GetPrivateConstructor()
+        {
+            StringBuilder Constructor = new StringBuilder();
+
+            Constructor.AppendLine($"private cls{_TableSingleName}{_MakeParametersForUpdateMethod()}");
+            Constructor.AppendLine("{");
+
+            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+
+                if (firstItem.SubItems.Count > 0)
+                {
+                    string ColumnName = firstItem.SubItems[0].Text;
+                    string DataType = firstItem.SubItems[1].Text;
+                    string IsNullable = firstItem.SubItems[2].Text;
+
+                    Constructor.AppendLine($"    this.{ColumnName} = {ColumnName};");
+                }
+            }
+
+            Constructor.AppendLine("    Mode = enMode.Update;");
+            Constructor.AppendLine("}");
+
+            return Constructor.ToString().Trim();
+        }
+
+        private string _MakeParametersForAddNewMethodInBusinessLayer()
+        {
+            StringBuilder Parameters = new StringBuilder("(");
+
+            for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem SecondRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+
+                if (SecondRow.SubItems.Count > 0)
+                {
+                    string ColumnName = SecondRow.SubItems[0].Text;
+
+                    Parameters.Append($"this.{ColumnName}, ");
+                }
+            }
+
+            // To remove the ", " from the end of the text
+            if (Parameters.Length >= 2)
+            {
+                Parameters.Remove(Parameters.Length - 2, 2);
+            }
+
+            Parameters.Append(");");
+
+            return Parameters.ToString().Trim();
+        }
+
+        private string _GetAddNewInBusinessLayer()
+        {
+            StringBuilder Text = new StringBuilder();
+
+            Text.AppendLine($"private bool _AddNew{_TableSingleName}()");
+            Text.AppendLine("{");
+            Text.AppendLine($"    this.{_TableSingleName}ID = cls{_TableSingleName}Data.AddNew{_TableSingleName}{_MakeParametersForAddNewMethodInBusinessLayer()}");
+            Text.AppendLine();
+            Text.AppendLine($"    return (this.{_TableSingleName}ID.HasValue);");
+            Text.AppendLine("}");
+
+            return Text.ToString().Trim();
+        }
+
+        private string _MakeParametersForUpdateMethodInBusinessLayer()
+        {
+            StringBuilder Parameters = new StringBuilder("(");
+
+            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem FirstRow = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+
+                if (FirstRow.SubItems.Count > 0)
+                {
+                    string ColumnName = FirstRow.SubItems[0].Text;
+                    Parameters.Append($"this.{ColumnName}, ");
+                }
+            }
+
+            // To remove the ", " from the end of the text
+            Parameters.Remove(Parameters.Length - 2, 2);
+            Parameters.Append(");");
+
+            return Parameters.ToString().Trim();
+        }
+
+        private string _GetUpdateInBusinessLayer()
+        {
+            StringBuilder Text = new StringBuilder();
+
+            Text.AppendLine($"private bool _Update{_TableSingleName}()");
+            Text.AppendLine("{");
+            Text.AppendLine($"return cls{_TableSingleName}Data.Update{_TableSingleName}{_MakeParametersForUpdateMethodInBusinessLayer()}");
+            Text.AppendLine("}");
+
+            return Text.ToString().Trim();
+        }
+
+        private string _GetSaveMethod()
+        {
+            StringBuilder Text = new StringBuilder();
+
+            Text.AppendLine("public bool Save()");
+            Text.AppendLine("{");
+            Text.AppendLine("switch (Mode)");
+            Text.AppendLine("{");
+            Text.AppendLine("case enMode.AddNew:");
+            Text.AppendLine($"if (_AddNew{_TableSingleName}())");
+            Text.AppendLine("{");
+            Text.AppendLine("Mode = enMode.Update;");
+            Text.AppendLine("return true;");
+            Text.AppendLine("}");
+            Text.AppendLine("else");
+            Text.AppendLine("{");
+            Text.AppendLine("return false;");
+            Text.AppendLine("}");
+            Text.AppendLine();
+            Text.AppendLine("case enMode.Update:");
+            Text.AppendLine($"return _Update{_TableSingleName}();");
+            Text.AppendLine("}");
+            Text.AppendLine();
+            Text.AppendLine("return false;");
+            Text.AppendLine("}");
+
+            return Text.ToString().Trim();
+        }
+
+        private string _MakeInitialParametersForFindMethodInBusinessLayer()
+        {
+            StringBuilder Variable = new StringBuilder();
+
+            for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem SecondRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+
+                if (SecondRow.SubItems.Count > 0)
+                {
+                    string ColumnName = SecondRow.SubItems[0].Text;
+                    string DataType = SecondRow.SubItems[1].Text;
+                    string IsNullable = SecondRow.SubItems[2].Text;
+
+                    if (IsNullable.ToUpper() == "YES")
+                    {
+                        if (!_IsDataTypeString(DataType))
+                        {
+                            Variable.AppendLine($"{_GetDataTypeCSharp(DataType)}? {ColumnName} = null;");
+                        }
+                        else
+                        {
+                            Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = null;");
+                        }
+                    }
+                    else
+                    {
+                        switch (DataType.ToLower())
+                        {
+                            case "int":
+                            case "bigint":
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1;");
+                                break;
+
+                            case "float":
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1F;");
+                                break;
+
+                            case "decimal":
+                            case "money":
+                            case "smallmoney":
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1M;");
+                                break;
+
+                            case "tinyint":
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = 0;");
+                                break;
+
+                            case "smallint":
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1;");
+                                break;
+
+                            case "nvarchar":
+                            case "varchar":
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = string.Empty;");
+                                break;
+
+                            case "char":
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = ' ';");
+                                break;
+
+                            case "datetime":
+                            case "date":
+                            case "smalldatetime":
+                            case "datetime2":
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = DateTime.Now;");
+                                break;
+
+                            case "time":
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = DateTime.Now.TimeOfDay;");
+                                break;
+
+                            case "bit":
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = false;");
+                                break;
+                        }
+                    }
+                }
+            }
+
+            return Variable.ToString().Trim();
+        }
+
+        private string _MakeParametersForFindMethodInBusinessLayer()
+        {
+            StringBuilder Parameters = new StringBuilder();
+
+            Parameters.Append("(");
+
+            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+
+                if (firstItem.SubItems.Count > 0)
+                {
+                    string ColumnName = firstItem.SubItems[0].Text;
+
+                    if (i == 0)
+                    {
+                        Parameters.Append($"{ColumnName}, ");
+                    }
+                    else
+                    {
+                        Parameters.Append($"ref {ColumnName}, ");
+                    }
+                }
+            }
+
+            // To remove the ", " from the end of the text
+            Parameters.Remove(Parameters.Length - 2, 2);
+            Parameters.AppendLine(");" + Environment.NewLine);
+
+            return Parameters.ToString().Trim();
+        }
+
+        private string _MakeReturnParametersForFindMethodInBusinessLayer()
+        {
+            StringBuilder Parameters = new StringBuilder();
+
+            Parameters.Append($"return new cls{_TableSingleName}(");
+
+            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+
+                if (firstItem.SubItems.Count > 0)
+                {
+                    string ColumnName = firstItem.SubItems[0].Text;
+
+                    Parameters.Append($"{ColumnName}, ");
+                }
+            }
+
+            // To remove the ", " from the end of the text
+            Parameters.Remove(Parameters.Length - 2, 2);
+            Parameters.AppendLine(");" + Environment.NewLine);
+
+            return Parameters.ToString().Trim();
+        }
+
+        private string _GetFindMethodInBusinessLayer()
+        {
+            StringBuilder Text = new StringBuilder();
+
+            Text.AppendLine($"public static cls{_TableSingleName} Find{_MakeParametersForDeleteMethod()}");
+            Text.AppendLine("{");
+            Text.AppendLine(_MakeInitialParametersForFindMethodInBusinessLayer());
+            Text.AppendLine();
+
+            Text.AppendLine($"bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByID{_MakeParametersForFindMethodInBusinessLayer()}");
+            Text.AppendLine();
+
+            Text.AppendLine("if (IsFound)");
+            Text.AppendLine("{");
+            Text.AppendLine(_MakeReturnParametersForFindMethodInBusinessLayer());
+            Text.AppendLine("}");
+            Text.AppendLine("else");
+            Text.AppendLine("{");
+            Text.AppendLine("return null;");
+            Text.AppendLine("}");
+            Text.AppendLine("}");
+
+            return Text.ToString().Trim();
+        }
+
+        private string _GetDeleteMethodInBusinessLayer()
+        {
+            StringBuilder Text = new StringBuilder();
+
+            Text.AppendLine($"public static bool Delete{_TableSingleName}{_MakeParametersForDeleteMethod()}");
+            Text.AppendLine("{");
+            Text.AppendLine($"return cls{_TableSingleName}Data.Delete{_TableSingleName}({_TableSingleName}ID);");
+            Text.AppendLine("}");
+
+            return Text.ToString().Trim();
+        }
+
+        private string _GetDoesExistMethodInBusinessLayer()
+        {
+            StringBuilder Text = new StringBuilder();
+
+            Text.AppendLine($"public static bool Does{_TableSingleName}Exist{_MakeParametersForDeleteMethod()}");
+            Text.AppendLine("{");
+            Text.AppendLine($"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist({_TableSingleName}ID);");
+            Text.AppendLine("}");
+
+            return Text.ToString().Trim();
+        }
+
+        private string _GetAllMethodInBusinessLayer()
+        {
+            StringBuilder Text = new StringBuilder();
+
+            Text.AppendLine($"public static DataTable GetAll{_TableName}()");
+            Text.AppendLine("{");
+            Text.AppendLine($"return cls{_TableSingleName}Data.GetAll{_TableName}();");
+            Text.AppendLine("}");
+
+            return Text.ToString().Trim();
+        }
+
+        private string _MakeInitialParametersForFindUsernameMethodInBusinessLayer()
+        {
+            StringBuilder Variable = new StringBuilder();
+
+            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem FirstRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+
+                if (FirstRow.SubItems.Count > 0)
+                {
+                    string ColumnName = FirstRow.SubItems[0].Text;
+                    string DataType = FirstRow.SubItems[1].Text;
+                    string IsNullable = FirstRow.SubItems[2].Text;
+
+                    if (ColumnName.ToLower() != "username")
+                    {
+                        if (i == 0)
+                        {
+                            Variable.Append(_GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine);
+                            continue;
+                        }
+
+                        if (IsNullable.ToUpper() == "YES")
+                        {
+                            if (!_IsDataTypeString(DataType))
+                            {
+                                Variable.Append(_GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine);
+                            }
+                            else
+                            {
+                                Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = null;" + Environment.NewLine);
+                            }
+                        }
+                        else
+                        {
+                            switch (DataType.ToLower())
+                            {
+                                case "int":
+                                case "bigint":
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine);
+                                    break;
+
+                                case "float":
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;" + Environment.NewLine);
+                                    break;
+
+                                case "decimal":
+                                case "money":
+                                case "smallmoney":
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine);
+                                    break;
+
+                                case "tinyint":
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;" + Environment.NewLine);
+                                    break;
+
+                                case "smallint":
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine);
+                                    break;
+
+                                case "nvarchar":
+                                case "varchar":
+                                case "char":
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine);
+                                    break;
+
+                                case "datetime":
+                                case "date":
+                                case "smalldatetime":
+                                case "datetime2":
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine);
+                                    break;
+
+                                case "time":
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now.TimeOfDay;" + Environment.NewLine);
+                                    break;
+
+                                case "bit":
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;" + Environment.NewLine);
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return Variable.ToString().Trim();
+        }
+
+        private string _MakeParametersForFindUsernameMethodInBusinessLayer()
+        {
+            StringBuilder Parameters = new StringBuilder("(");
+
+            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+
+                if (firstItem.SubItems.Count > 0)
+                {
+                    string ColumnName = firstItem.SubItems[0].Text;
+
+                    if (ColumnName.ToLower() == "username")
+                    {
+                        Parameters.Append(ColumnName + ", ");
+                    }
+                    else
+                    {
+                        Parameters.Append("ref " + ColumnName + ", ");
+                    }
+                }
+            }
+
+            // To remove the ", " from the end of the text
+            Parameters.Remove(Parameters.Length - 2, 2);
+            Parameters.Append(");" + Environment.NewLine);
+
+            return Parameters.ToString().Trim();
+        }
+
+        private string _GetFindUsernameMethodInBusinessLayer()
+        {
+            StringBuilder Text = new StringBuilder();
+
+            Text.AppendLine($"public static cls{_TableSingleName} Find(string Username)" + Environment.NewLine + "{" + Environment.NewLine);
+
+            Text.AppendLine(_MakeInitialParametersForFindUsernameMethodInBusinessLayer() + Environment.NewLine);
+
+            Text.AppendLine($"bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsername{_MakeParametersForFindUsernameMethodInBusinessLayer()}" + Environment.NewLine);
+
+            Text.AppendLine("if (IsFound)" + Environment.NewLine + "{" + Environment.NewLine);
+
+            Text.AppendLine(_MakeReturnParametersForFindMethodInBusinessLayer() + "}" + Environment.NewLine);
+
+            Text.AppendLine("else" + Environment.NewLine + "{" + Environment.NewLine);
+
+            Text.AppendLine("return null;" + Environment.NewLine + "}" + Environment.NewLine + "}" + Environment.NewLine);
+
+            return Text.ToString().Trim();
+        }
+
+        private string _MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer()
+        {
+            StringBuilder Variable = new StringBuilder();
+
+            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem FirstRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+
+                if (FirstRow.SubItems.Count > 0)
+                {
+                    string ColumnName = FirstRow.SubItems[0].Text;
+                    string DataType = FirstRow.SubItems[1].Text;
+                    string IsNullable = FirstRow.SubItems[2].Text;
+
+                    if (ColumnName.ToLower() != "username" && ColumnName.ToLower() != "password")
+                    {
+                        if (i == 0)
+                        {
+                            Variable.AppendLine($"{_GetDataTypeCSharp(DataType)}? {ColumnName} = null;");
+                            continue;
+                        }
+
+                        if (IsNullable.ToUpper() == "YES")
+                        {
+                            if (!_IsDataTypeString(DataType))
+                            {
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)}? {ColumnName} = null;");
+                            }
+                            else
+                            {
+                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = null;");
+                            }
+                        }
+                        else
+                        {
+                            switch (DataType.ToLower())
+                            {
+                                case "int":
+                                case "bigint":
+                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1;");
+                                    break;
+
+                                case "float":
+                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1F;");
+                                    break;
+
+                                case "decimal":
+                                case "money":
+                                case "smallmoney":
+                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1M;");
+                                    break;
+
+                                case "tinyint":
+                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = 0;");
+                                    break;
+
+                                case "smallint":
+                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1;");
+                                    break;
+
+                                case "nvarchar":
+                                case "varchar":
+                                case "char":
+                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = string.Empty;");
+                                    break;
+
+                                case "datetime":
+                                case "date":
+                                case "smalldatetime":
+                                case "datetime2":
+                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = DateTime.Now;");
+                                    break;
+
+                                case "time":
+                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = DateTime.Now.TimeOfDay;");
+                                    break;
+
+                                case "bit":
+                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = false;");
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return Variable.ToString().Trim();
+        }
+
+        private string _MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()
+        {
+            StringBuilder Parameters = new StringBuilder("(");
+
+            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem firstItem = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+
+                if (firstItem.SubItems.Count > 0)
+                {
+                    string ColumnName = firstItem.SubItems[0].Text;
+
+                    if (ColumnName.ToLower() == "username" || ColumnName.ToLower() == "password")
+                    {
+                        Parameters.Append($"{ColumnName}, ");
+                    }
+                    else
+                    {
+                        Parameters.Append($"ref {ColumnName}, ");
+                    }
+                }
+            }
+
+            // To remove the ", " from the end of the text
+            Parameters.Remove(Parameters.Length - 2, 2);
+            Parameters.AppendLine(");");
+
+            return Parameters.ToString().Trim();
+        }
+
+        private string _GetFindUsernameAndPasswordMethodInBusinessLayer()
+        {
+            StringBuilder Text = new StringBuilder();
+
+            Text.AppendLine($"public static cls{_TableSingleName} Find(string Username, string Password)" + Environment.NewLine + "{");
+            Text.AppendLine(_MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer() + Environment.NewLine);
+
+            Text.AppendLine($"bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()}" + Environment.NewLine);
+
+            Text.AppendLine("if (IsFound)" + Environment.NewLine + "{");
+            Text.AppendLine(_MakeReturnParametersForFindMethodInBusinessLayer() + "}");
+
+            Text.AppendLine("else" + Environment.NewLine + "{");
+            Text.AppendLine("return null;" + Environment.NewLine + "}" + Environment.NewLine + "}");
+
+            return Text.ToString().Trim();
+        }
+
+        private string _GetDoesUsernameExistMethodInBusinessLayer()
+        {
+            StringBuilder Text = new StringBuilder();
+
+            Text.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username)" + Environment.NewLine + "{");
+            Text.AppendLine($"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username);" + Environment.NewLine + "}");
+
+            return Text.ToString().Trim();
+        }
+
+        private string _GetDoesUsernameAndPasswordExistMethodInBusinessLayer()
+        {
+            StringBuilder Text = new StringBuilder();
+
+            Text.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username, string Password)" + Environment.NewLine + "{");
+            Text.AppendLine($"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username, Password);" + Environment.NewLine + "}");
+
+            return Text.ToString().Trim();
+        }
+
+        private void _CreateBusinessLayer()
+        {
+            _TempText.AppendLine($"public class cls{_TableSingleName}");
+            _TempText.AppendLine("{");
+            _TempText.AppendLine("public enum enMode { AddNew = 0, Update = 1 };");
+            _TempText.AppendLine("public enMode Mode = enMode.AddNew;" + Environment.NewLine);
+            _TempText.AppendLine(_MakeParametersForBusinessLayer());
+            _TempText.AppendLine(_GetPublicConstructor() + Environment.NewLine);
+            _TempText.AppendLine(_GetPrivateConstructor() + Environment.NewLine);
+            _TempText.AppendLine(_GetAddNewInBusinessLayer() + Environment.NewLine);
+            _TempText.AppendLine(_GetUpdateInBusinessLayer() + Environment.NewLine);
+            _TempText.AppendLine(_GetSaveMethod() + Environment.NewLine);
+            _TempText.AppendLine(_GetFindMethodInBusinessLayer() + Environment.NewLine);
+
+            if (_IsLogin)
+            {
+                _TempText.AppendLine(_GetFindUsernameMethodInBusinessLayer() + Environment.NewLine);
+                _TempText.AppendLine(_GetFindUsernameAndPasswordMethodInBusinessLayer() + Environment.NewLine);
+            }
+
+            _TempText.AppendLine(_GetDeleteMethodInBusinessLayer() + Environment.NewLine);
+            _TempText.AppendLine(_GetDoesExistMethodInBusinessLayer() + Environment.NewLine);
+
+            if (_IsLogin)
+            {
+                _TempText.AppendLine(_GetDoesUsernameExistMethodInBusinessLayer() + Environment.NewLine);
+                _TempText.AppendLine(_GetDoesUsernameAndPasswordExistMethodInBusinessLayer() + Environment.NewLine);
+            }
+
+            _TempText.AppendLine(_GetAllMethodInBusinessLayer() + Environment.NewLine);
+            _TempText.AppendLine("}");
+        }
+
+        #endregion
 
         private void btnShowDateAccessLayer_Click(object sender, EventArgs e)
         {
@@ -2065,9 +1961,13 @@ namespace Code_Generator
             }
             else
             {
-                txtDataAccessLayer.Clear();
+                Stopwatch stopwatch1  = Stopwatch.StartNew();
+                _TempText = new StringBuilder();
+                txtData.Clear();
 
-                txtDataAccessLayer.Text += $"public class cls{_TableSingleName}Data" + Environment.NewLine + "{" + Environment.NewLine;
+                _TempText.Append($"public class cls{_TableSingleName}Data");
+                _TempText.AppendLine();
+                _TempText.AppendLine("{");
 
                 if (_IsLogin)
                 {
@@ -2078,16 +1978,22 @@ namespace Code_Generator
                     _DataAccessAsNormal();
                 }
 
-                txtDataAccessLayer.Text += "}";
+                _TempText.Append("}");
+
+                txtData.Text = _TempText.ToString();
+
+                stopwatch1.Stop();
+
+                MessageBox.Show($"Time in DataAccess using StringBuilder is {stopwatch1.ElapsedMilliseconds}");
             }
         }
 
         private void btnCopy_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(txtDataAccessLayer.Text))
+            if (!string.IsNullOrWhiteSpace(txtData.Text))
             {
                 // Copy the text to the clipboard
-                Clipboard.SetText(txtDataAccessLayer.Text);
+                Clipboard.SetText(txtData.Text);
             }
         }
 
@@ -2100,9 +2006,17 @@ namespace Code_Generator
             }
             else
             {
-                txtDataAccessLayer.Clear();
+                Stopwatch stopwatch1 = Stopwatch.StartNew();
+                _TempText = new StringBuilder();
+                txtData.Clear();
 
                 _CreateBusinessLayer();
+
+                txtData.Text = _TempText.ToString();
+
+                stopwatch1.Stop();
+
+                MessageBox.Show($"Time in Business using StringBuilder is {stopwatch1.ElapsedMilliseconds}");
             }
         }
 
@@ -2121,7 +2035,7 @@ namespace Code_Generator
 
             listviewTablesName.Items.Clear();
 
-            txtDataAccessLayer.Clear();
+            txtData.Clear();
 
             lblNumberOfColumnsRecords.Text = "0";
 
@@ -2141,7 +2055,7 @@ namespace Code_Generator
 
             listviewColumnsInfo.Items.Clear();
 
-            txtDataAccessLayer.Clear();
+            txtData.Clear();
 
             lblNumberOfColumnsRecords.Text = "0";
         }
@@ -2150,7 +2064,7 @@ namespace Code_Generator
         {
             if (listviewTablesName.SelectedItems.Count > 0)
             {
-                txtDataAccessLayer.Clear();
+                txtData.Clear();
 
                 // Access the first value (first column) of the selected item
                 _TableName = listviewTablesName.SelectedItems[0].SubItems[0].Text;
