@@ -5,9 +5,9 @@ VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Code Generator", "Code Generator.csproj", "{AEB31FCD-17C3-41EE-8102-F6C449A50547}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerator_DataAccess", "CodeGeneratro_DataAccess\CodeGenerator_DataAccess.csproj", "{704B5107-280E-42F3-BE08-50759A98F090}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerator_DataAccess", "..\CodeGenerator_DataAccess\CodeGenerator_DataAccess.csproj", "{704B5107-280E-42F3-BE08-50759A98F090}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerator_Business", "CodeGenerator_Business\CodeGenerator_Business.csproj", "{1EE78A04-06F0-4000-9FE5-49F1F832657B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerator_Business", "..\CodeGenerator_Business\CodeGenerator_Business.csproj", "{1EE78A04-06F0-4000-9FE5-49F1F832657B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -45,7 +45,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CodeGeneratro_DataAccess\CodeGenerator_DataAccess.csproj">
+    <ProjectReference Include="..\CodeGenerator_DataAccess\CodeGenerator_DataAccess.csproj">
       <Project>{704b5107-280e-42f3-be08-50759a98f090}</Project>
       <Name>CodeGenerator_DataAccess</Name>
     </ProjectReference>
