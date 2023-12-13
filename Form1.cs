@@ -1018,10 +1018,7 @@ namespace Code_Generator
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
             _TempText.AppendLine();
 
-            _TempText.AppendLine("                object result = command.ExecuteScalar();");
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("                IsFound = (result != null);");
+            _TempText.AppendLine("                IsFound = (command.ExecuteScalar() != null);");
             _TempText.AppendLine("            }");
             _TempText.AppendLine("        }");
             _TempText.AppendLine("    }");
@@ -1054,10 +1051,7 @@ namespace Code_Generator
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
             _TempText.AppendLine();
 
-            _TempText.AppendLine("                object result = command.ExecuteScalar();");
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("                IsFound = (result != null);");
+            _TempText.AppendLine("                IsFound = (command.ExecuteScalar() != null);");
             _TempText.AppendLine("            }");
             _TempText.AppendLine("        }");
             _TempText.AppendLine("    }");
@@ -1091,10 +1085,7 @@ namespace Code_Generator
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Password\", Password);");
             _TempText.AppendLine();
 
-            _TempText.AppendLine("                object result = command.ExecuteScalar();");
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("                IsFound = (result != null);");
+            _TempText.AppendLine("                IsFound = (command.ExecuteScalar() != null);");
             _TempText.AppendLine("            }");
             _TempText.AppendLine("        }");
             _TempText.AppendLine("    }");
@@ -1529,7 +1520,7 @@ namespace Code_Generator
 
             // To remove the ", " from the end of the text
             Parameters.Remove(Parameters.Length - 2, 2);
-            Parameters.AppendLine(");" + Environment.NewLine);
+            Parameters.AppendLine(");").AppendLine();
 
             return Parameters.ToString().Trim();
         }
@@ -1554,7 +1545,7 @@ namespace Code_Generator
 
             // To remove the ", " from the end of the text
             Parameters.Remove(Parameters.Length - 2, 2);
-            Parameters.AppendLine(");" + Environment.NewLine);
+            Parameters.AppendLine(");").AppendLine();
 
             return Parameters.ToString().Trim();
         }
@@ -1638,7 +1629,7 @@ namespace Code_Generator
                     {
                         if (i == 0)
                         {
-                            Variable.Append(_GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine);
+                            Variable.Append(_GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;").AppendLine();
                             continue;
                         }
 
@@ -1646,11 +1637,11 @@ namespace Code_Generator
                         {
                             if (!_IsDataTypeString(DataType))
                             {
-                                Variable.Append(_GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;" + Environment.NewLine);
+                                Variable.Append(_GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;").AppendLine();
                             }
                             else
                             {
-                                Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = null;" + Environment.NewLine);
+                                Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = null;").AppendLine();
                             }
                         }
                         else
@@ -1659,46 +1650,46 @@ namespace Code_Generator
                             {
                                 case "int":
                                 case "bigint":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine);
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;").AppendLine();
                                     break;
 
                                 case "float":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;" + Environment.NewLine);
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;").AppendLine();
                                     break;
 
                                 case "decimal":
                                 case "money":
                                 case "smallmoney":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;" + Environment.NewLine);
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;").AppendLine();
                                     break;
 
                                 case "tinyint":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;" + Environment.NewLine);
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;").AppendLine();
                                     break;
 
                                 case "smallint":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;" + Environment.NewLine);
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;").AppendLine();
                                     break;
 
                                 case "nvarchar":
                                 case "varchar":
                                 case "char":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;" + Environment.NewLine);
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;").AppendLine();
                                     break;
 
                                 case "datetime":
                                 case "date":
                                 case "smalldatetime":
                                 case "datetime2":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;" + Environment.NewLine);
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;").AppendLine();
                                     break;
 
                                 case "time":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now.TimeOfDay;" + Environment.NewLine);
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now.TimeOfDay;").AppendLine();
                                     break;
 
                                 case "bit":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;" + Environment.NewLine);
+                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;").AppendLine();
                                     break;
                             }
                         }
@@ -1734,7 +1725,7 @@ namespace Code_Generator
 
             // To remove the ", " from the end of the text
             Parameters.Remove(Parameters.Length - 2, 2);
-            Parameters.Append(");" + Environment.NewLine);
+            Parameters.Append(");").AppendLine();
 
             return Parameters.ToString().Trim();
         }
@@ -1743,19 +1734,16 @@ namespace Code_Generator
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static cls{_TableSingleName} Find(string Username)" + Environment.NewLine + "{" + Environment.NewLine);
+            Text.AppendLine($"public static cls{_TableSingleName} Find(string Username)")
+                .AppendLine("{")
+                .AppendLine(_MakeInitialParametersForFindUsernameMethodInBusinessLayer()).AppendLine()
+                .AppendLine($"    bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsername{_MakeParametersForFindUsernameMethodInBusinessLayer()}").AppendLine();
 
-            Text.AppendLine(_MakeInitialParametersForFindUsernameMethodInBusinessLayer() + Environment.NewLine);
-
-            Text.AppendLine($"bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsername{_MakeParametersForFindUsernameMethodInBusinessLayer()}" + Environment.NewLine);
-
-            Text.AppendLine("if (IsFound)" + Environment.NewLine + "{" + Environment.NewLine);
-
-            Text.AppendLine(_MakeReturnParametersForFindMethodInBusinessLayer() + "}" + Environment.NewLine);
-
-            Text.AppendLine("else" + Environment.NewLine + "{" + Environment.NewLine);
-
-            Text.AppendLine("return null;" + Environment.NewLine + "}" + Environment.NewLine + "}" + Environment.NewLine);
+            Text.AppendLine("    if (IsFound)").AppendLine("    {").AppendLine()
+                .AppendLine(_MakeReturnParametersForFindMethodInBusinessLayer()).AppendLine("    }").AppendLine()
+                .AppendLine("    else").AppendLine("    {").AppendLine()
+                .AppendLine("        return null;").AppendLine("    }").AppendLine()
+                .AppendLine("}");
 
             return Text.ToString().Trim();
         }
@@ -1883,16 +1871,21 @@ namespace Code_Generator
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static cls{_TableSingleName} Find(string Username, string Password)" + Environment.NewLine + "{");
-            Text.AppendLine(_MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer() + Environment.NewLine);
+            Text.AppendLine($"public static cls{_TableSingleName} Find(string Username, string Password)")
+                .AppendLine("{")
+                .AppendLine(_MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer());
 
-            Text.AppendLine($"bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()}" + Environment.NewLine);
+            Text.AppendLine($"    bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()}");
 
-            Text.AppendLine("if (IsFound)" + Environment.NewLine + "{");
-            Text.AppendLine(_MakeReturnParametersForFindMethodInBusinessLayer() + "}");
-
-            Text.AppendLine("else" + Environment.NewLine + "{");
-            Text.AppendLine("return null;" + Environment.NewLine + "}" + Environment.NewLine + "}");
+            Text.AppendLine("    if (IsFound)")
+                .AppendLine("    {")
+                .AppendLine(_MakeReturnParametersForFindMethodInBusinessLayer())
+                .AppendLine("    }")
+                .AppendLine("    else")
+                .AppendLine("    {")
+                .AppendLine("        return null;")
+                .AppendLine("    }")
+                .AppendLine("}");
 
             return Text.ToString().Trim();
         }
@@ -1901,8 +1894,10 @@ namespace Code_Generator
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username)" + Environment.NewLine + "{");
-            Text.AppendLine($"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username);" + Environment.NewLine + "}");
+            Text.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username)")
+                .AppendLine("{")
+                .AppendLine($"    return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username);")
+                .AppendLine("}");
 
             return Text.ToString().Trim();
         }
@@ -1911,8 +1906,10 @@ namespace Code_Generator
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username, string Password)" + Environment.NewLine + "{");
-            Text.AppendLine($"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username, Password);" + Environment.NewLine + "}");
+            Text.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username, string Password)")
+                .AppendLine("{")
+                .AppendLine($"    return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username, Password);")
+                .AppendLine("}");
 
             return Text.ToString().Trim();
         }
@@ -1922,31 +1919,31 @@ namespace Code_Generator
             _TempText.AppendLine($"public class cls{_TableSingleName}");
             _TempText.AppendLine("{");
             _TempText.AppendLine("public enum enMode { AddNew = 0, Update = 1 };");
-            _TempText.AppendLine("public enMode Mode = enMode.AddNew;" + Environment.NewLine);
-            _TempText.AppendLine(_MakeParametersForBusinessLayer());
-            _TempText.AppendLine(_GetPublicConstructor() + Environment.NewLine);
-            _TempText.AppendLine(_GetPrivateConstructor() + Environment.NewLine);
-            _TempText.AppendLine(_GetAddNewInBusinessLayer() + Environment.NewLine);
-            _TempText.AppendLine(_GetUpdateInBusinessLayer() + Environment.NewLine);
-            _TempText.AppendLine(_GetSaveMethod() + Environment.NewLine);
-            _TempText.AppendLine(_GetFindMethodInBusinessLayer() + Environment.NewLine);
+            _TempText.AppendLine("public enMode Mode = enMode.AddNew;").AppendLine();
+            _TempText.AppendLine(_MakeParametersForBusinessLayer()).AppendLine();
+            _TempText.AppendLine(_GetPublicConstructor()).AppendLine();
+            _TempText.AppendLine(_GetPrivateConstructor()).AppendLine();
+            _TempText.AppendLine(_GetAddNewInBusinessLayer()).AppendLine();
+            _TempText.AppendLine(_GetUpdateInBusinessLayer()).AppendLine();
+            _TempText.AppendLine(_GetSaveMethod()).AppendLine();
+            _TempText.AppendLine(_GetFindMethodInBusinessLayer()).AppendLine();
 
             if (_IsLogin)
             {
-                _TempText.AppendLine(_GetFindUsernameMethodInBusinessLayer() + Environment.NewLine);
-                _TempText.AppendLine(_GetFindUsernameAndPasswordMethodInBusinessLayer() + Environment.NewLine);
+                _TempText.AppendLine(_GetFindUsernameMethodInBusinessLayer()).AppendLine();
+                _TempText.AppendLine(_GetFindUsernameAndPasswordMethodInBusinessLayer()).AppendLine();
             }
 
-            _TempText.AppendLine(_GetDeleteMethodInBusinessLayer() + Environment.NewLine);
-            _TempText.AppendLine(_GetDoesExistMethodInBusinessLayer() + Environment.NewLine);
+            _TempText.AppendLine(_GetDeleteMethodInBusinessLayer()).AppendLine();
+            _TempText.AppendLine(_GetDoesExistMethodInBusinessLayer()).AppendLine();
 
             if (_IsLogin)
             {
-                _TempText.AppendLine(_GetDoesUsernameExistMethodInBusinessLayer() + Environment.NewLine);
-                _TempText.AppendLine(_GetDoesUsernameAndPasswordExistMethodInBusinessLayer() + Environment.NewLine);
+                _TempText.AppendLine(_GetDoesUsernameExistMethodInBusinessLayer()).AppendLine();
+                _TempText.AppendLine(_GetDoesUsernameAndPasswordExistMethodInBusinessLayer()).AppendLine();
             }
 
-            _TempText.AppendLine(_GetAllMethodInBusinessLayer() + Environment.NewLine);
+            _TempText.AppendLine(_GetAllMethodInBusinessLayer()).AppendLine();
             _TempText.AppendLine("}");
         }
 
@@ -1961,7 +1958,6 @@ namespace Code_Generator
             }
             else
             {
-                Stopwatch stopwatch1  = Stopwatch.StartNew();
                 _TempText = new StringBuilder();
                 txtData.Clear();
 
@@ -1981,19 +1977,6 @@ namespace Code_Generator
                 _TempText.Append("}");
 
                 txtData.Text = _TempText.ToString();
-
-                stopwatch1.Stop();
-
-                MessageBox.Show($"Time in DataAccess using StringBuilder is {stopwatch1.ElapsedMilliseconds}");
-            }
-        }
-
-        private void btnCopy_Click(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(txtData.Text))
-            {
-                // Copy the text to the clipboard
-                Clipboard.SetText(txtData.Text);
             }
         }
 
@@ -2006,17 +1989,21 @@ namespace Code_Generator
             }
             else
             {
-                Stopwatch stopwatch1 = Stopwatch.StartNew();
                 _TempText = new StringBuilder();
                 txtData.Clear();
 
                 _CreateBusinessLayer();
 
                 txtData.Text = _TempText.ToString();
+            }
+        }
 
-                stopwatch1.Stop();
-
-                MessageBox.Show($"Time in Business using StringBuilder is {stopwatch1.ElapsedMilliseconds}");
+        private void btnCopy_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(txtData.Text))
+            {
+                // Copy the text to the clipboard
+                Clipboard.SetText(txtData.Text);
             }
         }
 

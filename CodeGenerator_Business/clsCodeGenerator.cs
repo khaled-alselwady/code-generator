@@ -11,9 +11,9 @@ namespace CodeGenerator_Business
     public class clsCodeGenerator
     {
 
-        public static bool IsTableExists(string TableName, string DatabaseName)
+        public static bool DoesTableExist(string TableName, string DatabaseName)
         {
-            return clsCodeGeneratorData.IsTableExists(TableName, DatabaseName);
+            return clsCodeGeneratorData.DoesTableExist(TableName, DatabaseName);
         }
 
         public static DataTable GetColumnsNameWithInfo(string TableName, string DatabaseName)
@@ -21,9 +21,9 @@ namespace CodeGenerator_Business
             return clsCodeGeneratorData.GetColumnsNameWithInfo(TableName, DatabaseName);
         }
 
-        public static bool IsDataBaseExists(string DatabaseName)
+        public static bool DoesDataBaseExist(string DatabaseName)
         {
-            return clsCodeGeneratorData.IsDataBaseExists(DatabaseName);
+            return clsCodeGeneratorData.DoesDataBaseExist(DatabaseName);
         }
 
         public static DataTable GetAllTablesNameInASpecificDatabase(string DatabaseName)

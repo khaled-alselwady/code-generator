@@ -12,36 +12,35 @@ namespace CodeGenerator_DataAccess
 {
     public class clsCodeGeneratorData
     {
-        public static bool IsTableExists(string TableName, string DatabaseName)
+        public static bool DoesTableExist(string TableName, string DatabaseName)
         {
             bool IsFound = false;
 
-            //clsDataAccessSettings.DatabaseName = DatabaseName;
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName));
-
-            string query = @"SELECT 1 FROM sys.tables WHERE name = @TableName";
-
-            SqlCommand command = new SqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@TableName", TableName);
-
             try
             {
-                connection.Open();
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName)))
+                {
+                    connection.Open();
 
-                SqlDataReader reader = command.ExecuteReader();
+                    string query = @"SELECT 1 FROM sys.tables WHERE name = @TableName";
 
-                IsFound = reader.HasRows;
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@TableName", TableName);
 
-                reader.Close();
+                        IsFound = (command.ExecuteScalar() != null);
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                IsFound = false;
+                clsLogError.LogError("Database Exception", ex);
             }
             catch (Exception ex)
             {
                 IsFound = false;
-            }
-            finally
-            {
-                connection.Close();
+                clsLogError.LogError("General Exception", ex);
             }
 
             return IsFound;
@@ -51,10 +50,13 @@ namespace CodeGenerator_DataAccess
         {
             DataTable dt = new DataTable();
 
-            //clsDataAccessSettings.DatabaseName = DatabaseName;
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName));
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName)))
+                {
+                    connection.Open();
 
-            string query = @"SELECT
+                    string query = @"SELECT
                                  COLUMN_NAME AS 'Column Name',
                                  DATA_TYPE AS 'Data Type',
                                  IS_NULLABLE AS 'Is Nullable'
@@ -65,65 +67,61 @@ namespace CodeGenerator_DataAccess
                              ORDER BY
                                  ORDINAL_POSITION;";
 
-            SqlCommand command = new SqlCommand(query, connection);
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@TableName", TableName);
 
-            command.Parameters.AddWithValue("@TableName", TableName);
-
-            try
-            {
-                connection.Open();
-
-                SqlDataReader reader = command.ExecuteReader();
-
-                if (reader.HasRows)
-                {
-                    dt.Load(reader);
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                dt.Load(reader);
+                            }
+                        }
+                    }
                 }
-
-                reader.Close();
+            }
+            catch (SqlException ex)
+            {
+                clsLogError.LogError("Database Exception", ex);
             }
             catch (Exception ex)
             {
-
-            }
-            finally
-            {
-                connection.Close();
+                clsLogError.LogError("General Exception", ex);
             }
 
             return dt;
         }
 
-        public static bool IsDataBaseExists(string DatabaseName)
+        public static bool DoesDataBaseExist(string DatabaseName)
         {
             bool IsFound = false;
 
-            //clsDataAccessSettings.DatabaseName = DatabaseName;
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName));
-
-            string query = @"SELECT Found = 1 FROM sys.databases WHERE name = @DatabaseName";
-
-            SqlCommand command = new SqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@DatabaseName", DatabaseName);
-
             try
             {
-                connection.Open();
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName)))
+                {
+                    connection.Open();
 
-                SqlDataReader reader = command.ExecuteReader();
+                    string query = @"SELECT Found = 1 FROM sys.databases WHERE name = @DatabaseName";
 
-                IsFound = reader.HasRows;
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@DatabaseName", DatabaseName);
 
-                reader.Close();
+                        IsFound = (command.ExecuteScalar() != null);
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                IsFound = false;
+                clsLogError.LogError("Database Exception", ex);
             }
             catch (Exception ex)
             {
                 IsFound = false;
-            }
-            finally
-            {
-                connection.Close();
+                clsLogError.LogError("General Exception", ex);
             }
 
             return IsFound;
@@ -133,36 +131,36 @@ namespace CodeGenerator_DataAccess
         {
             DataTable dt = new DataTable();
 
-            //clsDataAccessSettings.DatabaseName = DatabaseName;
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName));
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName)))
+                {
+                    connection.Open();
 
-            string query = @"SELECT name AS TableName
+                    string query = @"SELECT name AS TableName
                                  FROM sys.tables 
                                  WHERE name <> 'sysdiagrams'
                                  Order by name;";
 
-            SqlCommand command = new SqlCommand(query, connection);
-
-            try
-            {
-                connection.Open();
-
-                SqlDataReader reader = command.ExecuteReader();
-
-                if (reader.HasRows)
-                {
-                    dt.Load(reader);
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                dt.Load(reader);
+                            }
+                        }
+                    }
                 }
-
-                reader.Close();
+            }
+            catch (SqlException ex)
+            {
+                clsLogError.LogError("Database Exception", ex);
             }
             catch (Exception ex)
             {
-
-            }
-            finally
-            {
-                connection.Close();
+                clsLogError.LogError("General Exception", ex);
             }
 
             return dt;
@@ -172,39 +170,39 @@ namespace CodeGenerator_DataAccess
         {
             DataTable dt = new DataTable();
 
-            SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString());
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString()))
+                {
+                    connection.Open();
 
-            string query = @"SELECT name AS DatabaseName
+                    string query = @"SELECT name AS DatabaseName
                              FROM sys.databases
                              WHERE database_id > 4
                              ORDER BY create_date DESC";
 
-            SqlCommand command = new SqlCommand(query, connection);
-
-            try
-            {
-                connection.Open();
-
-                SqlDataReader reader = command.ExecuteReader();
-
-                if (reader.HasRows)
-                {
-                    dt.Load(reader);
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                dt.Load(reader);
+                            }
+                        }
+                    }
                 }
-
-                reader.Close();
+            }
+            catch (SqlException ex)
+            {
+                clsLogError.LogError("Database Exception", ex);
             }
             catch (Exception ex)
             {
-
-            }
-            finally
-            {
-                connection.Close();
+                clsLogError.LogError("General Exception", ex);
             }
 
             return dt;
         }
-
     }
 }
