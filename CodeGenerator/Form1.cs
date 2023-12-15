@@ -1,6 +1,7 @@
 ﻿using CodeGenerator_Business;
 using System;
 using System.Data;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
@@ -154,6 +155,23 @@ namespace Code_Generator
             string Result = _GetDataTypeCSharp(DateType);
 
             return (Result.ToLower() == "string");
+        }
+
+        private void _Reset()
+        {
+            comboDatabaseName.SelectedIndex = -1;
+
+            listviewColumnsInfo.Items.Clear();
+
+            listviewTablesName.Items.Clear();
+
+            txtData.Clear();
+
+            txtPath.Clear();
+
+            lblNumberOfColumnsRecords.Text = "0";
+
+            lblNumberOfTablesRecords.Text = "0";
         }
 
         #region Data Access Layer
@@ -1122,6 +1140,44 @@ namespace Code_Generator
             _TempText.AppendLine("}");
         }
 
+        private void _CreateDataAccessSettingsClass()
+        {
+            _TempText.Clear();
+
+            _TempText.Append($"using System.Configuration;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{\r\n    static class clsDataAccessSettings\r\n    {{\r\n        public static string ConnectionString = ConfigurationManager.ConnectionStrings[\"ConnectionString\"].ConnectionString;\r\n    }}\r\n}}");
+
+            StringBuilder Path = new StringBuilder();
+
+            Path.Append(txtPath.Text.Trim() + "clsDataAccessSettings.cs");
+
+            if (rbAdvance.Checked)
+            {
+                using (StreamWriter writer = new StreamWriter(Path.ToString()))
+                {
+                    writer.Write(_TempText.ToString());
+                }
+            }
+        }
+
+        private void _CreateLogErrorsClass()
+        {
+            _TempText.Clear();
+
+            _TempText.Append($"using System;\r\nusing System.Diagnostics;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{\r\n    public static class clsLogError\r\n    {{\r\n        public static void LogError(string errorType, Exception ex)\r\n        {{\r\n            // Specify the source name for the event log\r\n            string sourceName = \"{comboDatabaseName.Text}\";\r\n\r\n            // Create the event source if it does not exist\r\n            if (!EventLog.SourceExists(sourceName))\r\n            {{\r\n                EventLog.CreateEventSource(sourceName, \"Application\");\r\n            }}\r\n\r\n            string errorMessage = $\"{{errorType}} in {{ex.Source}}\\n\\nException Message:\" +\r\n                    $\" {{ex.Message}}\\n\\nException Type: {{ex.GetType().Name}}\\n\\nStack Trace:\" +\r\n                    $\" {{ex.StackTrace}}\\n\\nException Location: {{ex.TargetSite}}\";\r\n\r\n            // Log an error event\r\n            EventLog.WriteEntry(sourceName, errorMessage, EventLogEntryType.Error);\r\n        }}\r\n    }}\r\n}}");
+
+            StringBuilder Path = new StringBuilder();
+
+            Path.Append(txtPath.Text.Trim() + "clsLogError.cs");
+
+            if (rbAdvance.Checked)
+            {
+                using (StreamWriter writer = new StreamWriter(Path.ToString()))
+                {
+                    writer.Write(_TempText.ToString());
+                }
+            }
+        }
+
         private void _DataAccessAsLoginInfo()
         {
             _CreateFindMethod();
@@ -1950,6 +2006,12 @@ namespace Code_Generator
             else
             {
                 _TempText = new StringBuilder();
+
+                if (rbAdvance.Checked)
+                {
+                    _TempText.AppendLine($"using System;\r\nusing System.Data;\r\nusing System.Data.SqlClient;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{");
+                }
+
                 txtData.Clear();
 
                 _TempText.Append($"public class cls{_TableSingleName}Data");
@@ -1967,6 +2029,11 @@ namespace Code_Generator
 
                 _TempText.Append("}");
 
+                if (rbAdvance.Checked)
+                {
+                    _TempText.Append("\n}");
+                }
+
                 txtData.Text = _TempText.ToString();
             }
         }
@@ -1981,9 +2048,20 @@ namespace Code_Generator
             else
             {
                 _TempText = new StringBuilder();
+
+                if (rbAdvance.Checked)
+                {
+                    _TempText.AppendLine($"using {comboDatabaseName.Text}_DataAccess;\r\nusing System;\r\nusing System.Data;\r\n\r\nnamespace {comboDatabaseName.Text}_Business\r\n{{");
+                }
+
                 txtData.Clear();
 
                 _CreateBusinessLayer();
+
+                if (rbAdvance.Checked)
+                {
+                    _TempText.Append("\n}");
+                }
 
                 txtData.Text = _TempText.ToString();
             }
@@ -2009,17 +2087,7 @@ namespace Code_Generator
 
         private void btnReset_Click(object sender, EventArgs e)
         {
-            listviewColumnsInfo.Items.Clear();
-
-            listviewTablesName.Items.Clear();
-
-            txtData.Clear();
-
-            lblNumberOfColumnsRecords.Text = "0";
-
-            lblNumberOfTablesRecords.Text = "0";
-
-            comboDatabaseName.Text = "";
+            _Reset();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -2065,6 +2133,80 @@ namespace Code_Generator
             {
                 comboDatabaseName.DroppedDown = true;
             }
+        }
+
+        private void btnGenerate_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(comboDatabaseName.Text))
+            {
+                MessageBox.Show("You have to select a database first!", "Miss Data",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtPath.Text.Trim()))
+            {
+                MessageBox.Show("You have to type a path!", "Miss Path",
+                   MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return;
+            }
+
+            StringBuilder Path = new StringBuilder();
+
+            for (byte i = 0; i < listviewTablesName.Items.Count; i++)
+            {
+                _TableName = listviewTablesName.Items[i].SubItems[0].Text;
+
+                _FillListViewWithColumnsData();
+
+                _IsLogin = _DoesTableHaveUsernameAndPassword();
+
+                if (txtPath.Text.IndexOf("Business", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    btnShowBusinessLayer.PerformClick();
+                    Path.Append(txtPath.Text.Trim() + $"cls{_TableSingleName}.cs");
+                }
+                else
+                {
+                    btnShowDateAccessLayer.PerformClick();
+                    Path.Append(txtPath.Text.Trim() + $"cls{_TableSingleName}Data.cs");
+                }
+
+                if (rbAdvance.Checked)
+                {
+                    using (StreamWriter writer = new StreamWriter(Path.ToString()))
+                    {
+                        writer.Write(txtData.Text);
+                    }
+
+                    Path.Clear();
+                    txtData.Clear();
+                }
+            }
+
+            if (!(txtPath.Text.IndexOf("Business", StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                _CreateDataAccessSettingsClass();
+                _CreateLogErrorsClass();
+            }
+
+            MessageBox.Show("Class created and added to the file successfully.");
+
+            _Reset();
+        }
+
+        private void rbAdvance_CheckedChanged(object sender, EventArgs e)
+        {
+            btnGenerate.Enabled = true;
+            txtPath.Enabled = true;
+        }
+
+        private void rbNormal_CheckedChanged(object sender, EventArgs e)
+        {
+            btnGenerate.Enabled = false;
+            txtPath.Enabled = false;
         }
     }
 }
