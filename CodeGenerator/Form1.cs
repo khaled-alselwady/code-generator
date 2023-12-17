@@ -9,10 +9,10 @@ namespace Code_Generator
 {
     public partial class Form1 : Form
     {
-        // Table Info
         private string _TableName = string.Empty;
         private string _TableSingleName = string.Empty;
         private bool _IsLogin = false;
+        private bool _IsAdvancedMode = false;
 
         private StringBuilder _TempText = new StringBuilder();
 
@@ -1150,7 +1150,7 @@ namespace Code_Generator
 
             Path.Append(txtPath.Text.Trim() + "clsDataAccessSettings.cs");
 
-            if (rbAdvance.Checked)
+            if (_IsAdvancedMode)
             {
                 using (StreamWriter writer = new StreamWriter(Path.ToString()))
                 {
@@ -1169,7 +1169,7 @@ namespace Code_Generator
 
             Path.Append(txtPath.Text.Trim() + "clsLogError.cs");
 
-            if (rbAdvance.Checked)
+            if (_IsAdvancedMode)
             {
                 using (StreamWriter writer = new StreamWriter(Path.ToString()))
                 {
@@ -2007,7 +2007,7 @@ namespace Code_Generator
             {
                 _TempText = new StringBuilder();
 
-                if (rbAdvance.Checked)
+                if (_IsAdvancedMode)
                 {
                     _TempText.AppendLine($"using System;\r\nusing System.Data;\r\nusing System.Data.SqlClient;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{");
                 }
@@ -2029,7 +2029,7 @@ namespace Code_Generator
 
                 _TempText.Append("}");
 
-                if (rbAdvance.Checked)
+                if (_IsAdvancedMode)
                 {
                     _TempText.Append("\n}");
                 }
@@ -2049,7 +2049,7 @@ namespace Code_Generator
             {
                 _TempText = new StringBuilder();
 
-                if (rbAdvance.Checked)
+                if (_IsAdvancedMode)
                 {
                     _TempText.AppendLine($"using {comboDatabaseName.Text}_DataAccess;\r\nusing System;\r\nusing System.Data;\r\n\r\nnamespace {comboDatabaseName.Text}_Business\r\n{{");
                 }
@@ -2058,7 +2058,7 @@ namespace Code_Generator
 
                 _CreateBusinessLayer();
 
-                if (rbAdvance.Checked)
+                if (_IsAdvancedMode)
                 {
                     _TempText.Append("\n}");
                 }
@@ -2174,7 +2174,7 @@ namespace Code_Generator
                     Path.Append(txtPath.Text.Trim() + $"cls{_TableSingleName}Data.cs");
                 }
 
-                if (rbAdvance.Checked)
+                if (_IsAdvancedMode)
                 {
                     using (StreamWriter writer = new StreamWriter(Path.ToString()))
                     {
@@ -2188,25 +2188,19 @@ namespace Code_Generator
 
             if (!(txtPath.Text.IndexOf("Business", StringComparison.OrdinalIgnoreCase) >= 0))
             {
+                // create them only in the Data Access 
                 _CreateDataAccessSettingsClass();
                 _CreateLogErrorsClass();
             }
 
-            MessageBox.Show("Class created and added to the file successfully.");
+            MessageBox.Show("Classes created and added to the file successfully.");
 
             _Reset();
         }
 
-        private void rbAdvance_CheckedChanged(object sender, EventArgs e)
+        private void tcMode_SelectedIndexChanged(object sender, EventArgs e)
         {
-            btnGenerate.Enabled = true;
-            txtPath.Enabled = true;
-        }
-
-        private void rbNormal_CheckedChanged(object sender, EventArgs e)
-        {
-            btnGenerate.Enabled = false;
-            txtPath.Enabled = false;
+            _IsAdvancedMode = (tcMode.SelectedTab == tbAdvanced);
         }
     }
 }
