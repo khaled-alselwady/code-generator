@@ -1320,6 +1320,7 @@ namespace Code_Generator
                 }
             }
 
+            Constructor.AppendLine();
             Constructor.AppendLine("    Mode = enMode.AddNew;");
             Constructor.AppendLine("}");
 
@@ -1347,6 +1348,7 @@ namespace Code_Generator
                 }
             }
 
+            Constructor.AppendLine();
             Constructor.AppendLine("    Mode = enMode.Update;");
             Constructor.AppendLine("}");
 
@@ -1576,7 +1578,7 @@ namespace Code_Generator
         {
             StringBuilder Parameters = new StringBuilder();
 
-            Parameters.Append($"return new cls{_TableSingleName}(");
+            Parameters.Append($"(new cls{_TableSingleName}(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
@@ -1592,7 +1594,7 @@ namespace Code_Generator
 
             // To remove the ", " from the end of the text
             Parameters.Remove(Parameters.Length - 2, 2);
-            Parameters.AppendLine(");").AppendLine();
+            Parameters.AppendLine("))").AppendLine();
 
             return Parameters.ToString().Trim();
         }
@@ -1609,15 +1611,10 @@ namespace Code_Generator
             Text.AppendLine($"bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByID{_MakeParametersForFindMethodInBusinessLayer()}");
             Text.AppendLine();
 
-            Text.AppendLine("if (IsFound)");
-            Text.AppendLine("{");
-            Text.AppendLine(_MakeReturnParametersForFindMethodInBusinessLayer());
-            Text.AppendLine("}");
-            Text.AppendLine("else");
-            Text.AppendLine("{");
-            Text.AppendLine("return null;");
-            Text.AppendLine("}");
-            Text.AppendLine("}");
+            Text.Append("return (IsFound) ? ")
+                .Append(_MakeReturnParametersForFindMethodInBusinessLayer())
+                .AppendLine(" : null;")
+                .AppendLine("}");
 
             return Text.ToString().Trim();
         }
@@ -1786,10 +1783,9 @@ namespace Code_Generator
                 .AppendLine(_MakeInitialParametersForFindUsernameMethodInBusinessLayer()).AppendLine()
                 .AppendLine($"    bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsername{_MakeParametersForFindUsernameMethodInBusinessLayer()}").AppendLine();
 
-            Text.AppendLine("    if (IsFound)").AppendLine("    {").AppendLine()
-                .AppendLine(_MakeReturnParametersForFindMethodInBusinessLayer()).AppendLine("    }").AppendLine()
-                .AppendLine("    else").AppendLine("    {").AppendLine()
-                .AppendLine("        return null;").AppendLine("    }").AppendLine()
+            Text.Append("return (IsFound) ? ")
+                .Append(_MakeReturnParametersForFindMethodInBusinessLayer())
+                .AppendLine(" : null;")
                 .AppendLine("}");
 
             return Text.ToString().Trim();
@@ -1922,16 +1918,11 @@ namespace Code_Generator
                 .AppendLine("{")
                 .AppendLine(_MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer());
 
-            Text.AppendLine($"    bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()}");
+            Text.AppendLine($"    bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()}").AppendLine();
 
-            Text.AppendLine("    if (IsFound)")
-                .AppendLine("    {")
-                .AppendLine(_MakeReturnParametersForFindMethodInBusinessLayer())
-                .AppendLine("    }")
-                .AppendLine("    else")
-                .AppendLine("    {")
-                .AppendLine("        return null;")
-                .AppendLine("    }")
+            Text.Append("return (IsFound) ? ")
+                .Append(_MakeReturnParametersForFindMethodInBusinessLayer())
+                .AppendLine(" : null;")
                 .AppendLine("}");
 
             return Text.ToString().Trim();
