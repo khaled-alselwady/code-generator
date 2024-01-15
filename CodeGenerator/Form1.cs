@@ -286,11 +286,9 @@ namespace Code_Generator
             _TempText.AppendLine("            connection.Open();");
             _TempText.AppendLine();
 
-            _TempText.AppendLine($"    string query = @\"select * from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";");
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Get{_TableSingleName}InfoByID\", connection))");
             _TempText.AppendLine("            {");
+            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
             _TempText.AppendLine();
 
@@ -459,11 +457,9 @@ namespace Code_Generator
             _TempText.AppendLine("            connection.Open();");
             _TempText.AppendLine();
 
-            _TempText.AppendLine($"            string query = @\"select * from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS\";");
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Get{_TableSingleName}InfoByUsername\", connection))");
             _TempText.AppendLine("            {");
+            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
             _TempText.AppendLine();
 
@@ -643,11 +639,9 @@ namespace Code_Generator
             _TempText.AppendLine("            connection.Open();");
             _TempText.AppendLine();
 
-            _TempText.AppendLine($"            string query = @\"select * from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS AND Password = @Password COLLATE SQL_Latin1_General_CP1_CS_AS\";");
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Get{_TableSingleName}InfoByUsernameAndPassword\", connection))");
             _TempText.AppendLine("            {");
+            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Password\", Password);");
             _TempText.AppendLine();
@@ -711,70 +705,6 @@ namespace Code_Generator
             return Parameters.ToString().Trim();
         }
 
-        private string _GetQueryForAddNewMethod()
-        {
-            StringBuilder query = new StringBuilder();
-
-            if (_IsLogin)
-            {
-                query.AppendLine($"string query = @\"if not Exists (select found = 1 from {_TableName} where Username = @Username)");
-                query.AppendLine("begin");
-                query.Append($"insert into {_TableName} (");
-            }
-            else
-            {
-                query.Append($"string query = @\"insert into {_TableName} (");
-            }
-
-            // Print the header of the columns
-            for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
-            {
-                ListViewItem SecondItem = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
-
-                if (SecondItem.SubItems.Count > 0)
-                {
-                    string ColumnName = SecondItem.SubItems[0].Text;
-                    query.Append(ColumnName).Append(", ");
-                }
-            }
-
-            // Remove the ", " from the end of the query
-            query.Length -= 2;
-
-            query.AppendLine(")");
-
-            query.Append("values (");
-
-            // Print the values
-            for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
-            {
-                ListViewItem SecondItem = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
-
-                if (SecondItem.SubItems.Count > 0)
-                {
-                    string ColumnName = SecondItem.SubItems[0].Text;
-                    query.Append("@").Append(ColumnName).Append(", ");
-                }
-            }
-
-            // Remove the ", " from the end of the query
-            query.Length -= 2;
-
-            query.AppendLine(")");
-
-            if (_IsLogin)
-            {
-                query.AppendLine("select scope_identity()");
-                query.Append("end\";");
-            }
-            else
-            {
-                query.Append("select scope_identity()\";");
-            }
-
-            return query.ToString();
-        }
-
         private string _FillParametersInTheCommand()
         {
             StringBuilder Text = new StringBuilder();
@@ -822,11 +752,9 @@ namespace Code_Generator
             _TempText.AppendLine("            connection.Open();");
             _TempText.AppendLine();
 
-            _TempText.AppendLine(_GetQueryForAddNewMethod());
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_AddNew{_TableSingleName}\", connection))");
             _TempText.AppendLine("            {");
+            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine(_FillParametersInTheCommand());
             _TempText.AppendLine();
 
@@ -886,37 +814,6 @@ namespace Code_Generator
             return Parameters.ToString().Trim();
         }
 
-        private string _GetQueryForUpdateMethod()
-        {
-            StringBuilder query = new StringBuilder();
-
-            query.Append("string query = ")
-                 .Append($"@\"Update {_TableName}")
-                 .AppendLine()
-                 .Append("set ");
-
-            // Print the header of the columns
-            for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
-            {
-                ListViewItem SecondItem = listviewColumnsInfo.Items[i];
-
-                if (SecondItem.SubItems.Count > 0)
-                {
-                    string ColumnName = SecondItem.SubItems[0].Text;
-                    query.Append($"{ColumnName} = @{ColumnName},")
-                         .AppendLine();
-                }
-            }
-
-            // Remove the trailing ", " from the end of the query
-            query.Remove(query.Length - 3, 3);
-
-            query.AppendLine()
-                 .Append($"where {_TableSingleName}ID = @{_TableSingleName}ID\";");
-
-            return query.ToString();
-        }
-
         private void _CreateUpdateMethod()
         {
             _TempText.AppendLine();
@@ -932,11 +829,9 @@ namespace Code_Generator
             _TempText.AppendLine("            connection.Open();");
             _TempText.AppendLine();
 
-            _TempText.AppendLine(_GetQueryForUpdateMethod());
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Update{_TableSingleName}\", connection))");
             _TempText.AppendLine("            {");
+            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
             _TempText.AppendLine(_FillParametersInTheCommand());
             _TempText.AppendLine();
@@ -986,11 +881,9 @@ namespace Code_Generator
             _TempText.AppendLine("            connection.Open();");
             _TempText.AppendLine();
 
-            _TempText.AppendLine($"            string query = @\"delete {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";");
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Delete{_TableSingleName}\", connection))");
             _TempText.AppendLine("            {");
+            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
             _TempText.AppendLine();
 
@@ -1019,15 +912,13 @@ namespace Code_Generator
             _TempText.AppendLine("            connection.Open();");
             _TempText.AppendLine();
 
-            _TempText.AppendLine($"            string query = @\"select found = 1 from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID\";");
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_TableSingleName}Exist\", connection))");
             _TempText.AppendLine("            {");
+            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
             _TempText.AppendLine();
 
-            _TempText.AppendLine("                IsFound = (command.ExecuteScalar() != null);");
+            _TempText.AppendLine("                IsFound = (Convert.ToByte(command.ExecuteScalar()) == 1);");
             _TempText.AppendLine("            }");
             _TempText.AppendLine("        }");
             _TempText.AppendLine("    }");
@@ -1052,15 +943,13 @@ namespace Code_Generator
             _TempText.AppendLine("            connection.Open();");
             _TempText.AppendLine();
 
-            _TempText.AppendLine($"            string query = @\"select found = 1 from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS\";");
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_TableSingleName}ExistByUsername\", connection))");
             _TempText.AppendLine("            {");
+            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
             _TempText.AppendLine();
 
-            _TempText.AppendLine("                IsFound = (command.ExecuteScalar() != null);");
+            _TempText.AppendLine("                IsFound = (Convert.ToByte(command.ExecuteScalar()) == 1);");
             _TempText.AppendLine("            }");
             _TempText.AppendLine("        }");
             _TempText.AppendLine("    }");
@@ -1085,16 +974,14 @@ namespace Code_Generator
             _TempText.AppendLine("            connection.Open();");
             _TempText.AppendLine();
 
-            _TempText.AppendLine($"            string query = @\"select found = 1 from {_TableName} where Username = @Username COLLATE SQL_Latin1_General_CP1_CS_AS and Password = @Password COLLATE SQL_Latin1_General_CP1_CS_AS\";");
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_TableSingleName}ExistByUsernameAndPassword\", connection))");
             _TempText.AppendLine("            {");
+            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Password\", Password);");
             _TempText.AppendLine();
 
-            _TempText.AppendLine("                IsFound = (command.ExecuteScalar() != null);");
+            _TempText.AppendLine("                IsFound = (Convert.ToByte(command.ExecuteScalar()) == 1);");
             _TempText.AppendLine("            }");
             _TempText.AppendLine("        }");
             _TempText.AppendLine("    }");
@@ -1119,11 +1006,9 @@ namespace Code_Generator
             _TempText.AppendLine("            connection.Open();");
             _TempText.AppendLine();
 
-            _TempText.AppendLine($"            string query = @\"select * from {_TableName}\";");
-            _TempText.AppendLine();
-
-            _TempText.AppendLine("            using (SqlCommand command = new SqlCommand(query, connection))");
+            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_GetAll{_TableName}\", connection))");
             _TempText.AppendLine("            {");
+            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
             _TempText.AppendLine("                {");
             _TempText.AppendLine("                    if (reader.HasRows)");

@@ -10,7 +10,7 @@ namespace CodeGenerator_DataAccess
     {
         public static string ConnectionString(string DatabaseName = "master")
         {
-            return $"Server=.;Database={DatabaseName};User Id=sa;Password=sa123456;";
+            return $"Data Source=.;Initial Catalog={DatabaseName};Integrated Security=True";
         }
     }
 }
