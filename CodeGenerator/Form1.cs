@@ -1,6 +1,7 @@
 ﻿using CodeGenerator_Business;
 using System;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
@@ -88,7 +89,8 @@ namespace Code_Generator
                 ListViewItem item = new ListViewItem(row["Column Name"].ToString()); // Column1 represents the first column in your DataTable
                 item.SubItems.Add(row["Data Type"].ToString()); // Column2 represents the second column in your DataTable
                 item.SubItems.Add(row["Is Nullable"].ToString()); // Column3 represents the third column in your DataTable
-                                                                  // Add more sub-items as needed for additional columns
+                item.SubItems.Add(row["Max Length"].ToString());
+                // Add more sub-items as needed for additional columns
 
                 listviewColumnsInfo.Items.Add(item);
             }
@@ -1872,6 +1874,328 @@ namespace Code_Generator
 
         #endregion
 
+        #region Stored Procedure
+        private void _CreateGetInfoByID_SP()
+        {
+            _TempText.AppendLine($"create procedure SP_Get{_TableSingleName}InfoByID");
+            _TempText.AppendLine($"@{_TableSingleName}ID int");
+            _TempText.AppendLine("as");
+            _TempText.AppendLine("begin");
+            _TempText.AppendLine($"select * from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID");
+            _TempText.AppendLine("end");
+            _TempText.AppendLine("go");
+        }
+
+        private string _GetLengthOfTheColumn(string Column)
+        {
+            for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem firstItem = listviewColumnsInfo.Items[i];
+
+                if (firstItem.SubItems.Count > 0)
+                {
+                    string ColumnName = firstItem.SubItems[0].Text;
+                    string DataType = firstItem.SubItems[1].Text;
+                    //string IsNullable = firstItem.SubItems[2].Text;
+                    string MaxLength = firstItem.SubItems[3].Text;
+
+                    if (ColumnName.ToLower() == Column.ToLower())
+                    {
+                        if (string.IsNullOrWhiteSpace(MaxLength)) // there is no length (the data type is not nvarchar or varchar..)
+                            return DataType;
+                        else
+                        {
+                            if (MaxLength == "-1") // in case the max length is MAX, so it will be -1
+                                return DataType + "(MAX)";
+                            else
+                                return DataType + "(" + MaxLength + ")";
+                        }
+
+                    }
+                }
+            }
+
+            return "";
+        }
+
+        private void _CreateGetInfoByUsername_SP()
+        {
+            _TempText.AppendLine($"create procedure SP_Get{_TableSingleName}InfoByUsername");
+            _TempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")}");
+            _TempText.AppendLine("as");
+            _TempText.AppendLine("begin");
+            _TempText.AppendLine($"select * from {_TableName} where Username = @Username");
+            _TempText.AppendLine("end");
+            _TempText.AppendLine("go");
+        }
+
+        private void _CreateGetInfoByUsernameAndPassword_SP()
+        {
+            _TempText.AppendLine($"create procedure SP_Get{_TableSingleName}InfoByUsernameAndPassword");
+            _TempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")},");
+            _TempText.AppendLine($"@Password {_GetLengthOfTheColumn("password")}");
+            _TempText.AppendLine("as");
+            _TempText.AppendLine("begin");
+            _TempText.AppendLine($"select * from {_TableName} where Username = @Username and Password = @Password");
+            _TempText.AppendLine("end");
+            _TempText.AppendLine("go");
+        }
+
+        private string _GetParametersInAddNew(byte StartIndex = 0)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = StartIndex; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem firstItem = listviewColumnsInfo.Items[i];
+
+                if (firstItem.SubItems.Count > 0)
+                {
+                    string ColumnName = firstItem.SubItems[0].Text;
+                    string DataType = firstItem.SubItems[1].Text;
+                    //string IsNullable = firstItem.SubItems[2].Text;
+                    string MaxLength = firstItem.SubItems[3].Text;
+
+                    sb.AppendLine($"@{ColumnName} {_GetLengthOfTheColumn(ColumnName)},");
+                }
+            }
+
+            // Remove the ", " from the end of the query
+            sb.Length -= 3;
+
+            return sb.ToString();
+        }
+
+        private string _GetQueryForAddNew()
+        {
+            StringBuilder query = new StringBuilder();
+
+            if (_IsLogin)
+            {
+                query.AppendLine($"if not Exists (select found = 1 from {_TableName} where Username = @Username)");
+                query.AppendLine("begin");
+                query.Append($"insert into {_TableName} (");
+            }
+            else
+            {
+                query.Append($"insert into {_TableName} (");
+            }
+
+            // Print the header of the columns
+            for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem SecondItem = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+
+                if (SecondItem.SubItems.Count > 0)
+                {
+                    string ColumnName = SecondItem.SubItems[0].Text;
+                    query.Append(ColumnName).Append(", ");
+                }
+            }
+
+            // Remove the ", " from the end of the query
+            query.Length -= 2;
+
+            query.AppendLine(")");
+
+            query.Append("values (");
+
+            // Print the values
+            for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem SecondItem = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+
+                if (SecondItem.SubItems.Count > 0)
+                {
+                    string ColumnName = SecondItem.SubItems[0].Text;
+                    query.Append("@").Append(ColumnName).Append(", ");
+                }
+            }
+
+            // Remove the ", " from the end of the query
+            query.Length -= 2;
+
+            query.AppendLine(")");
+
+            if (_IsLogin)
+            {
+                query.AppendLine("select scope_identity()");
+                query.Append("end");
+            }
+            else
+            {
+                query.Append("select scope_identity()");
+            }
+
+            return query.ToString();
+        }
+
+        private void _CreateAddNew_SP()
+        {
+            _TempText.AppendLine($"create procedure SP_AddNew{_TableSingleName}");
+            _TempText.AppendLine($"{_GetParametersInAddNew(1)}");
+            _TempText.AppendLine("as");
+            _TempText.AppendLine("begin");
+            _TempText.AppendLine($"{_GetQueryForAddNew()}");
+            _TempText.AppendLine("end");
+            _TempText.AppendLine("go");
+        }
+
+        private string _GetQueryForUpdate()
+        {
+            StringBuilder query = new StringBuilder();
+
+            query.Append($"Update {_TableName}")
+                 .AppendLine()
+                 .Append("set ");
+
+
+            // Print the header of the columns
+            for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
+            {
+                ListViewItem SecondItem = listviewColumnsInfo.Items[i];
+
+                if (SecondItem.SubItems.Count > 0)
+                {
+                    string ColumnName = SecondItem.SubItems[0].Text;
+                    query.Append($"{ColumnName} = @{ColumnName},")
+                         .AppendLine();
+                }
+            }
+
+            // Remove the trailing ", " from the end of the query
+            query.Remove(query.Length - 3, 3);
+
+            query.AppendLine()
+                 .Append($"where {_TableSingleName}ID = @{_TableSingleName}ID;");
+
+            return query.ToString();
+        }
+
+        private void _CreateUpdate_SP()
+        {
+            _TempText.AppendLine($"create procedure SP_Update{_TableSingleName}");
+            _TempText.AppendLine($"{_GetParametersInAddNew()}");
+            _TempText.AppendLine("as");
+            _TempText.AppendLine("begin");
+            _TempText.AppendLine($"{_GetQueryForUpdate()}");
+            _TempText.AppendLine("end");
+            _TempText.AppendLine("go");
+        }
+
+        private void _CreateDelete_SP()
+        {
+            _TempText.AppendLine($"create procedure SP_Delete{_TableSingleName}");
+            _TempText.AppendLine($"@{_TableSingleName}ID int");
+            _TempText.AppendLine("as");
+            _TempText.AppendLine("begin");
+            _TempText.AppendLine($"delete {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID");
+            _TempText.AppendLine("end");
+            _TempText.AppendLine("go");
+        }
+
+        private void _CreateDoesExist_SP()
+        {
+            _TempText.AppendLine($"create procedure SP_Does{_TableSingleName}ExistByID");
+            _TempText.AppendLine($"@{_TableSingleName}ID int");
+            _TempText.AppendLine("as");
+            _TempText.AppendLine("begin");
+            _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID)");
+            _TempText.AppendLine("select 1;");
+            _TempText.AppendLine("else");
+            _TempText.AppendLine("select 0;");
+            _TempText.AppendLine("end");
+            _TempText.AppendLine("go");
+        }
+
+        private void _CreateDoesExistForUsername_SP()
+        {
+            _TempText.AppendLine($"create procedure SP_Does{_TableSingleName}ExistByUsername");
+            _TempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")}");
+            _TempText.AppendLine("as");
+            _TempText.AppendLine("begin");
+            _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where Username = @Username)");
+            _TempText.AppendLine("select 1;");
+            _TempText.AppendLine("else");
+            _TempText.AppendLine("select 0;");
+            _TempText.AppendLine("end");
+            _TempText.AppendLine("go");
+        }
+
+        private void _CreateDoesExistForUsernameAndPassword_SP()
+        {
+            _TempText.AppendLine($"create procedure SP_Does{_TableSingleName}ExistByUsernameAndPassword");
+            _TempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")},");
+            _TempText.AppendLine($"@Password {_GetLengthOfTheColumn("password")}");
+            _TempText.AppendLine("as");
+            _TempText.AppendLine("begin");
+            _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where Username = @Username and Password = @Password)");
+            _TempText.AppendLine("select 1;");
+            _TempText.AppendLine("else");
+            _TempText.AppendLine("select 0;");
+            _TempText.AppendLine("end");
+            _TempText.AppendLine("go");
+        }
+
+        private void _CreateGetAll_SP()
+        {
+            _TempText.AppendLine($"create procedure SP_GetAll{_TableName}");
+            _TempText.AppendLine("as");
+            _TempText.AppendLine("begin");
+            _TempText.AppendLine($"select * from {_TableName}");
+            _TempText.AppendLine("end");
+            _TempText.AppendLine("go");
+        }
+
+        private void _CreateStoredProcedures()
+        {
+            _CreateGetInfoByID_SP();
+            _TempText.AppendLine("------------------------")
+                     .AppendLine("------------------------");
+
+            if (_IsLogin)
+            {
+                _CreateGetInfoByUsername_SP();
+                _TempText.AppendLine("------------------------")
+                         .AppendLine("------------------------");
+
+                _CreateGetInfoByUsernameAndPassword_SP();
+                _TempText.AppendLine("------------------------")
+                         .AppendLine("------------------------");
+            }
+
+            _CreateAddNew_SP();
+            _TempText.AppendLine("------------------------")
+                     .AppendLine("------------------------");
+
+            _CreateUpdate_SP();
+            _TempText.AppendLine("------------------------")
+                     .AppendLine("------------------------");
+
+            _CreateDelete_SP();
+            _TempText.AppendLine("------------------------")
+                     .AppendLine("------------------------");
+
+            _CreateDoesExist_SP();
+            _TempText.AppendLine("------------------------")
+                     .AppendLine("------------------------");
+
+            if (_IsLogin)
+            {
+                _CreateDoesExistForUsername_SP();
+                _TempText.AppendLine("------------------------")
+                         .AppendLine("------------------------");
+
+                _CreateDoesExistForUsernameAndPassword_SP();
+                _TempText.AppendLine("------------------------")
+                         .AppendLine("------------------------");
+            }
+
+            _CreateGetAll_SP();
+        }
+
+        #endregion
+
         private void btnShowDateAccessLayer_Click(object sender, EventArgs e)
         {
             if (int.Parse(lblNumberOfColumnsRecords.Text) <= 0)
@@ -1938,6 +2262,25 @@ namespace Code_Generator
                 {
                     _TempText.Append("\n}");
                 }
+
+                txtData.Text = _TempText.ToString();
+            }
+        }
+
+        private void btnShowStoredProcedure_Click(object sender, EventArgs e)
+        {
+            if (int.Parse(lblNumberOfColumnsRecords.Text) <= 0)
+            {
+                MessageBox.Show("You have to add the row at least!", "Miss Data",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                _TempText = new StringBuilder();
+
+                txtData.Clear();
+
+                _CreateStoredProcedures();
 
                 txtData.Text = _TempText.ToString();
             }
@@ -2041,12 +2384,12 @@ namespace Code_Generator
 
                 if (txtPath.Text.IndexOf("Business", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    btnShowBusinessLayer.PerformClick();
+                    btnGenerateBusinessLayer.PerformClick();
                     Path.Append(txtPath.Text.Trim() + $"cls{_TableSingleName}.cs");
                 }
                 else
                 {
-                    btnShowDateAccessLayer.PerformClick();
+                    btnGenerateDateAccessLayer.PerformClick();
                     Path.Append(txtPath.Text.Trim() + $"cls{_TableSingleName}Data.cs");
                 }
 

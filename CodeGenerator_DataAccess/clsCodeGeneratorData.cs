@@ -53,7 +53,8 @@ namespace CodeGenerator_DataAccess
                     string query = @"SELECT
                                  COLUMN_NAME AS 'Column Name',
                                  DATA_TYPE AS 'Data Type',
-                                 IS_NULLABLE AS 'Is Nullable'
+                                 IS_NULLABLE AS 'Is Nullable',
+                                 CHARACTER_MAXIMUM_LENGTH AS 'Max Length'
                              FROM
                                  INFORMATION_SCHEMA.COLUMNS
                              WHERE
