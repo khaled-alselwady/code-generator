@@ -199,5 +199,41 @@ namespace CodeGenerator_DataAccess
 
             return dt;
         }
+
+        public static bool ExecuteStoredProcedure(string DatabaseName, string StoredProcedures)
+        {
+            int AffectedRows = 0;
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName)))
+                {
+                    connection.Open();
+
+                    string[] batches = StoredProcedures.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (string batch in batches)
+                    {
+                        using (SqlCommand command = new SqlCommand(batch, connection))
+                        {
+                            AffectedRows += command.ExecuteNonQuery();
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            catch (SqlException ex)
+            {
+                clsLogError.LogError("Database Exception", ex);
+            }
+            catch (Exception ex)
+            {
+                clsLogError.LogError("General Exception", ex);
+            }
+
+            return false;
+        }
     }
 }

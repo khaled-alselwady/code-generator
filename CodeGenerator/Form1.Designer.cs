@@ -38,6 +38,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.tcMode = new Guna.UI2.WinForms.Guna2TabControl();
             this.tbNormal = new System.Windows.Forms.TabPage();
+            this.btnGenerateStoredProcedure = new Guna.UI2.WinForms.Guna2GradientButton();
             this.btnCopy = new Guna.UI2.WinForms.Guna2GradientButton();
             this.btnGenerateDateAccessLayer = new Guna.UI2.WinForms.Guna2GradientButton();
             this.btnGenerateBusinessLayer = new Guna.UI2.WinForms.Guna2GradientButton();
@@ -48,15 +49,25 @@
             this.listColumnName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.listDataType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.listAllowNull = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.tbAdvanced = new System.Windows.Forms.TabPage();
-            this.btnGenerate = new Guna.UI2.WinForms.Guna2GradientButton();
-            this.txtPath = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
             this.listMaxLength = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.btnGenerateStoredProcedure = new Guna.UI2.WinForms.Guna2GradientButton();
+            this.tbAdvanced = new System.Windows.Forms.TabPage();
+            this.btnGenerateDataAccess = new Guna.UI2.WinForms.Guna2GradientButton();
+            this.txtDataAccessPath = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.guna2GroupBox1 = new Guna.UI2.WinForms.Guna2GroupBox();
+            this.guna2GroupBox2 = new Guna.UI2.WinForms.Guna2GroupBox();
+            this.txtBusinessPath = new System.Windows.Forms.TextBox();
+            this.btnGenerateBusiness = new Guna.UI2.WinForms.Guna2GradientButton();
+            this.label4 = new System.Windows.Forms.Label();
+            this.guna2GroupBox3 = new Guna.UI2.WinForms.Guna2GroupBox();
+            this.brnGenerateStoredProceduresToSelectedTable = new Guna.UI2.WinForms.Guna2GradientButton();
+            this.btnGenerateStoredProceduresToAllTables = new Guna.UI2.WinForms.Guna2GradientButton();
             this.tcMode.SuspendLayout();
             this.tbNormal.SuspendLayout();
             this.tbAdvanced.SuspendLayout();
+            this.guna2GroupBox1.SuspendLayout();
+            this.guna2GroupBox2.SuspendLayout();
+            this.guna2GroupBox3.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -204,6 +215,24 @@
             this.tbNormal.TabIndex = 0;
             this.tbNormal.Text = "Normal";
             // 
+            // btnGenerateStoredProcedure
+            // 
+            this.btnGenerateStoredProcedure.Animated = true;
+            this.btnGenerateStoredProcedure.BorderRadius = 22;
+            this.btnGenerateStoredProcedure.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateStoredProcedure.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateStoredProcedure.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateStoredProcedure.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateStoredProcedure.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.btnGenerateStoredProcedure.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnGenerateStoredProcedure.ForeColor = System.Drawing.Color.White;
+            this.btnGenerateStoredProcedure.Location = new System.Drawing.Point(681, 510);
+            this.btnGenerateStoredProcedure.Name = "btnGenerateStoredProcedure";
+            this.btnGenerateStoredProcedure.Size = new System.Drawing.Size(304, 45);
+            this.btnGenerateStoredProcedure.TabIndex = 33;
+            this.btnGenerateStoredProcedure.Text = "Generate Stored Procedure";
+            this.btnGenerateStoredProcedure.Click += new System.EventHandler(this.btnShowStoredProcedure_Click);
+            // 
             // btnCopy
             // 
             this.btnCopy.Animated = true;
@@ -327,81 +356,179 @@
             this.listAllowNull.Text = "Allow Null";
             this.listAllowNull.Width = 110;
             // 
-            // tbAdvanced
-            // 
-            this.tbAdvanced.BackColor = System.Drawing.Color.White;
-            this.tbAdvanced.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.tbAdvanced.Controls.Add(this.btnGenerate);
-            this.tbAdvanced.Controls.Add(this.txtPath);
-            this.tbAdvanced.Controls.Add(this.label2);
-            this.tbAdvanced.Location = new System.Drawing.Point(4, 44);
-            this.tbAdvanced.Name = "tbAdvanced";
-            this.tbAdvanced.Padding = new System.Windows.Forms.Padding(3);
-            this.tbAdvanced.Size = new System.Drawing.Size(1182, 561);
-            this.tbAdvanced.TabIndex = 1;
-            this.tbAdvanced.Text = "Advanced";
-            // 
-            // btnGenerate
-            // 
-            this.btnGenerate.Animated = true;
-            this.btnGenerate.BorderRadius = 22;
-            this.btnGenerate.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerate.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerate.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerate.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerate.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
-            this.btnGenerate.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold);
-            this.btnGenerate.ForeColor = System.Drawing.Color.White;
-            this.btnGenerate.Location = new System.Drawing.Point(484, 110);
-            this.btnGenerate.Name = "btnGenerate";
-            this.btnGenerate.Size = new System.Drawing.Size(252, 59);
-            this.btnGenerate.TabIndex = 25;
-            this.btnGenerate.Text = "Generate";
-            this.btnGenerate.Click += new System.EventHandler(this.btnGenerate_Click);
-            // 
-            // txtPath
-            // 
-            this.txtPath.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtPath.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtPath.Location = new System.Drawing.Point(58, 14);
-            this.txtPath.Multiline = true;
-            this.txtPath.Name = "txtPath";
-            this.txtPath.Size = new System.Drawing.Size(1116, 58);
-            this.txtPath.TabIndex = 24;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.ForeColor = System.Drawing.Color.Black;
-            this.label2.Location = new System.Drawing.Point(6, 14);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(46, 20);
-            this.label2.TabIndex = 23;
-            this.label2.Text = "Path:";
-            // 
             // listMaxLength
             // 
             this.listMaxLength.Text = "Max Length";
             this.listMaxLength.Width = 1;
             // 
-            // btnGenerateStoredProcedure
+            // tbAdvanced
             // 
-            this.btnGenerateStoredProcedure.Animated = true;
-            this.btnGenerateStoredProcedure.BorderRadius = 22;
-            this.btnGenerateStoredProcedure.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerateStoredProcedure.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerateStoredProcedure.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerateStoredProcedure.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerateStoredProcedure.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
-            this.btnGenerateStoredProcedure.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnGenerateStoredProcedure.ForeColor = System.Drawing.Color.White;
-            this.btnGenerateStoredProcedure.Location = new System.Drawing.Point(681, 510);
-            this.btnGenerateStoredProcedure.Name = "btnGenerateStoredProcedure";
-            this.btnGenerateStoredProcedure.Size = new System.Drawing.Size(304, 45);
-            this.btnGenerateStoredProcedure.TabIndex = 33;
-            this.btnGenerateStoredProcedure.Text = "Generate Stored Procedure";
-            this.btnGenerateStoredProcedure.Click += new System.EventHandler(this.btnShowStoredProcedure_Click);
+            this.tbAdvanced.BackColor = System.Drawing.Color.White;
+            this.tbAdvanced.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.tbAdvanced.Controls.Add(this.guna2GroupBox3);
+            this.tbAdvanced.Controls.Add(this.guna2GroupBox2);
+            this.tbAdvanced.Controls.Add(this.guna2GroupBox1);
+            this.tbAdvanced.Location = new System.Drawing.Point(4, 44);
+            this.tbAdvanced.Name = "tbAdvanced";
+            this.tbAdvanced.Padding = new System.Windows.Forms.Padding(3);
+            this.tbAdvanced.Size = new System.Drawing.Size(1182, 618);
+            this.tbAdvanced.TabIndex = 1;
+            this.tbAdvanced.Text = "Advanced";
+            // 
+            // btnGenerateDataAccess
+            // 
+            this.btnGenerateDataAccess.Animated = true;
+            this.btnGenerateDataAccess.BorderRadius = 22;
+            this.btnGenerateDataAccess.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateDataAccess.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateDataAccess.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateDataAccess.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateDataAccess.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.btnGenerateDataAccess.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold);
+            this.btnGenerateDataAccess.ForeColor = System.Drawing.Color.White;
+            this.btnGenerateDataAccess.Location = new System.Drawing.Point(967, 135);
+            this.btnGenerateDataAccess.Name = "btnGenerateDataAccess";
+            this.btnGenerateDataAccess.Size = new System.Drawing.Size(188, 43);
+            this.btnGenerateDataAccess.TabIndex = 25;
+            this.btnGenerateDataAccess.Text = "Generate";
+            this.btnGenerateDataAccess.Click += new System.EventHandler(this.btnGenerateDataAccess_Click);
+            // 
+            // txtDataAccessPath
+            // 
+            this.txtDataAccessPath.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtDataAccessPath.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtDataAccessPath.Location = new System.Drawing.Point(55, 54);
+            this.txtDataAccessPath.Multiline = true;
+            this.txtDataAccessPath.Name = "txtDataAccessPath";
+            this.txtDataAccessPath.Size = new System.Drawing.Size(1096, 71);
+            this.txtDataAccessPath.TabIndex = 24;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.ForeColor = System.Drawing.Color.Black;
+            this.label2.Location = new System.Drawing.Point(3, 51);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(43, 21);
+            this.label2.TabIndex = 23;
+            this.label2.Text = "Path:";
+            // 
+            // guna2GroupBox1
+            // 
+            this.guna2GroupBox1.BorderColor = System.Drawing.Color.Gainsboro;
+            this.guna2GroupBox1.Controls.Add(this.txtDataAccessPath);
+            this.guna2GroupBox1.Controls.Add(this.btnGenerateDataAccess);
+            this.guna2GroupBox1.Controls.Add(this.label2);
+            this.guna2GroupBox1.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.guna2GroupBox1.ForeColor = System.Drawing.Color.Black;
+            this.guna2GroupBox1.Location = new System.Drawing.Point(6, 10);
+            this.guna2GroupBox1.Name = "guna2GroupBox1";
+            this.guna2GroupBox1.Size = new System.Drawing.Size(1164, 185);
+            this.guna2GroupBox1.TabIndex = 26;
+            this.guna2GroupBox1.Text = "Data Access Layer";
+            // 
+            // guna2GroupBox2
+            // 
+            this.guna2GroupBox2.BorderColor = System.Drawing.Color.Gainsboro;
+            this.guna2GroupBox2.Controls.Add(this.txtBusinessPath);
+            this.guna2GroupBox2.Controls.Add(this.btnGenerateBusiness);
+            this.guna2GroupBox2.Controls.Add(this.label4);
+            this.guna2GroupBox2.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.guna2GroupBox2.ForeColor = System.Drawing.Color.Black;
+            this.guna2GroupBox2.Location = new System.Drawing.Point(6, 218);
+            this.guna2GroupBox2.Name = "guna2GroupBox2";
+            this.guna2GroupBox2.Size = new System.Drawing.Size(1164, 185);
+            this.guna2GroupBox2.TabIndex = 27;
+            this.guna2GroupBox2.Text = "Business Layer";
+            // 
+            // txtBusinessPath
+            // 
+            this.txtBusinessPath.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtBusinessPath.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtBusinessPath.Location = new System.Drawing.Point(55, 54);
+            this.txtBusinessPath.Multiline = true;
+            this.txtBusinessPath.Name = "txtBusinessPath";
+            this.txtBusinessPath.Size = new System.Drawing.Size(1096, 71);
+            this.txtBusinessPath.TabIndex = 24;
+            // 
+            // btnGenerateBusiness
+            // 
+            this.btnGenerateBusiness.Animated = true;
+            this.btnGenerateBusiness.BorderRadius = 22;
+            this.btnGenerateBusiness.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateBusiness.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateBusiness.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateBusiness.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateBusiness.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.btnGenerateBusiness.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold);
+            this.btnGenerateBusiness.ForeColor = System.Drawing.Color.White;
+            this.btnGenerateBusiness.Location = new System.Drawing.Point(967, 135);
+            this.btnGenerateBusiness.Name = "btnGenerateBusiness";
+            this.btnGenerateBusiness.Size = new System.Drawing.Size(188, 43);
+            this.btnGenerateBusiness.TabIndex = 25;
+            this.btnGenerateBusiness.Text = "Generate";
+            this.btnGenerateBusiness.Click += new System.EventHandler(this.btnGenerateBusiness_Click);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.ForeColor = System.Drawing.Color.Black;
+            this.label4.Location = new System.Drawing.Point(3, 51);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(43, 21);
+            this.label4.TabIndex = 23;
+            this.label4.Text = "Path:";
+            // 
+            // guna2GroupBox3
+            // 
+            this.guna2GroupBox3.BorderColor = System.Drawing.Color.Gainsboro;
+            this.guna2GroupBox3.Controls.Add(this.btnGenerateStoredProceduresToAllTables);
+            this.guna2GroupBox3.Controls.Add(this.brnGenerateStoredProceduresToSelectedTable);
+            this.guna2GroupBox3.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.guna2GroupBox3.ForeColor = System.Drawing.Color.Black;
+            this.guna2GroupBox3.Location = new System.Drawing.Point(6, 449);
+            this.guna2GroupBox3.Name = "guna2GroupBox3";
+            this.guna2GroupBox3.Size = new System.Drawing.Size(1164, 126);
+            this.guna2GroupBox3.TabIndex = 28;
+            this.guna2GroupBox3.Text = "Stored Procedures";
+            // 
+            // brnGenerateStoredProceduresToSelectedTable
+            // 
+            this.brnGenerateStoredProceduresToSelectedTable.Animated = true;
+            this.brnGenerateStoredProceduresToSelectedTable.BorderRadius = 22;
+            this.brnGenerateStoredProceduresToSelectedTable.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.brnGenerateStoredProceduresToSelectedTable.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.brnGenerateStoredProceduresToSelectedTable.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.brnGenerateStoredProceduresToSelectedTable.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.brnGenerateStoredProceduresToSelectedTable.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.brnGenerateStoredProceduresToSelectedTable.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold);
+            this.brnGenerateStoredProceduresToSelectedTable.ForeColor = System.Drawing.Color.White;
+            this.brnGenerateStoredProceduresToSelectedTable.Location = new System.Drawing.Point(160, 71);
+            this.brnGenerateStoredProceduresToSelectedTable.Name = "brnGenerateStoredProceduresToSelectedTable";
+            this.brnGenerateStoredProceduresToSelectedTable.Size = new System.Drawing.Size(375, 43);
+            this.brnGenerateStoredProceduresToSelectedTable.TabIndex = 25;
+            this.brnGenerateStoredProceduresToSelectedTable.Text = "Generate To The Selected Table";
+            this.brnGenerateStoredProceduresToSelectedTable.Click += new System.EventHandler(this.brnGenerateStoredProceduresToSelectedTable_Click);
+            // 
+            // btnGenerateStoredProceduresToAllTables
+            // 
+            this.btnGenerateStoredProceduresToAllTables.Animated = true;
+            this.btnGenerateStoredProceduresToAllTables.BorderRadius = 22;
+            this.btnGenerateStoredProceduresToAllTables.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateStoredProceduresToAllTables.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateStoredProceduresToAllTables.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateStoredProceduresToAllTables.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateStoredProceduresToAllTables.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.btnGenerateStoredProceduresToAllTables.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold);
+            this.btnGenerateStoredProceduresToAllTables.ForeColor = System.Drawing.Color.White;
+            this.btnGenerateStoredProceduresToAllTables.Location = new System.Drawing.Point(688, 71);
+            this.btnGenerateStoredProceduresToAllTables.Name = "btnGenerateStoredProceduresToAllTables";
+            this.btnGenerateStoredProceduresToAllTables.Size = new System.Drawing.Size(375, 43);
+            this.btnGenerateStoredProceduresToAllTables.TabIndex = 26;
+            this.btnGenerateStoredProceduresToAllTables.Text = "Generate To All Tables";
+            this.btnGenerateStoredProceduresToAllTables.Click += new System.EventHandler(this.btnGenerateStoredProceduresToAllTables_Click);
             // 
             // Form1
             // 
@@ -427,7 +554,11 @@
             this.tbNormal.ResumeLayout(false);
             this.tbNormal.PerformLayout();
             this.tbAdvanced.ResumeLayout(false);
-            this.tbAdvanced.PerformLayout();
+            this.guna2GroupBox1.ResumeLayout(false);
+            this.guna2GroupBox1.PerformLayout();
+            this.guna2GroupBox2.ResumeLayout(false);
+            this.guna2GroupBox2.PerformLayout();
+            this.guna2GroupBox3.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -456,11 +587,19 @@
         private System.Windows.Forms.ColumnHeader listColumnName;
         private System.Windows.Forms.ColumnHeader listDataType;
         private System.Windows.Forms.ColumnHeader listAllowNull;
-        private Guna.UI2.WinForms.Guna2GradientButton btnGenerate;
-        private System.Windows.Forms.TextBox txtPath;
+        private Guna.UI2.WinForms.Guna2GradientButton btnGenerateDataAccess;
+        private System.Windows.Forms.TextBox txtDataAccessPath;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ColumnHeader listMaxLength;
         private Guna.UI2.WinForms.Guna2GradientButton btnGenerateStoredProcedure;
+        private Guna.UI2.WinForms.Guna2GroupBox guna2GroupBox1;
+        private Guna.UI2.WinForms.Guna2GroupBox guna2GroupBox3;
+        private Guna.UI2.WinForms.Guna2GradientButton brnGenerateStoredProceduresToSelectedTable;
+        private Guna.UI2.WinForms.Guna2GroupBox guna2GroupBox2;
+        private System.Windows.Forms.TextBox txtBusinessPath;
+        private Guna.UI2.WinForms.Guna2GradientButton btnGenerateBusiness;
+        private System.Windows.Forms.Label label4;
+        private Guna.UI2.WinForms.Guna2GradientButton btnGenerateStoredProceduresToAllTables;
     }
 }
 

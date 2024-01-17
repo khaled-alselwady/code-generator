@@ -14,6 +14,7 @@ namespace Code_Generator
         private string _TableSingleName = string.Empty;
         private bool _IsLogin = false;
         private bool _IsAdvancedMode = false;
+        private bool _GenerateStoredProceduresInAllTables = false;
 
         private StringBuilder _TempText = new StringBuilder();
 
@@ -169,7 +170,9 @@ namespace Code_Generator
 
             txtData.Clear();
 
-            txtPath.Clear();
+            txtDataAccessPath.Clear();
+
+            txtBusinessPath.Clear();
 
             lblNumberOfColumnsRecords.Text = "0";
 
@@ -1035,7 +1038,7 @@ namespace Code_Generator
 
             StringBuilder Path = new StringBuilder();
 
-            Path.Append(txtPath.Text.Trim() + "clsDataAccessSettings.cs");
+            Path.Append(txtDataAccessPath.Text.Trim() + "clsDataAccessSettings.cs");
 
             if (_IsAdvancedMode)
             {
@@ -1054,7 +1057,7 @@ namespace Code_Generator
 
             StringBuilder Path = new StringBuilder();
 
-            Path.Append(txtPath.Text.Trim() + "clsLogError.cs");
+            Path.Append(txtDataAccessPath.Text.Trim() + "clsLogError.cs");
 
             if (_IsAdvancedMode)
             {
@@ -1882,8 +1885,10 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"select * from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID");
-            _TempText.AppendLine("end");
-            _TempText.AppendLine("go");
+            _TempText.AppendLine("end;");
+
+            if (!_IsAdvancedMode)
+                _TempText.AppendLine("go");
         }
 
         private string _GetLengthOfTheColumn(string Column)
@@ -1925,8 +1930,10 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"select * from {_TableName} where Username = @Username");
-            _TempText.AppendLine("end");
-            _TempText.AppendLine("go");
+            _TempText.AppendLine("end;");
+
+            if (!_IsAdvancedMode)
+                _TempText.AppendLine("go");
         }
 
         private void _CreateGetInfoByUsernameAndPassword_SP()
@@ -1937,8 +1944,10 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"select * from {_TableName} where Username = @Username and Password = @Password");
-            _TempText.AppendLine("end");
-            _TempText.AppendLine("go");
+            _TempText.AppendLine("end;");
+
+            if (!_IsAdvancedMode)
+                _TempText.AppendLine("go");
         }
 
         private string _GetParametersInAddNew(byte StartIndex = 0)
@@ -1960,8 +1969,9 @@ namespace Code_Generator
                 }
             }
 
-            // Remove the ", " from the end of the query
-            sb.Length -= 3;
+            if (sb.Length > 0)
+                // Remove the ", " from the end of the query
+                sb.Length -= 3;
 
             return sb.ToString();
         }
@@ -2037,8 +2047,10 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"{_GetQueryForAddNew()}");
-            _TempText.AppendLine("end");
-            _TempText.AppendLine("go");
+            _TempText.AppendLine("end;");
+
+            if (!_IsAdvancedMode)
+                _TempText.AppendLine("go");
         }
 
         private string _GetQueryForUpdate()
@@ -2067,7 +2079,7 @@ namespace Code_Generator
             query.Remove(query.Length - 3, 3);
 
             query.AppendLine()
-                 .Append($"where {_TableSingleName}ID = @{_TableSingleName}ID;");
+                 .Append($"where {_TableSingleName}ID = @{_TableSingleName}ID");
 
             return query.ToString();
         }
@@ -2079,8 +2091,10 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"{_GetQueryForUpdate()}");
-            _TempText.AppendLine("end");
-            _TempText.AppendLine("go");
+            _TempText.AppendLine("end;");
+
+            if (!_IsAdvancedMode)
+                _TempText.AppendLine("go");
         }
 
         private void _CreateDelete_SP()
@@ -2090,22 +2104,26 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"delete {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID");
-            _TempText.AppendLine("end");
-            _TempText.AppendLine("go");
+            _TempText.AppendLine("end;");
+
+            if (!_IsAdvancedMode)
+                _TempText.AppendLine("go");
         }
 
         private void _CreateDoesExist_SP()
         {
-            _TempText.AppendLine($"create procedure SP_Does{_TableSingleName}ExistByID");
+            _TempText.AppendLine($"create procedure SP_Does{_TableSingleName}Exist");
             _TempText.AppendLine($"@{_TableSingleName}ID int");
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID)");
-            _TempText.AppendLine("select 1;");
+            _TempText.AppendLine("select 1");
             _TempText.AppendLine("else");
-            _TempText.AppendLine("select 0;");
-            _TempText.AppendLine("end");
-            _TempText.AppendLine("go");
+            _TempText.AppendLine("select 0");
+            _TempText.AppendLine("end;");
+
+            if (!_IsAdvancedMode)
+                _TempText.AppendLine("go");
         }
 
         private void _CreateDoesExistForUsername_SP()
@@ -2115,11 +2133,13 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where Username = @Username)");
-            _TempText.AppendLine("select 1;");
+            _TempText.AppendLine("select 1");
             _TempText.AppendLine("else");
-            _TempText.AppendLine("select 0;");
-            _TempText.AppendLine("end");
-            _TempText.AppendLine("go");
+            _TempText.AppendLine("select 0");
+            _TempText.AppendLine("end;");
+
+            if (!_IsAdvancedMode)
+                _TempText.AppendLine("go");
         }
 
         private void _CreateDoesExistForUsernameAndPassword_SP()
@@ -2130,11 +2150,13 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where Username = @Username and Password = @Password)");
-            _TempText.AppendLine("select 1;");
+            _TempText.AppendLine("select 1");
             _TempText.AppendLine("else");
-            _TempText.AppendLine("select 0;");
-            _TempText.AppendLine("end");
-            _TempText.AppendLine("go");
+            _TempText.AppendLine("select 0");
+            _TempText.AppendLine("end;");
+
+            if (!_IsAdvancedMode)
+                _TempText.AppendLine("go");
         }
 
         private void _CreateGetAll_SP()
@@ -2143,8 +2165,10 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"select * from {_TableName}");
-            _TempText.AppendLine("end");
-            _TempText.AppendLine("go");
+            _TempText.AppendLine("end;");
+
+            if (!_IsAdvancedMode)
+                _TempText.AppendLine("go");
         }
 
         private void _CreateStoredProcedures()
@@ -2200,7 +2224,7 @@ namespace Code_Generator
         {
             if (int.Parse(lblNumberOfColumnsRecords.Text) <= 0)
             {
-                MessageBox.Show("You have to add the row at least!", "Miss Data",
+                MessageBox.Show("You have to select a column at least!", "Miss Data",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
@@ -2242,7 +2266,7 @@ namespace Code_Generator
         {
             if (int.Parse(lblNumberOfColumnsRecords.Text) <= 0)
             {
-                MessageBox.Show("You have to add the row at least!", "Miss Data",
+                MessageBox.Show("You have to select a column at least!", "Miss Data",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
@@ -2271,7 +2295,7 @@ namespace Code_Generator
         {
             if (int.Parse(lblNumberOfColumnsRecords.Text) <= 0)
             {
-                MessageBox.Show("You have to add the row at least!", "Miss Data",
+                MessageBox.Show("You have to select a column at least!", "Miss Data",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
@@ -2280,7 +2304,28 @@ namespace Code_Generator
 
                 txtData.Clear();
 
+                // in case the table has only one column, so I don't create a stored procedure to it.
+                if (listviewColumnsInfo.Items.Count <= 1)
+                    return;
+
                 _CreateStoredProcedures();
+
+                if (_IsAdvancedMode)
+                {
+                    if (clsCodeGenerator.ExecuteStoredProcedure(comboDatabaseName.Text, _TempText.ToString()))
+                    {
+                        if (!_GenerateStoredProceduresInAllTables)
+                            MessageBox.Show("Stored Procedures Saved Successfully!", "Success",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Stored Procedures Saved Failed!", "Failed",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+
+                    return;
+                }
 
                 txtData.Text = _TempText.ToString();
             }
@@ -2354,7 +2399,12 @@ namespace Code_Generator
             }
         }
 
-        private void btnGenerate_Click(object sender, EventArgs e)
+        private void tcMode_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            _IsAdvancedMode = (tcMode.SelectedTab == tbAdvanced);
+        }
+
+        private void btnGenerateBusiness_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(comboDatabaseName.Text))
             {
@@ -2364,7 +2414,7 @@ namespace Code_Generator
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(txtPath.Text.Trim()))
+            if (string.IsNullOrWhiteSpace(txtBusinessPath.Text.Trim()))
             {
                 MessageBox.Show("You have to type a path!", "Miss Path",
                    MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -2382,16 +2432,8 @@ namespace Code_Generator
 
                 _IsLogin = _DoesTableHaveUsernameAndPassword();
 
-                if (txtPath.Text.IndexOf("Business", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    btnGenerateBusinessLayer.PerformClick();
-                    Path.Append(txtPath.Text.Trim() + $"cls{_TableSingleName}.cs");
-                }
-                else
-                {
-                    btnGenerateDateAccessLayer.PerformClick();
-                    Path.Append(txtPath.Text.Trim() + $"cls{_TableSingleName}Data.cs");
-                }
+                btnGenerateBusinessLayer.PerformClick();
+                Path.Append(txtBusinessPath.Text.Trim() + $"cls{_TableSingleName}.cs");
 
                 if (_IsAdvancedMode)
                 {
@@ -2405,21 +2447,98 @@ namespace Code_Generator
                 }
             }
 
-            if (!(txtPath.Text.IndexOf("Business", StringComparison.OrdinalIgnoreCase) >= 0))
-            {
-                // create them only in the Data Access 
-                _CreateDataAccessSettingsClass();
-                _CreateLogErrorsClass();
-            }
-
-            MessageBox.Show("Classes created and added to the file successfully.");
+            MessageBox.Show("Classes of The Business Layer created and added to the file successfully.");
 
             _Reset();
         }
 
-        private void tcMode_SelectedIndexChanged(object sender, EventArgs e)
+        private void btnGenerateDataAccess_Click(object sender, EventArgs e)
         {
-            _IsAdvancedMode = (tcMode.SelectedTab == tbAdvanced);
+            if (string.IsNullOrWhiteSpace(comboDatabaseName.Text))
+            {
+                MessageBox.Show("You have to select a database first!", "Miss Data",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtDataAccessPath.Text.Trim()))
+            {
+                MessageBox.Show("You have to type a path!", "Miss Path",
+                   MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return;
+            }
+
+            StringBuilder Path = new StringBuilder();
+
+            for (byte i = 0; i < listviewTablesName.Items.Count; i++)
+            {
+                _TableName = listviewTablesName.Items[i].SubItems[0].Text;
+
+                _FillListViewWithColumnsData();
+
+                _IsLogin = _DoesTableHaveUsernameAndPassword();
+
+                btnGenerateDateAccessLayer.PerformClick();
+                Path.Append(txtDataAccessPath.Text.Trim() + $"cls{_TableSingleName}Data.cs");
+
+                if (_IsAdvancedMode)
+                {
+                    using (StreamWriter writer = new StreamWriter(Path.ToString()))
+                    {
+                        writer.Write(txtData.Text);
+                    }
+
+                    Path.Clear();
+                    txtData.Clear();
+                }
+            }
+
+            _CreateDataAccessSettingsClass();
+            _CreateLogErrorsClass();
+
+            MessageBox.Show("Classes of The Data Access Layer created and added to the file successfully.");
+
+            _Reset();
+        }
+
+        private void brnGenerateStoredProceduresToSelectedTable_Click(object sender, EventArgs e)
+        {
+            btnGenerateStoredProcedure.PerformClick();
+        }
+
+        private void btnGenerateStoredProceduresToAllTables_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(comboDatabaseName.Text))
+            {
+                MessageBox.Show("You have to select a database first!", "Miss Data",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return;
+            }
+
+            StringBuilder Path = new StringBuilder();
+
+            _GenerateStoredProceduresInAllTables = true;
+
+            for (byte i = 0; i < listviewTablesName.Items.Count; i++)
+            {
+                _TableName = listviewTablesName.Items[i].SubItems[0].Text;
+
+                _FillListViewWithColumnsData();
+
+                _IsLogin = _DoesTableHaveUsernameAndPassword();
+
+                btnGenerateStoredProcedure.PerformClick();
+
+                Path.Clear();
+                txtData.Clear();
+            }
+
+            MessageBox.Show("Stored Procedures added Successfully.");
+
+            _Reset();
         }
     }
 }

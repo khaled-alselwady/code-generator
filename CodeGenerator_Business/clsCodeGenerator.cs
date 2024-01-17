@@ -35,5 +35,10 @@ namespace CodeGenerator_Business
         {
             return clsCodeGeneratorData.GetAllDatabaseName();
         }
+
+        public static bool ExecuteStoredProcedure(string DatabaseName, string StoredProcedures)
+        {
+            return clsCodeGeneratorData.ExecuteStoredProcedure(DatabaseName, StoredProcedures);
+        }
     }
 }
