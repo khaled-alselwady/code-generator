@@ -762,14 +762,15 @@ namespace Code_Generator
             _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine(_FillParametersInTheCommand());
             _TempText.AppendLine();
-
-            _TempText.AppendLine("                object result = command.ExecuteScalar();");
+            _TempText.AppendLine($"SqlParameter outputIdParam = new SqlParameter(\"@New{_TableSingleName}ID\", SqlDbType.Int)");
+            _TempText.AppendLine("{").AppendLine("Direction = ParameterDirection.Output").AppendLine("};");
+            _TempText.AppendLine("command.Parameters.Add(outputIdParam);");
             _TempText.AppendLine();
 
-            _TempText.AppendLine("                if (result != null && int.TryParse(result.ToString(), out int InsertID))");
-            _TempText.AppendLine("                {");
-            _TempText.AppendLine($"                    {_TableSingleName}ID = InsertID;");
-            _TempText.AppendLine("                }");
+            _TempText.AppendLine("command.ExecuteNonQuery();");
+            _TempText.AppendLine();
+
+            _TempText.AppendLine($"{_TableSingleName}ID = (int?)outputIdParam.Value;");
             _TempText.AppendLine("            }");
             _TempText.AppendLine("        }");
             _TempText.AppendLine("    }");
@@ -922,8 +923,15 @@ namespace Code_Generator
             _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
             _TempText.AppendLine();
+            _TempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
+            _TempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
+            _TempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
+            _TempText.AppendLine("command.Parameters.Add(returnParameter);");
+            _TempText.AppendLine();
 
-            _TempText.AppendLine("                IsFound = (Convert.ToByte(command.ExecuteScalar()) == 1);");
+            _TempText.AppendLine("command.ExecuteNonQuery();");
+            _TempText.AppendLine();
+            _TempText.AppendLine("IsFound = (int)returnParameter.Value == 1;");
             _TempText.AppendLine("            }");
             _TempText.AppendLine("        }");
             _TempText.AppendLine("    }");
@@ -953,8 +961,15 @@ namespace Code_Generator
             _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
             _TempText.AppendLine();
+            _TempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
+            _TempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
+            _TempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
+            _TempText.AppendLine("command.Parameters.Add(returnParameter);");
+            _TempText.AppendLine();
 
-            _TempText.AppendLine("                IsFound = (Convert.ToByte(command.ExecuteScalar()) == 1);");
+            _TempText.AppendLine("command.ExecuteNonQuery();");
+            _TempText.AppendLine();
+            _TempText.AppendLine("IsFound = (int)returnParameter.Value == 1;");
             _TempText.AppendLine("            }");
             _TempText.AppendLine("        }");
             _TempText.AppendLine("    }");
@@ -985,8 +1000,15 @@ namespace Code_Generator
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
             _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Password\", Password);");
             _TempText.AppendLine();
+            _TempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
+            _TempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
+            _TempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
+            _TempText.AppendLine("command.Parameters.Add(returnParameter);");
+            _TempText.AppendLine();
 
-            _TempText.AppendLine("                IsFound = (Convert.ToByte(command.ExecuteScalar()) == 1);");
+            _TempText.AppendLine("command.ExecuteNonQuery();");
+            _TempText.AppendLine();
+            _TempText.AppendLine("IsFound = (int)returnParameter.Value == 1;");
             _TempText.AppendLine("            }");
             _TempText.AppendLine("        }");
             _TempText.AppendLine("    }");
@@ -1950,7 +1972,7 @@ namespace Code_Generator
                 _TempText.AppendLine("go");
         }
 
-        private string _GetParametersInAddNew(byte StartIndex = 0)
+        private string _GetParameters(byte StartIndex = 0)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -1961,16 +1983,13 @@ namespace Code_Generator
                 if (firstItem.SubItems.Count > 0)
                 {
                     string ColumnName = firstItem.SubItems[0].Text;
-                    string DataType = firstItem.SubItems[1].Text;
-                    //string IsNullable = firstItem.SubItems[2].Text;
-                    string MaxLength = firstItem.SubItems[3].Text;
 
                     sb.AppendLine($"@{ColumnName} {_GetLengthOfTheColumn(ColumnName)},");
                 }
             }
 
-            if (sb.Length > 0)
-                // Remove the ", " from the end of the query
+            if (sb.Length > 0 && StartIndex != 1)
+                // Remove the ", " from the end of the query in case update SP
                 sb.Length -= 3;
 
             return sb.ToString();
@@ -2029,12 +2048,12 @@ namespace Code_Generator
 
             if (_IsLogin)
             {
-                query.AppendLine("select scope_identity()");
+                query.AppendLine($"set @New{_TableSingleName}ID = scope_identity()");
                 query.Append("end");
             }
             else
             {
-                query.Append("select scope_identity()");
+                query.Append($"set @New{_TableSingleName}ID = scope_identity()");
             }
 
             return query.ToString();
@@ -2043,7 +2062,8 @@ namespace Code_Generator
         private void _CreateAddNew_SP()
         {
             _TempText.AppendLine($"create procedure SP_AddNew{_TableSingleName}");
-            _TempText.AppendLine($"{_GetParametersInAddNew(1)}");
+            _TempText.Append($"{_GetParameters(1)}");
+            _TempText.AppendLine($"@New{_TableSingleName}ID int output");
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"{_GetQueryForAddNew()}");
@@ -2087,7 +2107,7 @@ namespace Code_Generator
         private void _CreateUpdate_SP()
         {
             _TempText.AppendLine($"create procedure SP_Update{_TableSingleName}");
-            _TempText.AppendLine($"{_GetParametersInAddNew()}");
+            _TempText.AppendLine($"{_GetParameters()}");
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"{_GetQueryForUpdate()}");
@@ -2117,9 +2137,9 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID)");
-            _TempText.AppendLine("select 1");
+            _TempText.AppendLine("return 1");
             _TempText.AppendLine("else");
-            _TempText.AppendLine("select 0");
+            _TempText.AppendLine("return 0");
             _TempText.AppendLine("end;");
 
             if (!_IsAdvancedMode)
@@ -2133,9 +2153,9 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where Username = @Username)");
-            _TempText.AppendLine("select 1");
+            _TempText.AppendLine("return 1");
             _TempText.AppendLine("else");
-            _TempText.AppendLine("select 0");
+            _TempText.AppendLine("return 0");
             _TempText.AppendLine("end;");
 
             if (!_IsAdvancedMode)
@@ -2150,9 +2170,9 @@ namespace Code_Generator
             _TempText.AppendLine("as");
             _TempText.AppendLine("begin");
             _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where Username = @Username and Password = @Password)");
-            _TempText.AppendLine("select 1");
+            _TempText.AppendLine("return 1");
             _TempText.AppendLine("else");
-            _TempText.AppendLine("select 0");
+            _TempText.AppendLine("return 0");
             _TempText.AppendLine("end;");
 
             if (!_IsAdvancedMode)
