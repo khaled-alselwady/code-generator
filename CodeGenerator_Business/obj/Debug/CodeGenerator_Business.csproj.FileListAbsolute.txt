@@ -13,6 +13,6 @@ C:\Users\PC\Desktop\Code_Generator\CodeGenerator_Business\bin\Debug\CodeGeneratr
 C:\Users\PC\Desktop\Code_Generator\CodeGenerator_Business\bin\Debug\CodeGeneratro_DataAccess.pdb
 C:\Users\PC\Desktop\Code_Generator\CodeGenerator_Business\obj\Debug\CodeGenerator_Business.csproj.AssemblyReference.cache
 C:\Users\PC\Desktop\Code_Generator\CodeGenerator_Business\obj\Debug\CodeGenerator_Business.csproj.CoreCompileInputs.cache
-C:\Users\PC\Desktop\Code_Generator\CodeGenerator_Business\obj\Debug\CodeGenerator_Business.csproj.CopyComplete
 C:\Users\PC\Desktop\Code_Generator\CodeGenerator_Business\obj\Debug\CodeGenerator_Business.dll
 C:\Users\PC\Desktop\Code_Generator\CodeGenerator_Business\obj\Debug\CodeGenerator_Business.pdb
+C:\Users\PC\Desktop\Code_Generator\CodeGenerator_Business\obj\Debug\CodeGene.33D229B6.Up2Date

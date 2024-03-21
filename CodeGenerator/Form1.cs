@@ -1,7 +1,7 @@
-﻿using CodeGenerator_Business;
+﻿using Code_Generator.Extensions;
+using CodeGenerator_Business;
 using System;
 using System.Data;
-using System.Data.Common;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
@@ -10,13 +10,13 @@ namespace Code_Generator
 {
     public partial class Form1 : Form
     {
-        private string _TableName = string.Empty;
-        private string _TableSingleName = string.Empty;
-        private bool _IsLogin = false;
-        private bool _IsAdvancedMode = false;
-        private bool _GenerateStoredProceduresInAllTables = false;
+        private string _tableName = string.Empty;
+        private string _tableSingleName = string.Empty;
+        private bool _isLogin = false;
+        private bool _isAdvancedMode = false;
+        private bool _generateStoredProceduresInAllTables = false;
 
-        private StringBuilder _TempText = new StringBuilder();
+        private StringBuilder _tempText = new StringBuilder();
 
         public Form1()
         {
@@ -82,7 +82,7 @@ namespace Code_Generator
         {
             listviewColumnsInfo.Items.Clear();
 
-            DataTable dt = clsCodeGenerator.GetColumnsNameWithInfo(_TableName, comboDatabaseName.Text);
+            DataTable dt = clsCodeGenerator.GetColumnsNameWithInfo(_tableName, comboDatabaseName.Text);
 
             // Loop through the rows in the DataTable and add them to the ListView
             foreach (DataRow row in dt.Rows)
@@ -100,7 +100,7 @@ namespace Code_Generator
             if (listviewColumnsInfo.Items.Count > 0)
             {
                 string FirstValue = listviewColumnsInfo.Items[0].Text;
-                _TableSingleName = FirstValue.Remove(FirstValue.Length - 2);
+                _tableSingleName = FirstValue.Remove(FirstValue.Length - 2);
             }
 
             // To show the number of records
@@ -188,7 +188,7 @@ namespace Code_Generator
 
         private string _CreateCatchBlockWithIsFound()
         {
-            return "catch (SqlException ex)\r\n{\r\n    IsFound = false;\r\n\r\n    clsLogError.LogError(\"Database Exception\", ex);\r\n}\r\ncatch (Exception ex)\r\n{\r\n    IsFound = false;\r\n\r\n    clsLogError.LogError(\"General Exception\", ex);\r\n}";
+            return "catch (SqlException ex)\r\n{\r\n    isFound = false;\r\n\r\n    clsLogError.LogError(\"Database Exception\", ex);\r\n}\r\ncatch (Exception ex)\r\n{\r\n    isFound = false;\r\n\r\n    clsLogError.LogError(\"General Exception\", ex);\r\n}";
         }
 
         private string _CreateCatchBlockWithoutIsFound()
@@ -198,9 +198,9 @@ namespace Code_Generator
 
         private string _MakeParametersForFindMethod()
         {
-            StringBuilder Parameters = new StringBuilder();
+            StringBuilder parameters = new StringBuilder();
 
-            Parameters.Append("(");
+            parameters.Append("(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
@@ -208,123 +208,123 @@ namespace Code_Generator
 
                 if (firstItem.SubItems.Count > 0)
                 {
-                    string ColumnName = firstItem.SubItems[0].Text;
-                    string DataType = firstItem.SubItems[1].Text;
-                    string IsNullable = firstItem.SubItems[2].Text;
+                    string columnName = firstItem.SubItems[0].Text.ToCamelCase();
+                    string dataType = firstItem.SubItems[1].Text;
+                    string isNullable = firstItem.SubItems[2].Text;
 
                     if (i == 0)
                     {
-                        Parameters.Append(_GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ");
+                        parameters.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + ", ");
                     }
                     else
                     {
-                        if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                        if (isNullable.ToUpper() == "YES" && !_IsDataTypeString(dataType))
                         {
-                            Parameters.Append("ref " + _GetDataTypeCSharp(DataType) + "? " + ColumnName + ", ");
+                            parameters.Append("ref " + _GetDataTypeCSharp(dataType) + "? " + columnName + ", ");
                         }
                         else
                         {
-                            Parameters.Append("ref " + _GetDataTypeCSharp(DataType) + " " + ColumnName + ", ");
+                            parameters.Append("ref " + _GetDataTypeCSharp(dataType) + " " + columnName + ", ");
                         }
                     }
                 }
             }
 
             // To remove the ", " from the end of the text
-            Parameters.Length -= 2;
+            parameters.Length -= 2;
 
-            Parameters.Append(")");
+            parameters.Append(")");
 
-            return Parameters.ToString().Trim();
+            return parameters.ToString().Trim();
         }
 
         private string _FillTheVariableWithDataThatComingFromDatabase()
         {
-            StringBuilder Text = new StringBuilder();
+            StringBuilder text = new StringBuilder();
 
             for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
             {
-                ListViewItem SecondItem = listviewColumnsInfo.Items[i];
+                ListViewItem secondItem = listviewColumnsInfo.Items[i];
 
-                if (SecondItem.SubItems.Count > 0)
+                if (secondItem.SubItems.Count > 0)
                 {
-                    string ColumnName = SecondItem.SubItems[0].Text;
-                    string DataType = SecondItem.SubItems[1].Text;
-                    string IsNullable = SecondItem.SubItems[2].Text;
+                    string columnName = secondItem.SubItems[0].Text;
+                    string dataType = secondItem.SubItems[1].Text;
+                    string isNullable = secondItem.SubItems[2].Text;
 
-                    if (IsNullable.ToUpper() == "YES")
+                    if (isNullable.ToUpper() == "YES")
                     {
-                        if (!_IsDataTypeString(DataType))
+                        if (!_IsDataTypeString(dataType))
                         {
-                            Text.Append($"{ColumnName} = (reader[\"{ColumnName}\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)}?)reader[\"{ColumnName}\"] : null;");
+                            text.Append($"{columnName.ToCamelCase()} = (reader[\"{columnName}\"] != DBNull.Value) ? ({_GetDataTypeCSharp(dataType)}?)reader[\"{columnName}\"] : null;");
                         }
                         else
                         {
-                            Text.Append($"{ColumnName} = (reader[\"{ColumnName}\"] != DBNull.Value) ? ({_GetDataTypeCSharp(DataType)})reader[\"{ColumnName}\"] : null;");
+                            text.Append($"{columnName.ToCamelCase()} = (reader[\"{columnName}\"] != DBNull.Value) ? ({_GetDataTypeCSharp(dataType)})reader[\"{columnName}\"] : null;");
                         }
 
-                        Text.AppendLine();
+                        text.AppendLine();
                     }
                     else
                     {
-                        Text.AppendLine($"{ColumnName} = ({_GetDataTypeCSharp(DataType)})reader[\"{ColumnName}\"];");
+                        text.AppendLine($"{columnName.ToCamelCase()} = ({_GetDataTypeCSharp(dataType)})reader[\"{columnName}\"];");
                     }
                 }
             }
 
-            return Text.ToString().Trim();
+            return text.ToString().Trim();
         }
 
         private void _CreateFindMethod()
         {
-            _TempText.Append($"public static bool Get{_TableSingleName}InfoByID{_MakeParametersForFindMethod()}");
-            _TempText.AppendLine();
-            _TempText.AppendLine("{");
+            _tempText.Append($"public static bool Get{_tableSingleName}InfoByID{_MakeParametersForFindMethod()}");
+            _tempText.AppendLine();
+            _tempText.AppendLine("{");
 
-            _TempText.AppendLine("    bool IsFound = false;");
-            _TempText.AppendLine();
+            _tempText.AppendLine("    bool isFound = false;");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("    try");
-            _TempText.AppendLine("    {");
-            _TempText.AppendLine($"        using ({_GetConnectionString()})");
-            _TempText.AppendLine("        {");
-            _TempText.AppendLine("            connection.Open();");
-            _TempText.AppendLine();
+            _tempText.AppendLine("    try");
+            _tempText.AppendLine("    {");
+            _tempText.AppendLine($"        using ({_GetConnectionString()})");
+            _tempText.AppendLine("        {");
+            _tempText.AppendLine("            connection.Open();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Get{_TableSingleName}InfoByID\", connection))");
-            _TempText.AppendLine("            {");
-            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
-            _TempText.AppendLine();
+            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Get{_tableSingleName}InfoByID\", connection))");
+            _tempText.AppendLine("            {");
+            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
+            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_tableSingleName}ID\", (object){_tableSingleName.ToCamelCase()}ID ?? DBNull.Value);");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
-            _TempText.AppendLine("                {");
-            _TempText.AppendLine("                    if (reader.Read())");
-            _TempText.AppendLine("                    {");
-            _TempText.AppendLine("                        // The record was found");
-            _TempText.AppendLine("                        IsFound = true;");
-            _TempText.AppendLine();
+            _tempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
+            _tempText.AppendLine("                {");
+            _tempText.AppendLine("                    if (reader.Read())");
+            _tempText.AppendLine("                    {");
+            _tempText.AppendLine("                        // The record was found");
+            _tempText.AppendLine("                        isFound = true;");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine(_FillTheVariableWithDataThatComingFromDatabase());
-            _TempText.AppendLine("                    }");
-            _TempText.AppendLine("                    else");
-            _TempText.AppendLine("                    {");
-            _TempText.AppendLine("                        // The record was not found");
-            _TempText.AppendLine("                        IsFound = false;");
-            _TempText.AppendLine("                    }");
-            _TempText.AppendLine("                }");
-            _TempText.AppendLine("            }");
-            _TempText.AppendLine("        }");
-            _TempText.AppendLine("    }");
-            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
-            _TempText.AppendLine();
-            _TempText.AppendLine("    return IsFound;");
-            _TempText.AppendLine("}");
+            _tempText.AppendLine(_FillTheVariableWithDataThatComingFromDatabase());
+            _tempText.AppendLine("                    }");
+            _tempText.AppendLine("                    else");
+            _tempText.AppendLine("                    {");
+            _tempText.AppendLine("                        // The record was not found");
+            _tempText.AppendLine("                        isFound = false;");
+            _tempText.AppendLine("                    }");
+            _tempText.AppendLine("                }");
+            _tempText.AppendLine("            }");
+            _tempText.AppendLine("        }");
+            _tempText.AppendLine("    }");
+            _tempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _tempText.AppendLine();
+            _tempText.AppendLine("    return isFound;");
+            _tempText.AppendLine("}");
         }
 
         private string _MakeParametersForFindMethodForUsername()
         {
-            StringBuilder Parameters = new StringBuilder("(");
+            StringBuilder parameters = new StringBuilder("(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
@@ -332,29 +332,29 @@ namespace Code_Generator
 
                 if (firstItem.SubItems.Count > 0)
                 {
-                    string ColumnName = firstItem.SubItems[0].Text;
-                    string DataType = firstItem.SubItems[1].Text;
-                    string IsNullable = firstItem.SubItems[2].Text;
+                    string columnName = firstItem.SubItems[0].Text.ToCamelCase();
+                    string dataType = firstItem.SubItems[1].Text;
+                    string isNullable = firstItem.SubItems[2].Text;
 
                     if (i == 0)
                     {
-                        Parameters.Append("ref ").Append(_GetDataTypeCSharp(DataType)).Append("? ").Append(ColumnName).Append(", ");
+                        parameters.Append("ref ").Append(_GetDataTypeCSharp(dataType)).Append("? ").Append(columnName).Append(", ");
                     }
                     else
                     {
-                        if (ColumnName.ToLower() == "username")
+                        if (columnName.ToLower() == "username")
                         {
-                            Parameters.Append(_GetDataTypeCSharp(DataType)).Append(" ").Append(ColumnName).Append(", ");
+                            parameters.Append(_GetDataTypeCSharp(dataType)).Append(" ").Append(columnName).Append(", ");
                         }
                         else
                         {
-                            if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                            if (isNullable.ToUpper() == "YES" && !_IsDataTypeString(dataType))
                             {
-                                Parameters.Append("ref ").Append(_GetDataTypeCSharp(DataType)).Append("? ").Append(ColumnName).Append(", ");
+                                parameters.Append("ref ").Append(_GetDataTypeCSharp(dataType)).Append("? ").Append(columnName).Append(", ");
                             }
                             else
                             {
-                                Parameters.Append("ref ").Append(_GetDataTypeCSharp(DataType)).Append(" ").Append(ColumnName).Append(", ");
+                                parameters.Append("ref ").Append(_GetDataTypeCSharp(dataType)).Append(" ").Append(columnName).Append(", ");
                             }
                         }
                     }
@@ -362,11 +362,11 @@ namespace Code_Generator
             }
 
             // To remove the ", " from the end of the text
-            Parameters.Length -= 2;
+            parameters.Length -= 2;
 
-            Parameters.Append(")");
+            parameters.Append(")");
 
-            return Parameters.ToString().Trim();
+            return parameters.ToString().Trim();
         }
 
         private string _FillTheVariableWithDataThatComingFromDatabaseForUsername()
@@ -375,68 +375,68 @@ namespace Code_Generator
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
-                ListViewItem FirstValue = listviewColumnsInfo.Items[i];
+                ListViewItem firstValue = listviewColumnsInfo.Items[i];
 
-                if (FirstValue.SubItems.Count > 0)
+                if (firstValue.SubItems.Count > 0)
                 {
-                    string ColumnName = FirstValue.SubItems[0].Text;
-                    string DataType = FirstValue.SubItems[1].Text;
-                    string IsNullable = FirstValue.SubItems[2].Text;
+                    string columnName = firstValue.SubItems[0].Text;
+                    string dataType = firstValue.SubItems[1].Text;
+                    string isNullable = firstValue.SubItems[2].Text;
 
-                    if (ColumnName.ToLower() != "username")
+                    if (columnName.ToLower() != "username")
                     {
                         if (i == 0)
                         {
-                            Text.Append(ColumnName)
+                            Text.Append(columnName.ToCamelCase())
                                 .Append(" = ")
                                 .Append("(reader[\"")
-                                .Append(ColumnName)
+                                .Append(columnName)
                                 .Append("\"] != DBNull.Value) ? (")
-                                .Append(_GetDataTypeCSharp(DataType))
+                                .Append(_GetDataTypeCSharp(dataType))
                                 .Append("?)reader[\"")
-                                .Append(ColumnName)
+                                .Append(columnName)
                                 .Append("\"] : null;")
                                 .AppendLine();
                             continue;
                         }
 
-                        if (IsNullable == "YES")
+                        if (isNullable == "YES")
                         {
-                            if (!_IsDataTypeString(DataType))
+                            if (!_IsDataTypeString(dataType))
                             {
-                                Text.Append(ColumnName)
+                                Text.Append(columnName.ToCamelCase())
                                     .Append(" = ")
                                     .Append("(reader[\"")
-                                    .Append(ColumnName)
+                                    .Append(columnName)
                                     .Append("\"] != DBNull.Value) ? (")
-                                    .Append(_GetDataTypeCSharp(DataType))
+                                    .Append(_GetDataTypeCSharp(dataType))
                                     .Append("?)reader[\"")
-                                    .Append(ColumnName)
+                                    .Append(columnName)
                                     .Append("\"] : null;")
                                     .AppendLine();
                             }
                             else
                             {
-                                Text.Append(ColumnName)
+                                Text.Append(columnName.ToCamelCase())
                                     .Append(" = ")
                                     .Append("(reader[\"")
-                                    .Append(ColumnName)
+                                    .Append(columnName)
                                     .Append("\"] != DBNull.Value) ? (")
-                                    .Append(_GetDataTypeCSharp(DataType))
+                                    .Append(_GetDataTypeCSharp(dataType))
                                     .Append(")reader[\"")
-                                    .Append(ColumnName)
+                                    .Append(columnName)
                                     .Append("\"] : null;")
                                     .AppendLine();
                             }
                         }
                         else
                         {
-                            Text.Append(ColumnName)
+                            Text.Append(columnName.ToCamelCase())
                                 .Append(" = ")
                                 .Append("(")
-                                .Append(_GetDataTypeCSharp(DataType))
+                                .Append(_GetDataTypeCSharp(dataType))
                                 .Append(")reader[\"")
-                                .Append(ColumnName)
+                                .Append(columnName)
                                 .Append("\"];")
                                 .AppendLine();
                         }
@@ -449,53 +449,53 @@ namespace Code_Generator
 
         private void _CreateFindMethodForUsername()
         {
-            _TempText.AppendLine();
-            _TempText.AppendLine($"public static bool Get{_TableSingleName}InfoByUsername{_MakeParametersForFindMethodForUsername()}");
-            _TempText.AppendLine("{");
-            _TempText.AppendLine("    bool IsFound = false;");
-            _TempText.AppendLine();
+            _tempText.AppendLine();
+            _tempText.AppendLine($"public static bool Get{_tableSingleName}InfoByUsername{_MakeParametersForFindMethodForUsername()}");
+            _tempText.AppendLine("{");
+            _tempText.AppendLine("    bool isFound = false;");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("    try");
-            _TempText.AppendLine("    {");
-            _TempText.AppendLine($"        using ({_GetConnectionString()})");
-            _TempText.AppendLine("        {");
-            _TempText.AppendLine("            connection.Open();");
-            _TempText.AppendLine();
+            _tempText.AppendLine("    try");
+            _tempText.AppendLine("    {");
+            _tempText.AppendLine($"        using ({_GetConnectionString()})");
+            _tempText.AppendLine("        {");
+            _tempText.AppendLine("            connection.Open();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Get{_TableSingleName}InfoByUsername\", connection))");
-            _TempText.AppendLine("            {");
-            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
-            _TempText.AppendLine();
+            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Get{_tableSingleName}InfoByUsername\", connection))");
+            _tempText.AppendLine("            {");
+            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
+            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", username);");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
-            _TempText.AppendLine("                {");
-            _TempText.AppendLine("                    if (reader.Read())");
-            _TempText.AppendLine("                    {");
-            _TempText.AppendLine("                        // The record was found");
-            _TempText.AppendLine("                        IsFound = true;");
-            _TempText.AppendLine(_FillTheVariableWithDataThatComingFromDatabaseForUsername());
-            _TempText.AppendLine("                    }");
-            _TempText.AppendLine("                    else");
-            _TempText.AppendLine("                    {");
-            _TempText.AppendLine("                        // The record was not found");
-            _TempText.AppendLine("                        IsFound = false;");
-            _TempText.AppendLine("                    }");
-            _TempText.AppendLine("                }");
-            _TempText.AppendLine("            }");
-            _TempText.AppendLine("        }");
-            _TempText.AppendLine("    }");
-            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
-            _TempText.AppendLine();
-            _TempText.AppendLine("    return IsFound;");
-            _TempText.AppendLine("}");
+            _tempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
+            _tempText.AppendLine("                {");
+            _tempText.AppendLine("                    if (reader.Read())");
+            _tempText.AppendLine("                    {");
+            _tempText.AppendLine("                        // The record was found");
+            _tempText.AppendLine("                        isFound = true;");
+            _tempText.AppendLine(_FillTheVariableWithDataThatComingFromDatabaseForUsername());
+            _tempText.AppendLine("                    }");
+            _tempText.AppendLine("                    else");
+            _tempText.AppendLine("                    {");
+            _tempText.AppendLine("                        // The record was not found");
+            _tempText.AppendLine("                        isFound = false;");
+            _tempText.AppendLine("                    }");
+            _tempText.AppendLine("                }");
+            _tempText.AppendLine("            }");
+            _tempText.AppendLine("        }");
+            _tempText.AppendLine("    }");
+            _tempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _tempText.AppendLine();
+            _tempText.AppendLine("    return isFound;");
+            _tempText.AppendLine("}");
         }
 
         private string _MakeParametersForFindMethodForUsernameAndPassword()
         {
-            StringBuilder Parameters = new StringBuilder();
+            StringBuilder parameters = new StringBuilder();
 
-            Parameters.Append("(");
+            parameters.Append("(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
@@ -503,43 +503,43 @@ namespace Code_Generator
 
                 if (firstItem.SubItems.Count > 0)
                 {
-                    string ColumnName = firstItem.SubItems[0].Text;
-                    string DataType = firstItem.SubItems[1].Text;
-                    string IsNullable = firstItem.SubItems[2].Text;
+                    string columnName = firstItem.SubItems[0].Text.ToCamelCase();
+                    string dataType = firstItem.SubItems[1].Text;
+                    string isNullable = firstItem.SubItems[2].Text;
 
                     if (i == 0)
                     {
-                        Parameters.Append("ref ")
-                            .Append(_GetDataTypeCSharp(DataType))
+                        parameters.Append("ref ")
+                            .Append(_GetDataTypeCSharp(dataType))
                             .Append("? ")
-                            .Append(ColumnName)
+                            .Append(columnName)
                             .Append(", ");
                         continue;
                     }
 
-                    if (ColumnName.ToLower() == "username" || ColumnName.ToLower() == "password")
+                    if (columnName.ToLower() == "username" || columnName.ToLower() == "password")
                     {
-                        Parameters.Append(_GetDataTypeCSharp(DataType))
+                        parameters.Append(_GetDataTypeCSharp(dataType))
                             .Append(" ")
-                            .Append(ColumnName)
+                            .Append(columnName)
                             .Append(", ");
                     }
                     else
                     {
-                        if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                        if (isNullable.ToUpper() == "YES" && !_IsDataTypeString(dataType))
                         {
-                            Parameters.Append("ref ")
-                                .Append(_GetDataTypeCSharp(DataType))
+                            parameters.Append("ref ")
+                                .Append(_GetDataTypeCSharp(dataType))
                                 .Append("? ")
-                                .Append(ColumnName)
+                                .Append(columnName)
                                 .Append(", ");
                         }
                         else
                         {
-                            Parameters.Append("ref ")
-                                .Append(_GetDataTypeCSharp(DataType))
+                            parameters.Append("ref ")
+                                .Append(_GetDataTypeCSharp(dataType))
                                 .Append(" ")
-                                .Append(ColumnName)
+                                .Append(columnName)
                                 .Append(", ");
                         }
                     }
@@ -547,78 +547,78 @@ namespace Code_Generator
             }
 
             // To remove the ", " from the end of the text
-            Parameters.Length -= 2;
+            parameters.Length -= 2;
 
-            Parameters.Append(")");
+            parameters.Append(")");
 
-            return Parameters.ToString().Trim();
+            return parameters.ToString().Trim();
         }
 
         private string _FillTheVariableWithDataThatComingFromDatabaseForUsernameAndPassword()
         {
-            StringBuilder Text = new StringBuilder();
+            StringBuilder text = new StringBuilder();
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
-                ListViewItem FirstValue = listviewColumnsInfo.Items[i];
+                ListViewItem firstValue = listviewColumnsInfo.Items[i];
 
-                if (FirstValue.SubItems.Count > 0)
+                if (firstValue.SubItems.Count > 0)
                 {
-                    string ColumnName = FirstValue.SubItems[0].Text;
-                    string DataType = FirstValue.SubItems[1].Text;
-                    string IsNullable = FirstValue.SubItems[2].Text;
+                    string columnName = firstValue.SubItems[0].Text;
+                    string dataType = firstValue.SubItems[1].Text;
+                    string isNullable = firstValue.SubItems[2].Text;
 
-                    if (ColumnName.ToLower() != "username" && ColumnName.ToLower() != "password")
+                    if (columnName.ToLower() != "username" && columnName.ToLower() != "password")
                     {
                         if (i == 0)
                         {
-                            Text.Append(ColumnName)
+                            text.Append(columnName.ToCamelCase())
                                 .Append(" = (reader[\"")
-                                .Append(ColumnName)
+                                .Append(columnName)
                                 .Append("\"] != DBNull.Value) ? (")
-                                .Append(_GetDataTypeCSharp(DataType))
+                                .Append(_GetDataTypeCSharp(dataType))
                                 .Append("?)reader[\"")
-                                .Append(ColumnName)
+                                .Append(columnName)
                                 .Append("\"] : null;")
                                 .AppendLine();
 
                             continue;
                         }
 
-                        if (IsNullable == "YES")
+                        if (isNullable == "YES")
                         {
-                            if (!_IsDataTypeString(DataType))
+                            if (!_IsDataTypeString(dataType))
                             {
-                                Text.Append(ColumnName)
+                                text.Append(columnName.ToCamelCase())
                                     .Append(" = (reader[\"")
-                                    .Append(ColumnName)
+                                    .Append(columnName)
                                     .Append("\"] != DBNull.Value) ? (")
-                                    .Append(_GetDataTypeCSharp(DataType))
+                                    .Append(_GetDataTypeCSharp(dataType))
                                     .Append("?)reader[\"")
-                                    .Append(ColumnName)
+                                    .Append(columnName)
                                     .Append("\"] : null;")
                                     .AppendLine();
                             }
                             else
                             {
-                                Text.Append(ColumnName)
+                                text.Append(columnName.ToCamelCase())
                                     .Append(" = (reader[\"")
-                                    .Append(ColumnName)
+                                    .Append(columnName)
                                     .Append("\"] != DBNull.Value) ? (")
-                                    .Append(_GetDataTypeCSharp(DataType))
+                                    .Append(_GetDataTypeCSharp(dataType))
                                     .Append(")reader[\"")
-                                    .Append(ColumnName)
+                                    .Append(columnName)
                                     .Append("\"] : null;")
                                     .AppendLine();
                             }
                         }
                         else
                         {
-                            Text.Append(ColumnName)
+                            text.Append(columnName.ToCamelCase())
                                 .Append(" = (")
-                                .Append(_GetDataTypeCSharp(DataType))
+                                .Append(_GetDataTypeCSharp(dataType))
                                 .Append(")reader[\"")
-                                .Append(ColumnName)
+                                .Append(columnName)
                                 .Append("\"];")
                                 .AppendLine();
                         }
@@ -626,93 +626,93 @@ namespace Code_Generator
                 }
             }
 
-            return Text.ToString().Trim();
+            return text.ToString().Trim();
         }
 
         private void _CreateFindMethodForUsernameAndPassword()
         {
-            _TempText.AppendLine();
-            _TempText.AppendLine($"public static bool Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindMethodForUsernameAndPassword()}");
-            _TempText.AppendLine("{");
-            _TempText.AppendLine("    bool IsFound = false;");
-            _TempText.AppendLine();
+            _tempText.AppendLine();
+            _tempText.AppendLine($"public static bool Get{_tableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindMethodForUsernameAndPassword()}");
+            _tempText.AppendLine("{");
+            _tempText.AppendLine("    bool isFound = false;");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("    try");
-            _TempText.AppendLine("    {");
-            _TempText.AppendLine($"        using ({_GetConnectionString()})");
-            _TempText.AppendLine("        {");
-            _TempText.AppendLine("            connection.Open();");
-            _TempText.AppendLine();
+            _tempText.AppendLine("    try");
+            _tempText.AppendLine("    {");
+            _tempText.AppendLine($"        using ({_GetConnectionString()})");
+            _tempText.AppendLine("        {");
+            _tempText.AppendLine("            connection.Open();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Get{_TableSingleName}InfoByUsernameAndPassword\", connection))");
-            _TempText.AppendLine("            {");
-            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
-            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Password\", Password);");
-            _TempText.AppendLine();
+            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Get{_tableSingleName}InfoByUsernameAndPassword\", connection))");
+            _tempText.AppendLine("            {");
+            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
+            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", username);");
+            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@Password\", password);");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
-            _TempText.AppendLine("                {");
-            _TempText.AppendLine("                    if (reader.Read())");
-            _TempText.AppendLine("                    {");
-            _TempText.AppendLine("                        // The record was found");
-            _TempText.AppendLine("                        IsFound = true;");
-            _TempText.AppendLine(_FillTheVariableWithDataThatComingFromDatabaseForUsernameAndPassword());
-            _TempText.AppendLine("                    }");
-            _TempText.AppendLine("                    else");
-            _TempText.AppendLine("                    {");
-            _TempText.AppendLine("                        // The record was not found");
-            _TempText.AppendLine("                        IsFound = false;");
-            _TempText.AppendLine("                    }");
-            _TempText.AppendLine("                }");
-            _TempText.AppendLine("            }");
-            _TempText.AppendLine("        }");
-            _TempText.AppendLine("    }");
-            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
-            _TempText.AppendLine();
-            _TempText.AppendLine("    return IsFound;");
-            _TempText.AppendLine("}");
+            _tempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
+            _tempText.AppendLine("                {");
+            _tempText.AppendLine("                    if (reader.Read())");
+            _tempText.AppendLine("                    {");
+            _tempText.AppendLine("                        // The record was found");
+            _tempText.AppendLine("                        isFound = true;");
+            _tempText.AppendLine(_FillTheVariableWithDataThatComingFromDatabaseForUsernameAndPassword());
+            _tempText.AppendLine("                    }");
+            _tempText.AppendLine("                    else");
+            _tempText.AppendLine("                    {");
+            _tempText.AppendLine("                        // The record was not found");
+            _tempText.AppendLine("                        isFound = false;");
+            _tempText.AppendLine("                    }");
+            _tempText.AppendLine("                }");
+            _tempText.AppendLine("            }");
+            _tempText.AppendLine("        }");
+            _tempText.AppendLine("    }");
+            _tempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _tempText.AppendLine();
+            _tempText.AppendLine("    return isFound;");
+            _tempText.AppendLine("}");
         }
 
         private string _MakeParametersForAddNewMethod()
         {
-            StringBuilder Parameters = new StringBuilder("(");
+            StringBuilder parameters = new StringBuilder("(");
 
             for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
             {
-                ListViewItem SecondRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+                ListViewItem secondRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
 
-                if (SecondRow.SubItems.Count > 0)
+                if (secondRow.SubItems.Count > 0)
                 {
-                    string ColumnName = SecondRow.SubItems[0].Text;
-                    string DataType = SecondRow.SubItems[1].Text;
-                    string IsNullable = SecondRow.SubItems[2].Text;
+                    string columnName = secondRow.SubItems[0].Text.ToCamelCase();
+                    string dataType = secondRow.SubItems[1].Text;
+                    string isNullable = secondRow.SubItems[2].Text;
 
-                    if (IsNullable.ToUpper() == "YES" && !_IsDataTypeString(DataType))
+                    if (isNullable.ToUpper() == "YES" && !_IsDataTypeString(dataType))
                     {
-                        Parameters.Append(_GetDataTypeCSharp(DataType)).Append("? ").Append(ColumnName).Append(", ");
+                        parameters.Append(_GetDataTypeCSharp(dataType)).Append("? ").Append(columnName).Append(", ");
                     }
                     else
                     {
-                        Parameters.Append(_GetDataTypeCSharp(DataType)).Append(" ").Append(ColumnName).Append(", ");
+                        parameters.Append(_GetDataTypeCSharp(dataType)).Append(" ").Append(columnName).Append(", ");
                     }
                 }
             }
 
             // To remove the ", " from the end of the text
-            if (Parameters.Length >= 2)
+            if (parameters.Length >= 2)
             {
-                Parameters.Length -= 2;
+                parameters.Length -= 2;
             }
 
-            Parameters.Append(")");
+            parameters.Append(")");
 
-            return Parameters.ToString().Trim();
+            return parameters.ToString().Trim();
         }
 
         private string _FillParametersInTheCommand()
         {
-            StringBuilder Text = new StringBuilder();
+            StringBuilder text = new StringBuilder();
 
             for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
             {
@@ -723,61 +723,61 @@ namespace Code_Generator
                     string columnName = secondItem.SubItems[0].Text;
                     string isNullable = secondItem.SubItems[2].Text;
 
-                    Text.Append($"command.Parameters.AddWithValue(\"@{columnName}\", ");
+                    text.Append($"command.Parameters.AddWithValue(\"@{columnName}\", ");
 
                     if (isNullable == "YES")
                     {
-                        Text.Append($"(object){columnName} ?? DBNull.Value");
+                        text.Append($"(object){columnName?.ToCamelCase()} ?? DBNull.Value");
                     }
                     else
                     {
-                        Text.Append(columnName);
+                        text.Append(columnName?.ToCamelCase());
                     }
 
-                    Text.AppendLine(");");
+                    text.AppendLine(");");
                 }
             }
 
-            return Text.ToString().Trim();
+            return text.ToString().Trim();
         }
 
         private void _CreateAddNewMethod()
         {
-            _TempText.AppendLine();
-            _TempText.AppendLine($"public static int? AddNew{_TableSingleName}{_MakeParametersForAddNewMethod()}");
-            _TempText.AppendLine("{");
-            _TempText.AppendLine("// This function will return the new person id if succeeded and null if not");
-            _TempText.AppendLine($"    int? {_TableSingleName}ID = null;");
-            _TempText.AppendLine();
+            _tempText.AppendLine();
+            _tempText.AppendLine($"public static int? AddNew{_tableSingleName}{_MakeParametersForAddNewMethod()}");
+            _tempText.AppendLine("{");
+            _tempText.AppendLine("// This function will return the new person id if succeeded and null if not");
+            _tempText.AppendLine($"    int? {_tableSingleName.ToCamelCase()}ID = null;");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("    try");
-            _TempText.AppendLine("    {");
-            _TempText.AppendLine($"        using ({_GetConnectionString()})");
-            _TempText.AppendLine("        {");
-            _TempText.AppendLine("            connection.Open();");
-            _TempText.AppendLine();
+            _tempText.AppendLine("    try");
+            _tempText.AppendLine("    {");
+            _tempText.AppendLine($"        using ({_GetConnectionString()})");
+            _tempText.AppendLine("        {");
+            _tempText.AppendLine("            connection.Open();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_AddNew{_TableSingleName}\", connection))");
-            _TempText.AppendLine("            {");
-            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _TempText.AppendLine(_FillParametersInTheCommand());
-            _TempText.AppendLine();
-            _TempText.AppendLine($"SqlParameter outputIdParam = new SqlParameter(\"@New{_TableSingleName}ID\", SqlDbType.Int)");
-            _TempText.AppendLine("{").AppendLine("Direction = ParameterDirection.Output").AppendLine("};");
-            _TempText.AppendLine("command.Parameters.Add(outputIdParam);");
-            _TempText.AppendLine();
+            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_AddNew{_tableSingleName}\", connection))");
+            _tempText.AppendLine("            {");
+            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
+            _tempText.AppendLine(_FillParametersInTheCommand());
+            _tempText.AppendLine();
+            _tempText.AppendLine($"SqlParameter outputIdParam = new SqlParameter(\"@New{_tableSingleName}ID\", SqlDbType.Int)");
+            _tempText.AppendLine("{").AppendLine("Direction = ParameterDirection.Output").AppendLine("};");
+            _tempText.AppendLine("command.Parameters.Add(outputIdParam);");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("command.ExecuteNonQuery();");
-            _TempText.AppendLine();
+            _tempText.AppendLine("command.ExecuteNonQuery();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine($"{_TableSingleName}ID = (int?)outputIdParam.Value;");
-            _TempText.AppendLine("            }");
-            _TempText.AppendLine("        }");
-            _TempText.AppendLine("    }");
-            _TempText.AppendLine(_CreateCatchBlockWithoutIsFound());
-            _TempText.AppendLine();
-            _TempText.AppendLine($"    return {_TableSingleName}ID;");
-            _TempText.AppendLine("}");
+            _tempText.AppendLine($"{_tableSingleName.ToCamelCase()}ID = (int?)outputIdParam.Value;");
+            _tempText.AppendLine("            }");
+            _tempText.AppendLine("        }");
+            _tempText.AppendLine("    }");
+            _tempText.AppendLine(_CreateCatchBlockWithoutIsFound());
+            _tempText.AppendLine();
+            _tempText.AppendLine($"    return {_tableSingleName.ToCamelCase()}ID;");
+            _tempText.AppendLine("}");
         }
 
         private string _MakeParametersForUpdateMethod()
@@ -790,7 +790,7 @@ namespace Code_Generator
 
                 if (secondRow.SubItems.Count > 0)
                 {
-                    string columnName = secondRow.SubItems[0].Text;
+                    string columnName = secondRow.SubItems[0].Text?.ToCamelCase();
                     string dataType = secondRow.SubItems[1].Text;
                     string isNullable = secondRow.SubItems[2].Text;
 
@@ -822,34 +822,34 @@ namespace Code_Generator
 
         private void _CreateUpdateMethod()
         {
-            _TempText.AppendLine();
-            _TempText.AppendLine($"public static bool Update{_TableSingleName}{_MakeParametersForUpdateMethod()}");
-            _TempText.AppendLine("{");
-            _TempText.AppendLine("    int RowAffected = 0;");
-            _TempText.AppendLine();
+            _tempText.AppendLine();
+            _tempText.AppendLine($"public static bool Update{_tableSingleName}{_MakeParametersForUpdateMethod()}");
+            _tempText.AppendLine("{");
+            _tempText.AppendLine("    int rowAffected = 0;");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("    try");
-            _TempText.AppendLine("    {");
-            _TempText.AppendLine($"        using ({_GetConnectionString()})");
-            _TempText.AppendLine("        {");
-            _TempText.AppendLine("            connection.Open();");
-            _TempText.AppendLine();
+            _tempText.AppendLine("    try");
+            _tempText.AppendLine("    {");
+            _tempText.AppendLine($"        using ({_GetConnectionString()})");
+            _tempText.AppendLine("        {");
+            _tempText.AppendLine("            connection.Open();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Update{_TableSingleName}\", connection))");
-            _TempText.AppendLine("            {");
-            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
-            _TempText.AppendLine(_FillParametersInTheCommand());
-            _TempText.AppendLine();
+            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Update{_tableSingleName}\", connection))");
+            _tempText.AppendLine("            {");
+            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
+            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_tableSingleName}ID\", (object){_tableSingleName?.ToCamelCase()}ID ?? DBNull.Value);");
+            _tempText.AppendLine(_FillParametersInTheCommand());
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("                RowAffected = command.ExecuteNonQuery();");
-            _TempText.AppendLine("            }");
-            _TempText.AppendLine("        }");
-            _TempText.AppendLine("    }");
-            _TempText.AppendLine(_CreateCatchBlockWithoutIsFound());
-            _TempText.AppendLine();
-            _TempText.AppendLine($"    return (RowAffected > 0);");
-            _TempText.AppendLine("}");
+            _tempText.AppendLine("                rowAffected = command.ExecuteNonQuery();");
+            _tempText.AppendLine("            }");
+            _tempText.AppendLine("        }");
+            _tempText.AppendLine("    }");
+            _tempText.AppendLine(_CreateCatchBlockWithoutIsFound());
+            _tempText.AppendLine();
+            _tempText.AppendLine($"    return (rowAffected > 0);");
+            _tempText.AppendLine("}");
         }
 
         private string _MakeParametersForDeleteMethod()
@@ -860,7 +860,7 @@ namespace Code_Generator
 
             if (secondRow.SubItems.Count > 0)
             {
-                string columnName = secondRow.SubItems[0].Text;
+                string columnName = secondRow.SubItems[0].Text.ToCamelCase();
                 string dataType = secondRow.SubItems[1].Text;
 
                 parameters.Append(_GetDataTypeCSharp(dataType))
@@ -874,218 +874,218 @@ namespace Code_Generator
 
         private void _CreateDeleteMethod()
         {
-            _TempText.AppendLine();
-            _TempText.AppendLine($"public static bool Delete{_TableSingleName}{_MakeParametersForDeleteMethod()}");
-            _TempText.AppendLine("{");
-            _TempText.AppendLine("    int RowAffected = 0;");
-            _TempText.AppendLine();
+            _tempText.AppendLine();
+            _tempText.AppendLine($"public static bool Delete{_tableSingleName}{_MakeParametersForDeleteMethod()}");
+            _tempText.AppendLine("{");
+            _tempText.AppendLine("    int rowAffected = 0;");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("    try");
-            _TempText.AppendLine("    {");
-            _TempText.AppendLine($"        using ({_GetConnectionString()})");
-            _TempText.AppendLine("        {");
-            _TempText.AppendLine("            connection.Open();");
-            _TempText.AppendLine();
+            _tempText.AppendLine("    try");
+            _tempText.AppendLine("    {");
+            _tempText.AppendLine($"        using ({_GetConnectionString()})");
+            _tempText.AppendLine("        {");
+            _tempText.AppendLine("            connection.Open();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Delete{_TableSingleName}\", connection))");
-            _TempText.AppendLine("            {");
-            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
-            _TempText.AppendLine();
+            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Delete{_tableSingleName}\", connection))");
+            _tempText.AppendLine("            {");
+            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
+            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_tableSingleName}ID\", (object){_tableSingleName?.ToCamelCase()}ID ?? DBNull.Value);");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("                RowAffected = command.ExecuteNonQuery();");
-            _TempText.AppendLine("            }");
-            _TempText.AppendLine("        }");
-            _TempText.AppendLine("    }");
-            _TempText.AppendLine(_CreateCatchBlockWithoutIsFound());
-            _TempText.AppendLine();
-            _TempText.AppendLine($"    return (RowAffected > 0);");
-            _TempText.AppendLine("}");
+            _tempText.AppendLine("                rowAffected = command.ExecuteNonQuery();");
+            _tempText.AppendLine("            }");
+            _tempText.AppendLine("        }");
+            _tempText.AppendLine("    }");
+            _tempText.AppendLine(_CreateCatchBlockWithoutIsFound());
+            _tempText.AppendLine();
+            _tempText.AppendLine($"    return (rowAffected > 0);");
+            _tempText.AppendLine("}");
         }
 
         private void _CreateDoesExistMethod()
         {
-            _TempText.AppendLine();
-            _TempText.AppendLine($"public static bool Does{_TableSingleName}Exist{_MakeParametersForDeleteMethod()}");
-            _TempText.AppendLine("{");
-            _TempText.AppendLine("    bool IsFound = false;");
-            _TempText.AppendLine();
+            _tempText.AppendLine();
+            _tempText.AppendLine($"public static bool Does{_tableSingleName}Exist{_MakeParametersForDeleteMethod()}");
+            _tempText.AppendLine("{");
+            _tempText.AppendLine("    bool isFound = false;");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("    try");
-            _TempText.AppendLine("    {");
-            _TempText.AppendLine($"        using ({_GetConnectionString()})");
-            _TempText.AppendLine("        {");
-            _TempText.AppendLine("            connection.Open();");
-            _TempText.AppendLine();
+            _tempText.AppendLine("    try");
+            _tempText.AppendLine("    {");
+            _tempText.AppendLine($"        using ({_GetConnectionString()})");
+            _tempText.AppendLine("        {");
+            _tempText.AppendLine("            connection.Open();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_TableSingleName}Exist\", connection))");
-            _TempText.AppendLine("            {");
-            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_TableSingleName}ID\", (object){_TableSingleName}ID ?? DBNull.Value);");
-            _TempText.AppendLine();
-            _TempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
-            _TempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
-            _TempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
-            _TempText.AppendLine("command.Parameters.Add(returnParameter);");
-            _TempText.AppendLine();
+            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_tableSingleName}Exist\", connection))");
+            _tempText.AppendLine("            {");
+            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
+            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_tableSingleName}ID\", (object){_tableSingleName?.ToCamelCase()}ID ?? DBNull.Value);");
+            _tempText.AppendLine();
+            _tempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
+            _tempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
+            _tempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
+            _tempText.AppendLine("command.Parameters.Add(returnParameter);");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("command.ExecuteNonQuery();");
-            _TempText.AppendLine();
-            _TempText.AppendLine("IsFound = (int)returnParameter.Value == 1;");
-            _TempText.AppendLine("            }");
-            _TempText.AppendLine("        }");
-            _TempText.AppendLine("    }");
-            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
-            _TempText.AppendLine();
-            _TempText.AppendLine("    return IsFound;");
-            _TempText.AppendLine("}");
+            _tempText.AppendLine("command.ExecuteNonQuery();");
+            _tempText.AppendLine();
+            _tempText.AppendLine("isFound = (int)returnParameter.Value == 1;");
+            _tempText.AppendLine("            }");
+            _tempText.AppendLine("        }");
+            _tempText.AppendLine("    }");
+            _tempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _tempText.AppendLine();
+            _tempText.AppendLine("    return isFound;");
+            _tempText.AppendLine("}");
         }
 
         private void _CreateDoesExistMethodForUsername()
         {
-            _TempText.AppendLine();
-            _TempText.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username)");
-            _TempText.AppendLine("{");
-            _TempText.AppendLine("    bool IsFound = false;");
-            _TempText.AppendLine();
+            _tempText.AppendLine();
+            _tempText.AppendLine($"public static bool Does{_tableSingleName}Exist(string username)");
+            _tempText.AppendLine("{");
+            _tempText.AppendLine("    bool isFound = false;");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("    try");
-            _TempText.AppendLine("    {");
-            _TempText.AppendLine($"        using ({_GetConnectionString()})");
-            _TempText.AppendLine("        {");
-            _TempText.AppendLine("            connection.Open();");
-            _TempText.AppendLine();
+            _tempText.AppendLine("    try");
+            _tempText.AppendLine("    {");
+            _tempText.AppendLine($"        using ({_GetConnectionString()})");
+            _tempText.AppendLine("        {");
+            _tempText.AppendLine("            connection.Open();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_TableSingleName}ExistByUsername\", connection))");
-            _TempText.AppendLine("            {");
-            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
-            _TempText.AppendLine();
-            _TempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
-            _TempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
-            _TempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
-            _TempText.AppendLine("command.Parameters.Add(returnParameter);");
-            _TempText.AppendLine();
+            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_tableSingleName}ExistByUsername\", connection))");
+            _tempText.AppendLine("            {");
+            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
+            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", username);");
+            _tempText.AppendLine();
+            _tempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
+            _tempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
+            _tempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
+            _tempText.AppendLine("command.Parameters.Add(returnParameter);");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("command.ExecuteNonQuery();");
-            _TempText.AppendLine();
-            _TempText.AppendLine("IsFound = (int)returnParameter.Value == 1;");
-            _TempText.AppendLine("            }");
-            _TempText.AppendLine("        }");
-            _TempText.AppendLine("    }");
-            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
-            _TempText.AppendLine();
-            _TempText.AppendLine("    return IsFound;");
-            _TempText.AppendLine("}");
+            _tempText.AppendLine("command.ExecuteNonQuery();");
+            _tempText.AppendLine();
+            _tempText.AppendLine("isFound = (int)returnParameter.Value == 1;");
+            _tempText.AppendLine("            }");
+            _tempText.AppendLine("        }");
+            _tempText.AppendLine("    }");
+            _tempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _tempText.AppendLine();
+            _tempText.AppendLine("    return isFound;");
+            _tempText.AppendLine("}");
         }
 
         private void _CreateDoesExistMethodForUsernameAndPassword()
         {
-            _TempText.AppendLine();
-            _TempText.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username, string Password)");
-            _TempText.AppendLine("{");
-            _TempText.AppendLine("    bool IsFound = false;");
-            _TempText.AppendLine();
+            _tempText.AppendLine();
+            _tempText.AppendLine($"public static bool Does{_tableSingleName}Exist(string username, string password)");
+            _tempText.AppendLine("{");
+            _tempText.AppendLine("    bool isFound = false;");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("    try");
-            _TempText.AppendLine("    {");
-            _TempText.AppendLine($"        using ({_GetConnectionString()})");
-            _TempText.AppendLine("        {");
-            _TempText.AppendLine("            connection.Open();");
-            _TempText.AppendLine();
+            _tempText.AppendLine("    try");
+            _tempText.AppendLine("    {");
+            _tempText.AppendLine($"        using ({_GetConnectionString()})");
+            _tempText.AppendLine("        {");
+            _tempText.AppendLine("            connection.Open();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_TableSingleName}ExistByUsernameAndPassword\", connection))");
-            _TempText.AppendLine("            {");
-            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", Username);");
-            _TempText.AppendLine($"                command.Parameters.AddWithValue(\"@Password\", Password);");
-            _TempText.AppendLine();
-            _TempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
-            _TempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
-            _TempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
-            _TempText.AppendLine("command.Parameters.Add(returnParameter);");
-            _TempText.AppendLine();
+            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_tableSingleName}ExistByUsernameAndPassword\", connection))");
+            _tempText.AppendLine("            {");
+            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
+            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", username);");
+            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@Password\", password);");
+            _tempText.AppendLine();
+            _tempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
+            _tempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
+            _tempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
+            _tempText.AppendLine("command.Parameters.Add(returnParameter);");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("command.ExecuteNonQuery();");
-            _TempText.AppendLine();
-            _TempText.AppendLine("IsFound = (int)returnParameter.Value == 1;");
-            _TempText.AppendLine("            }");
-            _TempText.AppendLine("        }");
-            _TempText.AppendLine("    }");
-            _TempText.AppendLine(_CreateCatchBlockWithIsFound());
-            _TempText.AppendLine();
-            _TempText.AppendLine("    return IsFound;");
-            _TempText.AppendLine("}");
+            _tempText.AppendLine("command.ExecuteNonQuery();");
+            _tempText.AppendLine();
+            _tempText.AppendLine("isFound = (int)returnParameter.Value == 1;");
+            _tempText.AppendLine("            }");
+            _tempText.AppendLine("        }");
+            _tempText.AppendLine("    }");
+            _tempText.AppendLine(_CreateCatchBlockWithIsFound());
+            _tempText.AppendLine();
+            _tempText.AppendLine("    return isFound;");
+            _tempText.AppendLine("}");
         }
 
         private void _CreateGetAllMethod()
         {
-            _TempText.AppendLine();
-            _TempText.AppendLine($"public static DataTable GetAll{_TableName}()");
-            _TempText.AppendLine("{");
-            _TempText.AppendLine("    DataTable dt = new DataTable();");
-            _TempText.AppendLine();
+            _tempText.AppendLine();
+            _tempText.AppendLine($"public static DataTable GetAll{_tableName}()");
+            _tempText.AppendLine("{");
+            _tempText.AppendLine("    DataTable dt = new DataTable();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine("    try");
-            _TempText.AppendLine("    {");
-            _TempText.AppendLine($"        using ({_GetConnectionString()})");
-            _TempText.AppendLine("        {");
-            _TempText.AppendLine("            connection.Open();");
-            _TempText.AppendLine();
+            _tempText.AppendLine("    try");
+            _tempText.AppendLine("    {");
+            _tempText.AppendLine($"        using ({_GetConnectionString()})");
+            _tempText.AppendLine("        {");
+            _tempText.AppendLine("            connection.Open();");
+            _tempText.AppendLine();
 
-            _TempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_GetAll{_TableName}\", connection))");
-            _TempText.AppendLine("            {");
-            _TempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _TempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
-            _TempText.AppendLine("                {");
-            _TempText.AppendLine("                    if (reader.HasRows)");
-            _TempText.AppendLine("                    {");
-            _TempText.AppendLine("                        dt.Load(reader);");
-            _TempText.AppendLine("                    }");
-            _TempText.AppendLine("                }");
-            _TempText.AppendLine("            }");
-            _TempText.AppendLine("        }");
-            _TempText.AppendLine("    }");
-            _TempText.AppendLine(_CreateCatchBlockWithoutIsFound());
-            _TempText.AppendLine();
-            _TempText.AppendLine("    return dt;");
-            _TempText.AppendLine("}");
+            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_GetAll{_tableName}\", connection))");
+            _tempText.AppendLine("            {");
+            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
+            _tempText.AppendLine("                using (SqlDataReader reader = command.ExecuteReader())");
+            _tempText.AppendLine("                {");
+            _tempText.AppendLine("                    if (reader.HasRows)");
+            _tempText.AppendLine("                    {");
+            _tempText.AppendLine("                        dt.Load(reader);");
+            _tempText.AppendLine("                    }");
+            _tempText.AppendLine("                }");
+            _tempText.AppendLine("            }");
+            _tempText.AppendLine("        }");
+            _tempText.AppendLine("    }");
+            _tempText.AppendLine(_CreateCatchBlockWithoutIsFound());
+            _tempText.AppendLine();
+            _tempText.AppendLine("    return dt;");
+            _tempText.AppendLine("}");
         }
 
         private void _CreateDataAccessSettingsClass()
         {
-            _TempText.Clear();
+            _tempText.Clear();
 
-            _TempText.Append($"using System.Configuration;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{\r\n    static class clsDataAccessSettings\r\n    {{\r\n        public static string ConnectionString = ConfigurationManager.ConnectionStrings[\"ConnectionString\"].ConnectionString;\r\n    }}\r\n}}");
+            _tempText.Append($"using System.Configuration;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{\r\n    static class clsDataAccessSettings\r\n    {{\r\n        public static string ConnectionString = ConfigurationManager.ConnectionStrings[\"ConnectionString\"].ConnectionString;\r\n    }}\r\n}}");
 
             StringBuilder Path = new StringBuilder();
 
             Path.Append(txtDataAccessPath.Text.Trim() + "clsDataAccessSettings.cs");
 
-            if (_IsAdvancedMode)
+            if (_isAdvancedMode)
             {
                 using (StreamWriter writer = new StreamWriter(Path.ToString()))
                 {
-                    writer.Write(_TempText.ToString());
+                    writer.Write(_tempText.ToString());
                 }
             }
         }
 
         private void _CreateLogErrorsClass()
         {
-            _TempText.Clear();
+            _tempText.Clear();
 
-            _TempText.Append($"using System;\r\nusing System.Diagnostics;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{\r\n    public static class clsLogError\r\n    {{\r\n        public static void LogError(string errorType, Exception ex)\r\n        {{\r\n            // Specify the source name for the event log\r\n            string sourceName = \"{comboDatabaseName.Text}\";\r\n\r\n            // Create the event source if it does not exist\r\n            if (!EventLog.SourceExists(sourceName))\r\n            {{\r\n                EventLog.CreateEventSource(sourceName, \"Application\");\r\n            }}\r\n\r\n            string errorMessage = $\"{{errorType}} in {{ex.Source}}\\n\\nException Message:\" +\r\n                    $\" {{ex.Message}}\\n\\nException Type: {{ex.GetType().Name}}\\n\\nStack Trace:\" +\r\n                    $\" {{ex.StackTrace}}\\n\\nException Location: {{ex.TargetSite}}\";\r\n\r\n            // Log an error event\r\n            EventLog.WriteEntry(sourceName, errorMessage, EventLogEntryType.Error);\r\n        }}\r\n    }}\r\n}}");
+            _tempText.Append($"using System;\r\nusing System.Diagnostics;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{\r\n    public static class clsLogError\r\n    {{\r\n        public static void LogError(string errorType, Exception ex)\r\n        {{\r\n            // Specify the source name for the event log\r\n            string sourceName = \"{comboDatabaseName.Text}\";\r\n\r\n            // Create the event source if it does not exist\r\n            if (!EventLog.SourceExists(sourceName))\r\n            {{\r\n                EventLog.CreateEventSource(sourceName, \"Application\");\r\n            }}\r\n\r\n            string errorMessage = $\"{{errorType}} in {{ex.Source}}\\n\\nException Message:\" +\r\n                    $\" {{ex.Message}}\\n\\nException Type: {{ex.GetType().Name}}\\n\\nStack Trace:\" +\r\n                    $\" {{ex.StackTrace}}\\n\\nException Location: {{ex.TargetSite}}\";\r\n\r\n            // Log an error event\r\n            EventLog.WriteEntry(sourceName, errorMessage, EventLogEntryType.Error);\r\n        }}\r\n    }}\r\n}}");
 
             StringBuilder Path = new StringBuilder();
 
             Path.Append(txtDataAccessPath.Text.Trim() + "clsLogError.cs");
 
-            if (_IsAdvancedMode)
+            if (_isAdvancedMode)
             {
                 using (StreamWriter writer = new StreamWriter(Path.ToString()))
                 {
-                    writer.Write(_TempText.ToString());
+                    writer.Write(_tempText.ToString());
                 }
             }
         }
@@ -1156,7 +1156,7 @@ namespace Code_Generator
         {
             StringBuilder Constructor = new StringBuilder();
 
-            Constructor.AppendLine($"public cls{_TableSingleName}()");
+            Constructor.AppendLine($"public cls{_tableSingleName}()");
             Constructor.AppendLine("{");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
@@ -1171,13 +1171,13 @@ namespace Code_Generator
 
                     if (i == 0)
                     {
-                        Constructor.AppendLine($"    this.{ColumnName} = null;");
+                        Constructor.AppendLine($"    {ColumnName} = null;");
                     }
                     else
                     {
                         if (IsNullable.ToUpper() == "YES")
                         {
-                            Constructor.AppendLine($"    this.{ColumnName} = null;");
+                            Constructor.AppendLine($"    {ColumnName} = null;");
                         }
                         else
                         {
@@ -1185,46 +1185,46 @@ namespace Code_Generator
                             {
                                 case "int":
                                 case "bigint":
-                                    Constructor.AppendLine($"    this.{ColumnName} = -1;");
+                                    Constructor.AppendLine($"    {ColumnName} = -1;");
                                     break;
 
                                 case "float":
-                                    Constructor.AppendLine($"    this.{ColumnName} = -1F;");
+                                    Constructor.AppendLine($"    {ColumnName} = -1F;");
                                     break;
 
                                 case "decimal":
                                 case "money":
                                 case "smallmoney":
-                                    Constructor.AppendLine($"    this.{ColumnName} = -1M;");
+                                    Constructor.AppendLine($"    {ColumnName} = -1M;");
                                     break;
 
                                 case "tinyint":
-                                    Constructor.AppendLine($"    this.{ColumnName} = 0;");
+                                    Constructor.AppendLine($"    {ColumnName} = 0;");
                                     break;
 
                                 case "smallint":
-                                    Constructor.AppendLine($"    this.{ColumnName} = -1;");
+                                    Constructor.AppendLine($"    {ColumnName} = -1;");
                                     break;
 
                                 case "nvarchar":
                                 case "varchar":
                                 case "char":
-                                    Constructor.AppendLine($"    this.{ColumnName} = string.Empty;");
+                                    Constructor.AppendLine($"    {ColumnName} = string.Empty;");
                                     break;
 
                                 case "datetime":
                                 case "date":
                                 case "smalldatetime":
                                 case "datetime2":
-                                    Constructor.AppendLine($"    this.{ColumnName} = DateTime.Now;");
+                                    Constructor.AppendLine($"    {ColumnName} = DateTime.Now;");
                                     break;
 
                                 case "time":
-                                    Constructor.AppendLine($"    this.{ColumnName} = DateTime.Now.TimeOfDay;");
+                                    Constructor.AppendLine($"    {ColumnName} = DateTime.Now.TimeOfDay;");
                                     break;
 
                                 case "bit":
-                                    Constructor.AppendLine($"    this.{ColumnName} = false;");
+                                    Constructor.AppendLine($"    {ColumnName} = false;");
                                     break;
                             }
                         }
@@ -1243,7 +1243,7 @@ namespace Code_Generator
         {
             StringBuilder Constructor = new StringBuilder();
 
-            Constructor.AppendLine($"private cls{_TableSingleName}{_MakeParametersForUpdateMethod()}");
+            Constructor.AppendLine($"private cls{_tableSingleName}{_MakeParametersForUpdateMethod()}");
             Constructor.AppendLine("{");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
@@ -1256,7 +1256,7 @@ namespace Code_Generator
                     string DataType = firstItem.SubItems[1].Text;
                     string IsNullable = firstItem.SubItems[2].Text;
 
-                    Constructor.AppendLine($"    this.{ColumnName} = {ColumnName};");
+                    Constructor.AppendLine($"    {ColumnName} = {ColumnName.ToCamelCase()};");
                 }
             }
 
@@ -1269,40 +1269,40 @@ namespace Code_Generator
 
         private string _MakeParametersForAddNewMethodInBusinessLayer()
         {
-            StringBuilder Parameters = new StringBuilder("(");
+            StringBuilder parameters = new StringBuilder("(");
 
             for (int i = 1; i < listviewColumnsInfo.Items.Count; i++)
             {
-                ListViewItem SecondRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+                ListViewItem secondRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
 
-                if (SecondRow.SubItems.Count > 0)
+                if (secondRow.SubItems.Count > 0)
                 {
-                    string ColumnName = SecondRow.SubItems[0].Text;
+                    string ColumnName = secondRow.SubItems[0].Text;
 
-                    Parameters.Append($"this.{ColumnName}, ");
+                    parameters.Append($"{ColumnName}, ");
                 }
             }
 
             // To remove the ", " from the end of the text
-            if (Parameters.Length >= 2)
+            if (parameters.Length >= 2)
             {
-                Parameters.Remove(Parameters.Length - 2, 2);
+                parameters.Remove(parameters.Length - 2, 2);
             }
 
-            Parameters.Append(");");
+            parameters.Append(");");
 
-            return Parameters.ToString().Trim();
+            return parameters.ToString().Trim();
         }
 
         private string _GetAddNewInBusinessLayer()
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"private bool _AddNew{_TableSingleName}()");
+            Text.AppendLine($"private bool _AddNew{_tableSingleName}()");
             Text.AppendLine("{");
-            Text.AppendLine($"    this.{_TableSingleName}ID = cls{_TableSingleName}Data.AddNew{_TableSingleName}{_MakeParametersForAddNewMethodInBusinessLayer()}");
+            Text.AppendLine($"    {_tableSingleName}ID = cls{_tableSingleName}Data.AddNew{_tableSingleName}{_MakeParametersForAddNewMethodInBusinessLayer()}");
             Text.AppendLine();
-            Text.AppendLine($"    return (this.{_TableSingleName}ID.HasValue);");
+            Text.AppendLine($"    return ({_tableSingleName}ID.HasValue);");
             Text.AppendLine("}");
 
             return Text.ToString().Trim();
@@ -1310,33 +1310,33 @@ namespace Code_Generator
 
         private string _MakeParametersForUpdateMethodInBusinessLayer()
         {
-            StringBuilder Parameters = new StringBuilder("(");
+            StringBuilder parameters = new StringBuilder("(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
-                ListViewItem FirstRow = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
+                ListViewItem firstRow = listviewColumnsInfo.Items[i]; // Access the first row (index 0)
 
-                if (FirstRow.SubItems.Count > 0)
+                if (firstRow.SubItems.Count > 0)
                 {
-                    string ColumnName = FirstRow.SubItems[0].Text;
-                    Parameters.Append($"this.{ColumnName}, ");
+                    string columnName = firstRow.SubItems[0].Text;
+                    parameters.Append($"{columnName}, ");
                 }
             }
 
             // To remove the ", " from the end of the text
-            Parameters.Remove(Parameters.Length - 2, 2);
-            Parameters.Append(");");
+            parameters.Remove(parameters.Length - 2, 2);
+            parameters.Append(");");
 
-            return Parameters.ToString().Trim();
+            return parameters.ToString().Trim();
         }
 
         private string _GetUpdateInBusinessLayer()
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"private bool _Update{_TableSingleName}()");
+            Text.AppendLine($"private bool _Update{_tableSingleName}()");
             Text.AppendLine("{");
-            Text.AppendLine($"return cls{_TableSingleName}Data.Update{_TableSingleName}{_MakeParametersForUpdateMethodInBusinessLayer()}");
+            Text.AppendLine($"return cls{_tableSingleName}Data.Update{_tableSingleName}{_MakeParametersForUpdateMethodInBusinessLayer()}");
             Text.AppendLine("}");
 
             return Text.ToString().Trim();
@@ -1351,7 +1351,7 @@ namespace Code_Generator
             Text.AppendLine("switch (Mode)");
             Text.AppendLine("{");
             Text.AppendLine("case enMode.AddNew:");
-            Text.AppendLine($"if (_AddNew{_TableSingleName}())");
+            Text.AppendLine($"if (_AddNew{_tableSingleName}())");
             Text.AppendLine("{");
             Text.AppendLine("Mode = enMode.Update;");
             Text.AppendLine("return true;");
@@ -1362,7 +1362,7 @@ namespace Code_Generator
             Text.AppendLine("}");
             Text.AppendLine();
             Text.AppendLine("case enMode.Update:");
-            Text.AppendLine($"return _Update{_TableSingleName}();");
+            Text.AppendLine($"return _Update{_tableSingleName}();");
             Text.AppendLine("}");
             Text.AppendLine();
             Text.AppendLine("return false;");
@@ -1381,7 +1381,7 @@ namespace Code_Generator
 
                 if (SecondRow.SubItems.Count > 0)
                 {
-                    string ColumnName = SecondRow.SubItems[0].Text;
+                    string ColumnName = SecondRow.SubItems[0].Text?.ToCamelCase();
                     string DataType = SecondRow.SubItems[1].Text;
                     string IsNullable = SecondRow.SubItems[2].Text;
 
@@ -1466,7 +1466,7 @@ namespace Code_Generator
 
                 if (firstItem.SubItems.Count > 0)
                 {
-                    string ColumnName = firstItem.SubItems[0].Text;
+                    string ColumnName = firstItem.SubItems[0].Text?.ToCamelCase();
 
                     if (i == 0)
                     {
@@ -1488,9 +1488,9 @@ namespace Code_Generator
 
         private string _MakeReturnParametersForFindMethodInBusinessLayer()
         {
-            StringBuilder Parameters = new StringBuilder();
+            StringBuilder parameters = new StringBuilder();
 
-            Parameters.Append($"(new cls{_TableSingleName}(");
+            parameters.Append($"(new cls{_tableSingleName}(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
@@ -1498,32 +1498,32 @@ namespace Code_Generator
 
                 if (firstItem.SubItems.Count > 0)
                 {
-                    string ColumnName = firstItem.SubItems[0].Text;
+                    string columnName = firstItem.SubItems[0].Text?.ToCamelCase();
 
-                    Parameters.Append($"{ColumnName}, ");
+                    parameters.Append($"{columnName}, ");
                 }
             }
 
             // To remove the ", " from the end of the text
-            Parameters.Remove(Parameters.Length - 2, 2);
-            Parameters.AppendLine("))").AppendLine();
+            parameters.Remove(parameters.Length - 2, 2);
+            parameters.AppendLine("))").AppendLine();
 
-            return Parameters.ToString().Trim();
+            return parameters.ToString().Trim();
         }
 
         private string _GetFindMethodInBusinessLayer()
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static cls{_TableSingleName} Find{_MakeParametersForDeleteMethod()}");
+            Text.AppendLine($"public static cls{_tableSingleName} Find{_MakeParametersForDeleteMethod()}");
             Text.AppendLine("{");
             Text.AppendLine(_MakeInitialParametersForFindMethodInBusinessLayer());
             Text.AppendLine();
 
-            Text.AppendLine($"bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByID{_MakeParametersForFindMethodInBusinessLayer()}");
+            Text.AppendLine($"bool isFound = cls{_tableSingleName}Data.Get{_tableSingleName}InfoByID{_MakeParametersForFindMethodInBusinessLayer()}");
             Text.AppendLine();
 
-            Text.Append("return (IsFound) ? ")
+            Text.Append("return (isFound) ? ")
                 .Append(_MakeReturnParametersForFindMethodInBusinessLayer())
                 .AppendLine(" : null;")
                 .AppendLine("}");
@@ -1533,35 +1533,35 @@ namespace Code_Generator
 
         private string _GetDeleteMethodInBusinessLayer()
         {
-            StringBuilder Text = new StringBuilder();
+            StringBuilder text = new StringBuilder();
 
-            Text.AppendLine($"public static bool Delete{_TableSingleName}{_MakeParametersForDeleteMethod()}");
-            Text.AppendLine("{");
-            Text.AppendLine($"return cls{_TableSingleName}Data.Delete{_TableSingleName}({_TableSingleName}ID);");
-            Text.AppendLine("}");
+            text.AppendLine($"public static bool Delete{_tableSingleName}{_MakeParametersForDeleteMethod()}");
+            text.AppendLine("{");
+            text.AppendLine($"return cls{_tableSingleName}Data.Delete{_tableSingleName}({_tableSingleName?.ToCamelCase()}ID);");
+            text.AppendLine("}");
 
-            return Text.ToString().Trim();
+            return text.ToString().Trim();
         }
 
         private string _GetDoesExistMethodInBusinessLayer()
         {
-            StringBuilder Text = new StringBuilder();
+            StringBuilder text = new StringBuilder();
 
-            Text.AppendLine($"public static bool Does{_TableSingleName}Exist{_MakeParametersForDeleteMethod()}");
-            Text.AppendLine("{");
-            Text.AppendLine($"return cls{_TableSingleName}Data.Does{_TableSingleName}Exist({_TableSingleName}ID);");
-            Text.AppendLine("}");
+            text.AppendLine($"public static bool Does{_tableSingleName}Exist{_MakeParametersForDeleteMethod()}");
+            text.AppendLine("{");
+            text.AppendLine($"return cls{_tableSingleName}Data.Does{_tableSingleName}Exist({_tableSingleName?.ToCamelCase()}ID);");
+            text.AppendLine("}");
 
-            return Text.ToString().Trim();
+            return text.ToString().Trim();
         }
 
         private string _GetAllMethodInBusinessLayer()
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static DataTable GetAll{_TableName}()");
+            Text.AppendLine($"public static DataTable GetAll{_tableName}()");
             Text.AppendLine("{");
-            Text.AppendLine($"return cls{_TableSingleName}Data.GetAll{_TableName}();");
+            Text.AppendLine($"return cls{_tableSingleName}Data.GetAll{_tableName}();");
             Text.AppendLine("}");
 
             return Text.ToString().Trim();
@@ -1569,83 +1569,83 @@ namespace Code_Generator
 
         private string _MakeInitialParametersForFindUsernameMethodInBusinessLayer()
         {
-            StringBuilder Variable = new StringBuilder();
+            StringBuilder variable = new StringBuilder();
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
-                ListViewItem FirstRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+                ListViewItem firstRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
 
-                if (FirstRow.SubItems.Count > 0)
+                if (firstRow.SubItems.Count > 0)
                 {
-                    string ColumnName = FirstRow.SubItems[0].Text;
-                    string DataType = FirstRow.SubItems[1].Text;
-                    string IsNullable = FirstRow.SubItems[2].Text;
+                    string columnName = firstRow.SubItems[0].Text?.ToCamelCase();
+                    string dataType = firstRow.SubItems[1].Text;
+                    string isNullable = firstRow.SubItems[2].Text;
 
-                    if (ColumnName.ToLower() != "username")
+                    if (columnName.ToLower() != "username")
                     {
                         if (i == 0)
                         {
-                            Variable.Append(_GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;").AppendLine();
+                            variable.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + " = null;").AppendLine();
                             continue;
                         }
 
-                        if (IsNullable.ToUpper() == "YES")
+                        if (isNullable.ToUpper() == "YES")
                         {
-                            if (!_IsDataTypeString(DataType))
+                            if (!_IsDataTypeString(dataType))
                             {
-                                Variable.Append(_GetDataTypeCSharp(DataType) + "? " + ColumnName + " = null;").AppendLine();
+                                variable.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + " = null;").AppendLine();
                             }
                             else
                             {
-                                Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = null;").AppendLine();
+                                variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = null;").AppendLine();
                             }
                         }
                         else
                         {
-                            switch (DataType.ToLower())
+                            switch (dataType.ToLower())
                             {
                                 case "int":
                                 case "bigint":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;").AppendLine();
+                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = -1;").AppendLine();
                                     break;
 
                                 case "float":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1F;").AppendLine();
+                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = -1F;").AppendLine();
                                     break;
 
                                 case "decimal":
                                 case "money":
                                 case "smallmoney":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1M;").AppendLine();
+                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = -1M;").AppendLine();
                                     break;
 
                                 case "tinyint":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = 0;").AppendLine();
+                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = 0;").AppendLine();
                                     break;
 
                                 case "smallint":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = -1;").AppendLine();
+                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = -1;").AppendLine();
                                     break;
 
                                 case "nvarchar":
                                 case "varchar":
                                 case "char":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = string.Empty;").AppendLine();
+                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = string.Empty;").AppendLine();
                                     break;
 
                                 case "datetime":
                                 case "date":
                                 case "smalldatetime":
                                 case "datetime2":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now;").AppendLine();
+                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = DateTime.Now;").AppendLine();
                                     break;
 
                                 case "time":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = DateTime.Now.TimeOfDay;").AppendLine();
+                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = DateTime.Now.TimeOfDay;").AppendLine();
                                     break;
 
                                 case "bit":
-                                    Variable.Append(_GetDataTypeCSharp(DataType) + " " + ColumnName + " = false;").AppendLine();
+                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = false;").AppendLine();
                                     break;
                             }
                         }
@@ -1653,12 +1653,12 @@ namespace Code_Generator
                 }
             }
 
-            return Variable.ToString().Trim();
+            return variable.ToString().Trim();
         }
 
         private string _MakeParametersForFindUsernameMethodInBusinessLayer()
         {
-            StringBuilder Parameters = new StringBuilder("(");
+            StringBuilder parameters = new StringBuilder("(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
@@ -1666,36 +1666,36 @@ namespace Code_Generator
 
                 if (firstItem.SubItems.Count > 0)
                 {
-                    string ColumnName = firstItem.SubItems[0].Text;
+                    string columnName = firstItem.SubItems[0].Text?.ToCamelCase();
 
-                    if (ColumnName.ToLower() == "username")
+                    if (columnName.ToLower() == "username")
                     {
-                        Parameters.Append(ColumnName + ", ");
+                        parameters.Append(columnName + ", ");
                     }
                     else
                     {
-                        Parameters.Append("ref " + ColumnName + ", ");
+                        parameters.Append("ref " + columnName + ", ");
                     }
                 }
             }
 
             // To remove the ", " from the end of the text
-            Parameters.Remove(Parameters.Length - 2, 2);
-            Parameters.Append(");").AppendLine();
+            parameters.Remove(parameters.Length - 2, 2);
+            parameters.Append(");").AppendLine();
 
-            return Parameters.ToString().Trim();
+            return parameters.ToString().Trim();
         }
 
         private string _GetFindUsernameMethodInBusinessLayer()
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static cls{_TableSingleName} Find(string Username)")
+            Text.AppendLine($"public static cls{_tableSingleName} Find(string username)")
                 .AppendLine("{")
                 .AppendLine(_MakeInitialParametersForFindUsernameMethodInBusinessLayer()).AppendLine()
-                .AppendLine($"    bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsername{_MakeParametersForFindUsernameMethodInBusinessLayer()}").AppendLine();
+                .AppendLine($"    bool isFound = cls{_tableSingleName}Data.Get{_tableSingleName}InfoByUsername{_MakeParametersForFindUsernameMethodInBusinessLayer()}").AppendLine();
 
-            Text.Append("return (IsFound) ? ")
+            Text.Append("return (isFound) ? ")
                 .Append(_MakeReturnParametersForFindMethodInBusinessLayer())
                 .AppendLine(" : null;")
                 .AppendLine("}");
@@ -1705,83 +1705,83 @@ namespace Code_Generator
 
         private string _MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer()
         {
-            StringBuilder Variable = new StringBuilder();
+            StringBuilder variable = new StringBuilder();
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
-                ListViewItem FirstRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
+                ListViewItem firstRow = listviewColumnsInfo.Items[i]; // Access the second row (index 0)
 
-                if (FirstRow.SubItems.Count > 0)
+                if (firstRow.SubItems.Count > 0)
                 {
-                    string ColumnName = FirstRow.SubItems[0].Text;
-                    string DataType = FirstRow.SubItems[1].Text;
-                    string IsNullable = FirstRow.SubItems[2].Text;
+                    string columnName = firstRow.SubItems[0].Text?.ToCamelCase();
+                    string dataType = firstRow.SubItems[1].Text;
+                    string isNullable = firstRow.SubItems[2].Text;
 
-                    if (ColumnName.ToLower() != "username" && ColumnName.ToLower() != "password")
+                    if (columnName.ToLower() != "username" && columnName.ToLower() != "password")
                     {
                         if (i == 0)
                         {
-                            Variable.AppendLine($"{_GetDataTypeCSharp(DataType)}? {ColumnName} = null;");
+                            variable.AppendLine($"{_GetDataTypeCSharp(dataType)}? {columnName} = null;");
                             continue;
                         }
 
-                        if (IsNullable.ToUpper() == "YES")
+                        if (isNullable.ToUpper() == "YES")
                         {
-                            if (!_IsDataTypeString(DataType))
+                            if (!_IsDataTypeString(dataType))
                             {
-                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)}? {ColumnName} = null;");
+                                variable.AppendLine($"{_GetDataTypeCSharp(dataType)}? {columnName} = null;");
                             }
                             else
                             {
-                                Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = null;");
+                                variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = null;");
                             }
                         }
                         else
                         {
-                            switch (DataType.ToLower())
+                            switch (dataType.ToLower())
                             {
                                 case "int":
                                 case "bigint":
-                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1;");
+                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1;");
                                     break;
 
                                 case "float":
-                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1F;");
+                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1F;");
                                     break;
 
                                 case "decimal":
                                 case "money":
                                 case "smallmoney":
-                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1M;");
+                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1M;");
                                     break;
 
                                 case "tinyint":
-                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = 0;");
+                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = 0;");
                                     break;
 
                                 case "smallint":
-                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = -1;");
+                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1;");
                                     break;
 
                                 case "nvarchar":
                                 case "varchar":
                                 case "char":
-                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = string.Empty;");
+                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = string.Empty;");
                                     break;
 
                                 case "datetime":
                                 case "date":
                                 case "smalldatetime":
                                 case "datetime2":
-                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = DateTime.Now;");
+                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = DateTime.Now;");
                                     break;
 
                                 case "time":
-                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = DateTime.Now.TimeOfDay;");
+                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = DateTime.Now.TimeOfDay;");
                                     break;
 
                                 case "bit":
-                                    Variable.AppendLine($"{_GetDataTypeCSharp(DataType)} {ColumnName} = false;");
+                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = false;");
                                     break;
                             }
                         }
@@ -1789,12 +1789,12 @@ namespace Code_Generator
                 }
             }
 
-            return Variable.ToString().Trim();
+            return variable.ToString().Trim();
         }
 
         private string _MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()
         {
-            StringBuilder Parameters = new StringBuilder("(");
+            StringBuilder parameters = new StringBuilder("(");
 
             for (int i = 0; i < listviewColumnsInfo.Items.Count; i++)
             {
@@ -1802,37 +1802,37 @@ namespace Code_Generator
 
                 if (firstItem.SubItems.Count > 0)
                 {
-                    string ColumnName = firstItem.SubItems[0].Text;
+                    string columnName = firstItem.SubItems[0].Text?.ToCamelCase();
 
-                    if (ColumnName.ToLower() == "username" || ColumnName.ToLower() == "password")
+                    if (columnName.ToLower() == "username" || columnName.ToLower() == "password")
                     {
-                        Parameters.Append($"{ColumnName}, ");
+                        parameters.Append($"{columnName}, ");
                     }
                     else
                     {
-                        Parameters.Append($"ref {ColumnName}, ");
+                        parameters.Append($"ref {columnName}, ");
                     }
                 }
             }
 
             // To remove the ", " from the end of the text
-            Parameters.Remove(Parameters.Length - 2, 2);
-            Parameters.AppendLine(");");
+            parameters.Remove(parameters.Length - 2, 2);
+            parameters.AppendLine(");");
 
-            return Parameters.ToString().Trim();
+            return parameters.ToString().Trim();
         }
 
         private string _GetFindUsernameAndPasswordMethodInBusinessLayer()
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static cls{_TableSingleName} Find(string Username, string Password)")
+            Text.AppendLine($"public static cls{_tableSingleName} Find(string username, string password)")
                 .AppendLine("{")
                 .AppendLine(_MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer());
 
-            Text.AppendLine($"    bool IsFound = cls{_TableSingleName}Data.Get{_TableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()}").AppendLine();
+            Text.AppendLine($"    bool isFound = cls{_tableSingleName}Data.Get{_tableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()}").AppendLine();
 
-            Text.Append("return (IsFound) ? ")
+            Text.Append("return (isFound) ? ")
                 .Append(_MakeReturnParametersForFindMethodInBusinessLayer())
                 .AppendLine(" : null;")
                 .AppendLine("}");
@@ -1844,9 +1844,9 @@ namespace Code_Generator
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username)")
+            Text.AppendLine($"public static bool Does{_tableSingleName}Exist(string username)")
                 .AppendLine("{")
-                .AppendLine($"    return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username);")
+                .AppendLine($"    return cls{_tableSingleName}Data.Does{_tableSingleName}Exist(username);")
                 .AppendLine("}");
 
             return Text.ToString().Trim();
@@ -1856,9 +1856,9 @@ namespace Code_Generator
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static bool Does{_TableSingleName}Exist(string Username, string Password)")
+            Text.AppendLine($"public static bool Does{_tableSingleName}Exist(string username, string password)")
                 .AppendLine("{")
-                .AppendLine($"    return cls{_TableSingleName}Data.Does{_TableSingleName}Exist(Username, Password);")
+                .AppendLine($"    return cls{_tableSingleName}Data.Does{_tableSingleName}Exist(username, password);")
                 .AppendLine("}");
 
             return Text.ToString().Trim();
@@ -1866,35 +1866,35 @@ namespace Code_Generator
 
         private void _CreateBusinessLayer()
         {
-            _TempText.AppendLine($"public class cls{_TableSingleName}");
-            _TempText.AppendLine("{");
-            _TempText.AppendLine("public enum enMode { AddNew = 0, Update = 1 };");
-            _TempText.AppendLine("public enMode Mode = enMode.AddNew;").AppendLine();
-            _TempText.AppendLine(_MakeParametersForBusinessLayer()).AppendLine();
-            _TempText.AppendLine(_GetPublicConstructor()).AppendLine();
-            _TempText.AppendLine(_GetPrivateConstructor()).AppendLine();
-            _TempText.AppendLine(_GetAddNewInBusinessLayer()).AppendLine();
-            _TempText.AppendLine(_GetUpdateInBusinessLayer()).AppendLine();
-            _TempText.AppendLine(_GetSaveMethod()).AppendLine();
-            _TempText.AppendLine(_GetFindMethodInBusinessLayer()).AppendLine();
+            _tempText.AppendLine($"public class cls{_tableSingleName}");
+            _tempText.AppendLine("{");
+            _tempText.AppendLine("public enum enMode { AddNew = 0, Update = 1 };");
+            _tempText.AppendLine("public enMode Mode = enMode.AddNew;").AppendLine();
+            _tempText.AppendLine(_MakeParametersForBusinessLayer()).AppendLine();
+            _tempText.AppendLine(_GetPublicConstructor()).AppendLine();
+            _tempText.AppendLine(_GetPrivateConstructor()).AppendLine();
+            _tempText.AppendLine(_GetAddNewInBusinessLayer()).AppendLine();
+            _tempText.AppendLine(_GetUpdateInBusinessLayer()).AppendLine();
+            _tempText.AppendLine(_GetSaveMethod()).AppendLine();
+            _tempText.AppendLine(_GetFindMethodInBusinessLayer()).AppendLine();
 
-            if (_IsLogin)
+            if (_isLogin)
             {
-                _TempText.AppendLine(_GetFindUsernameMethodInBusinessLayer()).AppendLine();
-                _TempText.AppendLine(_GetFindUsernameAndPasswordMethodInBusinessLayer()).AppendLine();
+                _tempText.AppendLine(_GetFindUsernameMethodInBusinessLayer()).AppendLine();
+                _tempText.AppendLine(_GetFindUsernameAndPasswordMethodInBusinessLayer()).AppendLine();
             }
 
-            _TempText.AppendLine(_GetDeleteMethodInBusinessLayer()).AppendLine();
-            _TempText.AppendLine(_GetDoesExistMethodInBusinessLayer()).AppendLine();
+            _tempText.AppendLine(_GetDeleteMethodInBusinessLayer()).AppendLine();
+            _tempText.AppendLine(_GetDoesExistMethodInBusinessLayer()).AppendLine();
 
-            if (_IsLogin)
+            if (_isLogin)
             {
-                _TempText.AppendLine(_GetDoesUsernameExistMethodInBusinessLayer()).AppendLine();
-                _TempText.AppendLine(_GetDoesUsernameAndPasswordExistMethodInBusinessLayer()).AppendLine();
+                _tempText.AppendLine(_GetDoesUsernameExistMethodInBusinessLayer()).AppendLine();
+                _tempText.AppendLine(_GetDoesUsernameAndPasswordExistMethodInBusinessLayer()).AppendLine();
             }
 
-            _TempText.AppendLine(_GetAllMethodInBusinessLayer()).AppendLine();
-            _TempText.AppendLine("}");
+            _tempText.AppendLine(_GetAllMethodInBusinessLayer()).AppendLine();
+            _tempText.AppendLine("}");
         }
 
         #endregion
@@ -1902,15 +1902,15 @@ namespace Code_Generator
         #region Stored Procedure
         private void _CreateGetInfoByID_SP()
         {
-            _TempText.AppendLine($"create procedure SP_Get{_TableSingleName}InfoByID");
-            _TempText.AppendLine($"@{_TableSingleName}ID int");
-            _TempText.AppendLine("as");
-            _TempText.AppendLine("begin");
-            _TempText.AppendLine($"select * from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID");
-            _TempText.AppendLine("end;");
+            _tempText.AppendLine($"create procedure SP_Get{_tableSingleName}InfoByID");
+            _tempText.AppendLine($"@{_tableSingleName}ID int");
+            _tempText.AppendLine("as");
+            _tempText.AppendLine("begin");
+            _tempText.AppendLine($"select * from {_tableName} where {_tableSingleName}ID = @{_tableSingleName}ID");
+            _tempText.AppendLine("end;");
 
-            if (!_IsAdvancedMode)
-                _TempText.AppendLine("go");
+            if (!_isAdvancedMode)
+                _tempText.AppendLine("go");
         }
 
         private string _GetLengthOfTheColumn(string Column)
@@ -1947,29 +1947,29 @@ namespace Code_Generator
 
         private void _CreateGetInfoByUsername_SP()
         {
-            _TempText.AppendLine($"create procedure SP_Get{_TableSingleName}InfoByUsername");
-            _TempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")}");
-            _TempText.AppendLine("as");
-            _TempText.AppendLine("begin");
-            _TempText.AppendLine($"select * from {_TableName} where Username = @Username");
-            _TempText.AppendLine("end;");
+            _tempText.AppendLine($"create procedure SP_Get{_tableSingleName}InfoByUsername");
+            _tempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")}");
+            _tempText.AppendLine("as");
+            _tempText.AppendLine("begin");
+            _tempText.AppendLine($"select * from {_tableName} where Username = @Username");
+            _tempText.AppendLine("end;");
 
-            if (!_IsAdvancedMode)
-                _TempText.AppendLine("go");
+            if (!_isAdvancedMode)
+                _tempText.AppendLine("go");
         }
 
         private void _CreateGetInfoByUsernameAndPassword_SP()
         {
-            _TempText.AppendLine($"create procedure SP_Get{_TableSingleName}InfoByUsernameAndPassword");
-            _TempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")},");
-            _TempText.AppendLine($"@Password {_GetLengthOfTheColumn("password")}");
-            _TempText.AppendLine("as");
-            _TempText.AppendLine("begin");
-            _TempText.AppendLine($"select * from {_TableName} where Username = @Username and Password = @Password");
-            _TempText.AppendLine("end;");
+            _tempText.AppendLine($"create procedure SP_Get{_tableSingleName}InfoByUsernameAndPassword");
+            _tempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")},");
+            _tempText.AppendLine($"@Password {_GetLengthOfTheColumn("password")}");
+            _tempText.AppendLine("as");
+            _tempText.AppendLine("begin");
+            _tempText.AppendLine($"select * from {_tableName} where Username = @Username and Password = @Password");
+            _tempText.AppendLine("end;");
 
-            if (!_IsAdvancedMode)
-                _TempText.AppendLine("go");
+            if (!_isAdvancedMode)
+                _tempText.AppendLine("go");
         }
 
         private string _GetParameters(byte StartIndex = 0)
@@ -1999,15 +1999,15 @@ namespace Code_Generator
         {
             StringBuilder query = new StringBuilder();
 
-            if (_IsLogin)
+            if (_isLogin)
             {
-                query.AppendLine($"if not Exists (select found = 1 from {_TableName} where Username = @Username)");
+                query.AppendLine($"if not Exists (select found = 1 from {_tableName} where Username = @Username)");
                 query.AppendLine("begin");
-                query.Append($"insert into {_TableName} (");
+                query.Append($"insert into {_tableName} (");
             }
             else
             {
-                query.Append($"insert into {_TableName} (");
+                query.Append($"insert into {_tableName} (");
             }
 
             // Print the header of the columns
@@ -2046,14 +2046,14 @@ namespace Code_Generator
 
             query.AppendLine(")");
 
-            if (_IsLogin)
+            if (_isLogin)
             {
-                query.AppendLine($"set @New{_TableSingleName}ID = scope_identity()");
+                query.AppendLine($"set @New{_tableSingleName}ID = scope_identity()");
                 query.Append("end");
             }
             else
             {
-                query.Append($"set @New{_TableSingleName}ID = scope_identity()");
+                query.Append($"set @New{_tableSingleName}ID = scope_identity()");
             }
 
             return query.ToString();
@@ -2061,23 +2061,23 @@ namespace Code_Generator
 
         private void _CreateAddNew_SP()
         {
-            _TempText.AppendLine($"create procedure SP_AddNew{_TableSingleName}");
-            _TempText.Append($"{_GetParameters(1)}");
-            _TempText.AppendLine($"@New{_TableSingleName}ID int output");
-            _TempText.AppendLine("as");
-            _TempText.AppendLine("begin");
-            _TempText.AppendLine($"{_GetQueryForAddNew()}");
-            _TempText.AppendLine("end;");
+            _tempText.AppendLine($"create procedure SP_AddNew{_tableSingleName}");
+            _tempText.Append($"{_GetParameters(1)}");
+            _tempText.AppendLine($"@New{_tableSingleName}ID int output");
+            _tempText.AppendLine("as");
+            _tempText.AppendLine("begin");
+            _tempText.AppendLine($"{_GetQueryForAddNew()}");
+            _tempText.AppendLine("end;");
 
-            if (!_IsAdvancedMode)
-                _TempText.AppendLine("go");
+            if (!_isAdvancedMode)
+                _tempText.AppendLine("go");
         }
 
         private string _GetQueryForUpdate()
         {
             StringBuilder query = new StringBuilder();
 
-            query.Append($"Update {_TableName}")
+            query.Append($"Update {_tableName}")
                  .AppendLine()
                  .Append("set ");
 
@@ -2099,139 +2099,139 @@ namespace Code_Generator
             query.Remove(query.Length - 3, 3);
 
             query.AppendLine()
-                 .Append($"where {_TableSingleName}ID = @{_TableSingleName}ID");
+                 .Append($"where {_tableSingleName}ID = @{_tableSingleName}ID");
 
             return query.ToString();
         }
 
         private void _CreateUpdate_SP()
         {
-            _TempText.AppendLine($"create procedure SP_Update{_TableSingleName}");
-            _TempText.AppendLine($"{_GetParameters()}");
-            _TempText.AppendLine("as");
-            _TempText.AppendLine("begin");
-            _TempText.AppendLine($"{_GetQueryForUpdate()}");
-            _TempText.AppendLine("end;");
+            _tempText.AppendLine($"create procedure SP_Update{_tableSingleName}");
+            _tempText.AppendLine($"{_GetParameters()}");
+            _tempText.AppendLine("as");
+            _tempText.AppendLine("begin");
+            _tempText.AppendLine($"{_GetQueryForUpdate()}");
+            _tempText.AppendLine("end;");
 
-            if (!_IsAdvancedMode)
-                _TempText.AppendLine("go");
+            if (!_isAdvancedMode)
+                _tempText.AppendLine("go");
         }
 
         private void _CreateDelete_SP()
         {
-            _TempText.AppendLine($"create procedure SP_Delete{_TableSingleName}");
-            _TempText.AppendLine($"@{_TableSingleName}ID int");
-            _TempText.AppendLine("as");
-            _TempText.AppendLine("begin");
-            _TempText.AppendLine($"delete {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID");
-            _TempText.AppendLine("end;");
+            _tempText.AppendLine($"create procedure SP_Delete{_tableSingleName}");
+            _tempText.AppendLine($"@{_tableSingleName}ID int");
+            _tempText.AppendLine("as");
+            _tempText.AppendLine("begin");
+            _tempText.AppendLine($"delete {_tableName} where {_tableSingleName}ID = @{_tableSingleName}ID");
+            _tempText.AppendLine("end;");
 
-            if (!_IsAdvancedMode)
-                _TempText.AppendLine("go");
+            if (!_isAdvancedMode)
+                _tempText.AppendLine("go");
         }
 
         private void _CreateDoesExist_SP()
         {
-            _TempText.AppendLine($"create procedure SP_Does{_TableSingleName}Exist");
-            _TempText.AppendLine($"@{_TableSingleName}ID int");
-            _TempText.AppendLine("as");
-            _TempText.AppendLine("begin");
-            _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where {_TableSingleName}ID = @{_TableSingleName}ID)");
-            _TempText.AppendLine("return 1");
-            _TempText.AppendLine("else");
-            _TempText.AppendLine("return 0");
-            _TempText.AppendLine("end;");
+            _tempText.AppendLine($"create procedure SP_Does{_tableSingleName}Exist");
+            _tempText.AppendLine($"@{_tableSingleName}ID int");
+            _tempText.AppendLine("as");
+            _tempText.AppendLine("begin");
+            _tempText.AppendLine($"if exists(select top 1 found = 1 from {_tableName} where {_tableSingleName}ID = @{_tableSingleName}ID)");
+            _tempText.AppendLine("return 1");
+            _tempText.AppendLine("else");
+            _tempText.AppendLine("return 0");
+            _tempText.AppendLine("end;");
 
-            if (!_IsAdvancedMode)
-                _TempText.AppendLine("go");
+            if (!_isAdvancedMode)
+                _tempText.AppendLine("go");
         }
 
         private void _CreateDoesExistForUsername_SP()
         {
-            _TempText.AppendLine($"create procedure SP_Does{_TableSingleName}ExistByUsername");
-            _TempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")}");
-            _TempText.AppendLine("as");
-            _TempText.AppendLine("begin");
-            _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where Username = @Username)");
-            _TempText.AppendLine("return 1");
-            _TempText.AppendLine("else");
-            _TempText.AppendLine("return 0");
-            _TempText.AppendLine("end;");
+            _tempText.AppendLine($"create procedure SP_Does{_tableSingleName}ExistByUsername");
+            _tempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")}");
+            _tempText.AppendLine("as");
+            _tempText.AppendLine("begin");
+            _tempText.AppendLine($"if exists(select top 1 found = 1 from {_tableName} where Username = @Username)");
+            _tempText.AppendLine("return 1");
+            _tempText.AppendLine("else");
+            _tempText.AppendLine("return 0");
+            _tempText.AppendLine("end;");
 
-            if (!_IsAdvancedMode)
-                _TempText.AppendLine("go");
+            if (!_isAdvancedMode)
+                _tempText.AppendLine("go");
         }
 
         private void _CreateDoesExistForUsernameAndPassword_SP()
         {
-            _TempText.AppendLine($"create procedure SP_Does{_TableSingleName}ExistByUsernameAndPassword");
-            _TempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")},");
-            _TempText.AppendLine($"@Password {_GetLengthOfTheColumn("password")}");
-            _TempText.AppendLine("as");
-            _TempText.AppendLine("begin");
-            _TempText.AppendLine($"if exists(select top 1 found = 1 from {_TableName} where Username = @Username and Password = @Password)");
-            _TempText.AppendLine("return 1");
-            _TempText.AppendLine("else");
-            _TempText.AppendLine("return 0");
-            _TempText.AppendLine("end;");
+            _tempText.AppendLine($"create procedure SP_Does{_tableSingleName}ExistByUsernameAndPassword");
+            _tempText.AppendLine($"@Username {_GetLengthOfTheColumn("username")},");
+            _tempText.AppendLine($"@Password {_GetLengthOfTheColumn("password")}");
+            _tempText.AppendLine("as");
+            _tempText.AppendLine("begin");
+            _tempText.AppendLine($"if exists(select top 1 found = 1 from {_tableName} where Username = @Username and Password = @Password)");
+            _tempText.AppendLine("return 1");
+            _tempText.AppendLine("else");
+            _tempText.AppendLine("return 0");
+            _tempText.AppendLine("end;");
 
-            if (!_IsAdvancedMode)
-                _TempText.AppendLine("go");
+            if (!_isAdvancedMode)
+                _tempText.AppendLine("go");
         }
 
         private void _CreateGetAll_SP()
         {
-            _TempText.AppendLine($"create procedure SP_GetAll{_TableName}");
-            _TempText.AppendLine("as");
-            _TempText.AppendLine("begin");
-            _TempText.AppendLine($"select * from {_TableName}");
-            _TempText.AppendLine("end;");
+            _tempText.AppendLine($"create procedure SP_GetAll{_tableName}");
+            _tempText.AppendLine("as");
+            _tempText.AppendLine("begin");
+            _tempText.AppendLine($"select * from {_tableName}");
+            _tempText.AppendLine("end;");
 
-            if (!_IsAdvancedMode)
-                _TempText.AppendLine("go");
+            if (!_isAdvancedMode)
+                _tempText.AppendLine("go");
         }
 
         private void _CreateStoredProcedures()
         {
             _CreateGetInfoByID_SP();
-            _TempText.AppendLine("------------------------")
+            _tempText.AppendLine("------------------------")
                      .AppendLine("------------------------");
 
-            if (_IsLogin)
+            if (_isLogin)
             {
                 _CreateGetInfoByUsername_SP();
-                _TempText.AppendLine("------------------------")
+                _tempText.AppendLine("------------------------")
                          .AppendLine("------------------------");
 
                 _CreateGetInfoByUsernameAndPassword_SP();
-                _TempText.AppendLine("------------------------")
+                _tempText.AppendLine("------------------------")
                          .AppendLine("------------------------");
             }
 
             _CreateAddNew_SP();
-            _TempText.AppendLine("------------------------")
+            _tempText.AppendLine("------------------------")
                      .AppendLine("------------------------");
 
             _CreateUpdate_SP();
-            _TempText.AppendLine("------------------------")
+            _tempText.AppendLine("------------------------")
                      .AppendLine("------------------------");
 
             _CreateDelete_SP();
-            _TempText.AppendLine("------------------------")
+            _tempText.AppendLine("------------------------")
                      .AppendLine("------------------------");
 
             _CreateDoesExist_SP();
-            _TempText.AppendLine("------------------------")
+            _tempText.AppendLine("------------------------")
                      .AppendLine("------------------------");
 
-            if (_IsLogin)
+            if (_isLogin)
             {
                 _CreateDoesExistForUsername_SP();
-                _TempText.AppendLine("------------------------")
+                _tempText.AppendLine("------------------------")
                          .AppendLine("------------------------");
 
                 _CreateDoesExistForUsernameAndPassword_SP();
-                _TempText.AppendLine("------------------------")
+                _tempText.AppendLine("------------------------")
                          .AppendLine("------------------------");
             }
 
@@ -2249,20 +2249,20 @@ namespace Code_Generator
             }
             else
             {
-                _TempText = new StringBuilder();
+                _tempText = new StringBuilder();
 
-                if (_IsAdvancedMode)
+                if (_isAdvancedMode)
                 {
-                    _TempText.AppendLine($"using System;\r\nusing System.Data;\r\nusing System.Data.SqlClient;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{");
+                    _tempText.AppendLine($"using System;\r\nusing System.Data;\r\nusing System.Data.SqlClient;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{");
                 }
 
                 txtData.Clear();
 
-                _TempText.Append($"public class cls{_TableSingleName}Data");
-                _TempText.AppendLine();
-                _TempText.AppendLine("{");
+                _tempText.Append($"public class cls{_tableSingleName}Data");
+                _tempText.AppendLine();
+                _tempText.AppendLine("{");
 
-                if (_IsLogin)
+                if (_isLogin)
                 {
                     _DataAccessAsLoginInfo();
                 }
@@ -2271,14 +2271,14 @@ namespace Code_Generator
                     _DataAccessAsNormal();
                 }
 
-                _TempText.Append("}");
+                _tempText.Append("}");
 
-                if (_IsAdvancedMode)
+                if (_isAdvancedMode)
                 {
-                    _TempText.Append("\n}");
+                    _tempText.Append("\n}");
                 }
 
-                txtData.Text = _TempText.ToString();
+                txtData.Text = _tempText.ToString();
             }
         }
 
@@ -2291,23 +2291,23 @@ namespace Code_Generator
             }
             else
             {
-                _TempText = new StringBuilder();
+                _tempText = new StringBuilder();
 
-                if (_IsAdvancedMode)
+                if (_isAdvancedMode)
                 {
-                    _TempText.AppendLine($"using {comboDatabaseName.Text}_DataAccess;\r\nusing System;\r\nusing System.Data;\r\n\r\nnamespace {comboDatabaseName.Text}_Business\r\n{{");
+                    _tempText.AppendLine($"using {comboDatabaseName.Text}_DataAccess;\r\nusing System;\r\nusing System.Data;\r\n\r\nnamespace {comboDatabaseName.Text}_Business\r\n{{");
                 }
 
                 txtData.Clear();
 
                 _CreateBusinessLayer();
 
-                if (_IsAdvancedMode)
+                if (_isAdvancedMode)
                 {
-                    _TempText.Append("\n}");
+                    _tempText.Append("\n}");
                 }
 
-                txtData.Text = _TempText.ToString();
+                txtData.Text = _tempText.ToString();
             }
         }
 
@@ -2320,7 +2320,7 @@ namespace Code_Generator
             }
             else
             {
-                _TempText = new StringBuilder();
+                _tempText = new StringBuilder();
 
                 txtData.Clear();
 
@@ -2330,11 +2330,11 @@ namespace Code_Generator
 
                 _CreateStoredProcedures();
 
-                if (_IsAdvancedMode)
+                if (_isAdvancedMode)
                 {
-                    if (clsCodeGenerator.ExecuteStoredProcedure(comboDatabaseName.Text, _TempText.ToString()))
+                    if (clsCodeGenerator.ExecuteStoredProcedure(comboDatabaseName.Text, _tempText.ToString()))
                     {
-                        if (!_GenerateStoredProceduresInAllTables)
+                        if (!_generateStoredProceduresInAllTables)
                             MessageBox.Show("Stored Procedures Saved Successfully!", "Success",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
@@ -2347,7 +2347,7 @@ namespace Code_Generator
                     return;
                 }
 
-                txtData.Text = _TempText.ToString();
+                txtData.Text = _tempText.ToString();
             }
         }
 
@@ -2397,11 +2397,11 @@ namespace Code_Generator
                 txtData.Clear();
 
                 // Access the first value (first column) of the selected item
-                _TableName = listviewTablesName.SelectedItems[0].SubItems[0].Text;
+                _tableName = listviewTablesName.SelectedItems[0].SubItems[0].Text;
 
                 _FillListViewWithColumnsData();
 
-                _IsLogin = _DoesTableHaveUsernameAndPassword();
+                _isLogin = _DoesTableHaveUsernameAndPassword();
             }
         }
 
@@ -2421,7 +2421,7 @@ namespace Code_Generator
 
         private void tcMode_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _IsAdvancedMode = (tcMode.SelectedTab == tbAdvanced);
+            _isAdvancedMode = (tcMode.SelectedTab == tbAdvanced);
         }
 
         private void btnGenerateBusiness_Click(object sender, EventArgs e)
@@ -2446,16 +2446,16 @@ namespace Code_Generator
 
             for (byte i = 0; i < listviewTablesName.Items.Count; i++)
             {
-                _TableName = listviewTablesName.Items[i].SubItems[0].Text;
+                _tableName = listviewTablesName.Items[i].SubItems[0].Text;
 
                 _FillListViewWithColumnsData();
 
-                _IsLogin = _DoesTableHaveUsernameAndPassword();
+                _isLogin = _DoesTableHaveUsernameAndPassword();
 
                 btnGenerateBusinessLayer.PerformClick();
-                Path.Append(txtBusinessPath.Text.Trim() + $"cls{_TableSingleName}.cs");
+                Path.Append(txtBusinessPath.Text.Trim() + $"cls{_tableSingleName}.cs");
 
-                if (_IsAdvancedMode)
+                if (_isAdvancedMode)
                 {
                     using (StreamWriter writer = new StreamWriter(Path.ToString()))
                     {
@@ -2494,16 +2494,16 @@ namespace Code_Generator
 
             for (byte i = 0; i < listviewTablesName.Items.Count; i++)
             {
-                _TableName = listviewTablesName.Items[i].SubItems[0].Text;
+                _tableName = listviewTablesName.Items[i].SubItems[0].Text;
 
                 _FillListViewWithColumnsData();
 
-                _IsLogin = _DoesTableHaveUsernameAndPassword();
+                _isLogin = _DoesTableHaveUsernameAndPassword();
 
                 btnGenerateDateAccessLayer.PerformClick();
-                Path.Append(txtDataAccessPath.Text.Trim() + $"cls{_TableSingleName}Data.cs");
+                Path.Append(txtDataAccessPath.Text.Trim() + $"cls{_tableSingleName}Data.cs");
 
-                if (_IsAdvancedMode)
+                if (_isAdvancedMode)
                 {
                     using (StreamWriter writer = new StreamWriter(Path.ToString()))
                     {
@@ -2540,15 +2540,15 @@ namespace Code_Generator
 
             StringBuilder Path = new StringBuilder();
 
-            _GenerateStoredProceduresInAllTables = true;
+            _generateStoredProceduresInAllTables = true;
 
             for (byte i = 0; i < listviewTablesName.Items.Count; i++)
             {
-                _TableName = listviewTablesName.Items[i].SubItems[0].Text;
+                _tableName = listviewTablesName.Items[i].SubItems[0].Text;
 
                 _FillListViewWithColumnsData();
 
-                _IsLogin = _DoesTableHaveUsernameAndPassword();
+                _isLogin = _DoesTableHaveUsernameAndPassword();
 
                 btnGenerateStoredProcedure.PerformClick();
 
