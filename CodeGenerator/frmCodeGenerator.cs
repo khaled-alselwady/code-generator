@@ -15,7 +15,6 @@ namespace Code_Generator
         private bool _isLogin = false;
         private bool _isAdvancedMode = false;
         private bool _generateStoredProceduresInAllTables = false;
-
         private StringBuilder _tempText = new StringBuilder();
 
         public frmCodeGenerator()
@@ -179,6 +178,67 @@ namespace Code_Generator
             lblNumberOfColumnsRecords.Text = "0";
 
             lblNumberOfTablesRecords.Text = "0";
+        }
+
+        private bool _IsAllDataFilled(string path, string fileType)
+        {
+            if (MessageBox.Show($"Are you sure you want to generate {fileType} into this path?",
+                "confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2)
+                == DialogResult.No)
+                return false;
+
+            if (!_IsDatabaseSelected())
+                return false;
+
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                MessageBox.Show("You have to type a path!", "Miss Path",
+                   MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool _IsDatabaseSelected()
+        {
+            if (string.IsNullOrWhiteSpace(comboDatabaseName.Text))
+            {
+                MessageBox.Show("You have to select a database first!", "Miss Data",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private void _WriteToFile(string path, string value)
+        {
+            using (StreamWriter writer = new StreamWriter(path.Trim()))
+            {
+                writer.Write(value);
+            }
+        }
+
+        private void _GenerateLayer(Action<string> generateLayerAction, Action showMessageAfterGenerating)
+        {
+            if (generateLayerAction is null)
+                return;
+
+            for (byte i = 0; i < listviewTablesName.Items.Count; i++)
+            {
+                _tableName = listviewTablesName.Items[i].SubItems[0].Text;
+
+                _FillListViewWithColumnsData();
+
+                _isLogin = _DoesTableHaveUsernameAndPassword();
+
+                generateLayerAction?.Invoke(_tableSingleName);
+            }
+
+            showMessageAfterGenerating?.Invoke();
         }
 
         #region Data Access Layer
@@ -1039,12 +1099,7 @@ namespace Code_Generator
             path.Append(txtDataAccessPath.Text.Trim() + "clsDataAccessSettings.cs");
 
             if (_isAdvancedMode)
-            {
-                using (StreamWriter writer = new StreamWriter(path.ToString()))
-                {
-                    writer.Write(_tempText.ToString());
-                }
-            }
+                _WriteToFile(path.ToString(), _tempText.ToString());
         }
 
         private void _CreateLogHandlerClass()
@@ -1077,12 +1132,7 @@ namespace Code_Generator
             path.Append(txtDataAccessPath.Text.Trim() + "clsLogHandler.cs");
 
             if (_isAdvancedMode)
-            {
-                using (StreamWriter writer = new StreamWriter(path.ToString()))
-                {
-                    writer.Write(_tempText.ToString());
-                }
-            }
+                _WriteToFile(path.ToString(), _tempText.ToString());
         }
 
         private void _CreateErrorLoggerClass()
@@ -1108,12 +1158,7 @@ namespace Code_Generator
             path.Append(txtDataAccessPath.Text.Trim() + "clsErrorLogger.cs");
 
             if (_isAdvancedMode)
-            {
-                using (StreamWriter writer = new StreamWriter(path.ToString()))
-                {
-                    writer.Write(_tempText.ToString());
-                }
-            }
+                _WriteToFile(path.ToString(), _tempText.ToString());
         }
 
         private void _CreateClassesThatRelatedToLoggingErrors()
@@ -1212,7 +1257,7 @@ namespace Code_Generator
             _tempText.AppendLine("}");
         }
 
-        private void _GenerateDataAccessHelperClassToTheFile()
+        private void _CreateDataAccessHelperClassToTheFile()
         {
             _tempText.Clear();
 
@@ -1223,12 +1268,7 @@ namespace Code_Generator
             path.Append(txtDataAccessPath.Text.Trim() + "clsDataAccessHelper.cs");
 
             if (_isAdvancedMode)
-            {
-                using (StreamWriter writer = new StreamWriter(path.ToString()))
-                {
-                    writer.Write(_tempText.ToString());
-                }
-            }
+                _WriteToFile(path.ToString(), _tempText.ToString());
         }
 
         private void _DataAccessAsLoginInfo()
@@ -1253,6 +1293,13 @@ namespace Code_Generator
             _CreateDeleteMethod();
             _CreateDoesExistMethod();
             _CreateGetAllMethod();
+        }
+
+        private void _GenerateAllClassesInDataAccess(string path)
+        {
+            btnGenerateDateAccessLayer.PerformClick();
+
+            _WriteToFile(path.Trim(), _tempText.ToString());
         }
         #endregion
 
@@ -2037,6 +2084,13 @@ namespace Code_Generator
             _tempText.AppendLine("}");
         }
 
+        private void _GenerateAllClassesInBusiness(string path)
+        {
+            btnGenerateBusinessLayer.PerformClick();
+
+            _WriteToFile(path.Trim(), _tempText.ToString());
+        }
+
         #endregion
 
         #region Stored Procedure
@@ -2381,7 +2435,7 @@ namespace Code_Generator
         #endregion
 
         #region App.config
-        private void _CreateAppConfigFile()
+        private void _CreateAppConfigFile(string path)
         {
             _tempText.Clear();
 
@@ -2401,6 +2455,9 @@ namespace Code_Generator
             _tempText.AppendLine("\t</connectionStrings>");
             _tempText.AppendLine();
             _tempText.AppendLine("</configuration>");
+
+            if (_isAdvancedMode)
+                _WriteToFile(path, _tempText.ToString());
         }
 
         #endregion
@@ -2478,11 +2535,6 @@ namespace Code_Generator
 
         private void btnShowStoredProcedure_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to generate stored procedures for this table?",
-                "confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2)
-                == DialogResult.No)
-                return;
-
             if (int.Parse(lblNumberOfColumnsRecords.Text) <= 0)
             {
                 MessageBox.Show("You have to select a column at least!", "Miss Data",
@@ -2589,118 +2641,58 @@ namespace Code_Generator
             _isAdvancedMode = (tcMode.SelectedTab == tbAdvanced);
         }
 
-        private void btnGenerateBusiness_Click(object sender, EventArgs e)
-        {
-            if (MessageBox.Show("Are you sure you want to generate business classes into this path?",
-                "confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2)
-                == DialogResult.No)
-                return;
-
-            if (string.IsNullOrWhiteSpace(comboDatabaseName.Text))
-            {
-                MessageBox.Show("You have to select a database first!", "Miss Data",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(txtBusinessPath.Text.Trim()))
-            {
-                MessageBox.Show("You have to type a path!", "Miss Path",
-                   MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                return;
-            }
-
-            StringBuilder Path = new StringBuilder();
-
-            for (byte i = 0; i < listviewTablesName.Items.Count; i++)
-            {
-                _tableName = listviewTablesName.Items[i].SubItems[0].Text;
-
-                _FillListViewWithColumnsData();
-
-                _isLogin = _DoesTableHaveUsernameAndPassword();
-
-                btnGenerateBusinessLayer.PerformClick();
-                Path.Append(txtBusinessPath.Text.Trim() + $"cls{_tableSingleName}.cs");
-
-                if (_isAdvancedMode)
-                {
-                    using (StreamWriter writer = new StreamWriter(Path.ToString()))
-                    {
-                        writer.Write(txtData.Text);
-                    }
-
-                    Path.Clear();
-                    txtData.Clear();
-                }
-            }
-
-            MessageBox.Show("Classes of The Business Layer created and added to the file successfully.");
-
-            txtBusinessPath.Clear();
-        }
-
         private void btnGenerateDataAccess_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to generate data-access classes into this path?",
-                "confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2)
-                == DialogResult.No)
+            if (!_IsAllDataFilled(txtDataAccessPath.Text.Trim(), "data-access classes"))
                 return;
 
-            if (string.IsNullOrWhiteSpace(comboDatabaseName.Text))
-            {
-                MessageBox.Show("You have to select a database first!", "Miss Data",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            string path = string.Empty;
 
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(txtDataAccessPath.Text.Trim()))
-            {
-                MessageBox.Show("You have to type a path!", "Miss Path",
-                   MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                return;
-            }
-
-            StringBuilder path = new StringBuilder();
-
-            for (byte i = 0; i < listviewTablesName.Items.Count; i++)
-            {
-                _tableName = listviewTablesName.Items[i].SubItems[0].Text;
-
-                _FillListViewWithColumnsData();
-
-                _isLogin = _DoesTableHaveUsernameAndPassword();
-
-                btnGenerateDateAccessLayer.PerformClick();
-                path.Append(txtDataAccessPath.Text.Trim() + $"cls{_tableSingleName}Data.cs");
-
-                if (_isAdvancedMode)
+            _GenerateLayer(
+                (singleTableName) =>
                 {
-                    using (StreamWriter writer = new StreamWriter(path.ToString()))
-                    {
-                        writer.Write(txtData.Text);
-                    }
-
-                    path.Clear();
-                    txtData.Clear();
+                    path = txtDataAccessPath.Text.Trim() + $"cls{singleTableName}Data.cs";
+                    _GenerateAllClassesInDataAccess(path);
                 }
-            }
+                ,
+                () => MessageBox.Show($"Classes of The Data Access Layer created and added to the file successfully.")
+                          );
 
+            // common classes for all tables
             _CreateDataAccessSettingsClass();
             _CreateClassesThatRelatedToLoggingErrors();
-            _GenerateDataAccessHelperClassToTheFile();
-
-            MessageBox.Show("Classes of The Data Access Layer created and added to the file successfully.");
+            _CreateDataAccessHelperClassToTheFile();
 
             txtDataAccessPath.Clear();
         }
 
+        private void btnGenerateBusiness_Click(object sender, EventArgs e)
+        {
+            if (!_IsAllDataFilled(txtBusinessPath.Text.Trim(), "business classes"))
+                return;
+
+            string path = string.Empty;
+
+            _GenerateLayer(
+                           (singleTableName) =>
+                           {
+                               path = txtBusinessPath.Text.Trim() + $"cls{singleTableName}.cs";
+                               _GenerateAllClassesInBusiness(path);
+                           }
+                           ,
+                           () => MessageBox.Show($"Classes of The Business Layer created and added to the file successfully.")
+                          );
+
+            txtBusinessPath.Clear();
+        }
+
         private void brnGenerateStoredProceduresToSelectedTable_Click(object sender, EventArgs e)
         {
+            if (MessageBox.Show("Are you sure you want to generate stored procedures for this table?",
+                "confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2)
+                == DialogResult.No)
+                return;
+
             btnGenerateStoredProcedure.PerformClick();
         }
 
@@ -2711,33 +2703,16 @@ namespace Code_Generator
                 == DialogResult.No)
                 return;
 
-            if (string.IsNullOrWhiteSpace(comboDatabaseName.Text))
-            {
-                MessageBox.Show("You have to select a database first!", "Miss Data",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-
+            if (!_IsDatabaseSelected())
                 return;
-            }
-
-            StringBuilder path = new StringBuilder();
 
             _generateStoredProceduresInAllTables = true;
 
-            for (byte i = 0; i < listviewTablesName.Items.Count; i++)
-            {
-                _tableName = listviewTablesName.Items[i].SubItems[0].Text;
-
-                _FillListViewWithColumnsData();
-
-                _isLogin = _DoesTableHaveUsernameAndPassword();
-
-                btnGenerateStoredProcedure.PerformClick();
-
-                path.Clear();
-                txtData.Clear();
-            }
-
-            MessageBox.Show("Stored Procedures added Successfully.");
+            _GenerateLayer(
+                (singleTableName) => btnGenerateStoredProcedure.PerformClick()
+                ,
+                () => MessageBox.Show("Stored Procedures added Successfully.")
+                          );
         }
 
         private void frmCodeGenerator_Load(object sender, EventArgs e)
@@ -2747,42 +2722,14 @@ namespace Code_Generator
 
         private void btnGenerateAppConfig_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to generate App.config file into this path?",
-                "confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2)
-                == DialogResult.No)
+            if (!_IsAllDataFilled(txtAppConfigPath.Text.Trim(), "App.config file"))
                 return;
 
-            if (string.IsNullOrWhiteSpace(comboDatabaseName.Text))
-            {
-                MessageBox.Show("You have to select a database first!", "Miss Data",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            _CreateAppConfigFile(txtAppConfigPath.Text.Trim());
 
-                return;
-            }
+            MessageBox.Show("App.config created successfully.");
 
-            if (string.IsNullOrWhiteSpace(txtAppConfigPath.Text.Trim()))
-            {
-                MessageBox.Show("You have to type a path!", "Miss Path",
-                   MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                return;
-            }
-
-            if (_isAdvancedMode)
-            {
-                _CreateAppConfigFile();
-
-                using (StreamWriter writer = new StreamWriter(txtAppConfigPath.Text.Trim()))
-                {
-                    writer.Write(_tempText);
-                }
-
-                _tempText.Clear();
-
-                MessageBox.Show("App.config created successfully.");
-
-                txtAppConfigPath.Clear();
-            }
+            txtAppConfigPath.Clear();
         }
     }
 }
