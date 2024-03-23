@@ -6,13 +6,13 @@ namespace CodeGenerator_DataAccess
 {
     public class clsCodeGeneratorData
     {
-        public static bool DoesTableExist(string TableName, string DatabaseName)
+        public static bool DoesTableExist(string tableName, string databaseName)
         {
-            bool IsFound = false;
+            bool isFound = false;
 
             try
             {
-                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName)))
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(databaseName)))
                 {
                     connection.Open();
 
@@ -20,33 +20,37 @@ namespace CodeGenerator_DataAccess
 
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@TableName", TableName);
+                        command.Parameters.AddWithValue("@TableName", tableName);
 
-                        IsFound = (command.ExecuteScalar() != null);
+                        isFound = (command.ExecuteScalar() != null);
                     }
                 }
             }
             catch (SqlException ex)
             {
-                IsFound = false;
-                clsLogError.LogError("Database Exception", ex);
+                isFound = false;
+
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("Database Exception", ex);
             }
             catch (Exception ex)
             {
-                IsFound = false;
-                clsLogError.LogError("General Exception", ex);
+                isFound = false;
+
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("General Exception", ex);
             }
 
-            return IsFound;
+            return isFound;
         }
 
-        public static DataTable GetColumnsNameWithInfo(string TableName, string DatabaseName)
+        public static DataTable GetColumnsNameWithInfo(string tableName, string databaseName)
         {
             DataTable dt = new DataTable();
 
             try
             {
-                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName)))
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(databaseName)))
                 {
                     connection.Open();
 
@@ -64,7 +68,7 @@ namespace CodeGenerator_DataAccess
 
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@TableName", TableName);
+                        command.Parameters.AddWithValue("@TableName", tableName);
 
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
@@ -78,23 +82,25 @@ namespace CodeGenerator_DataAccess
             }
             catch (SqlException ex)
             {
-                clsLogError.LogError("Database Exception", ex);
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("Database Exception", ex);
             }
             catch (Exception ex)
             {
-                clsLogError.LogError("General Exception", ex);
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("General Exception", ex);
             }
 
             return dt;
         }
 
-        public static bool DoesDataBaseExist(string DatabaseName)
+        public static bool DoesDataBaseExist(string databaseName)
         {
-            bool IsFound = false;
+            bool isFound = false;
 
             try
             {
-                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName)))
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(databaseName)))
                 {
                     connection.Open();
 
@@ -102,33 +108,37 @@ namespace CodeGenerator_DataAccess
 
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@DatabaseName", DatabaseName);
+                        command.Parameters.AddWithValue("@DatabaseName", databaseName);
 
-                        IsFound = (command.ExecuteScalar() != null);
+                        isFound = (command.ExecuteScalar() != null);
                     }
                 }
             }
             catch (SqlException ex)
             {
-                IsFound = false;
-                clsLogError.LogError("Database Exception", ex);
+                isFound = false;
+
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("Database Exception", ex);
             }
             catch (Exception ex)
             {
-                IsFound = false;
-                clsLogError.LogError("General Exception", ex);
+                isFound = false;
+
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("General Exception", ex);
             }
 
-            return IsFound;
+            return isFound;
         }
 
-        public static DataTable GetAllTablesNameInASpecificDatabase(string DatabaseName)
+        public static DataTable GetAllTablesNameInASpecificDatabase(string databaseName)
         {
             DataTable dt = new DataTable();
 
             try
             {
-                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName)))
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(databaseName)))
                 {
                     connection.Open();
 
@@ -151,11 +161,13 @@ namespace CodeGenerator_DataAccess
             }
             catch (SqlException ex)
             {
-                clsLogError.LogError("Database Exception", ex);
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("Database Exception", ex);
             }
             catch (Exception ex)
             {
-                clsLogError.LogError("General Exception", ex);
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("General Exception", ex);
             }
 
             return dt;
@@ -190,27 +202,29 @@ namespace CodeGenerator_DataAccess
             }
             catch (SqlException ex)
             {
-                clsLogError.LogError("Database Exception", ex);
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("Database Exception", ex);
             }
             catch (Exception ex)
             {
-                clsLogError.LogError("General Exception", ex);
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("General Exception", ex);
             }
 
             return dt;
         }
 
-        public static bool ExecuteStoredProcedure(string DatabaseName, string StoredProcedures)
+        public static bool ExecuteStoredProcedure(string databaseName, string storedProcedures)
         {
             int AffectedRows = 0;
 
             try
             {
-                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(DatabaseName)))
+                using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString(databaseName)))
                 {
                     connection.Open();
 
-                    string[] batches = StoredProcedures.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] batches = storedProcedures.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (string batch in batches)
                     {
@@ -226,11 +240,13 @@ namespace CodeGenerator_DataAccess
 
             catch (SqlException ex)
             {
-                clsLogError.LogError("Database Exception", ex);
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("Database Exception", ex);
             }
             catch (Exception ex)
             {
-                clsLogError.LogError("General Exception", ex);
+                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+                loggerToEventViewer.LogError("General Exception", ex);
             }
 
             return false;

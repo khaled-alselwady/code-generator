@@ -1,34 +1,28 @@
-﻿using CodeGenerator_DataAccess;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data;
 
 namespace CodeGenerator_Business
 {
     public class clsCodeGenerator
     {
 
-        public static bool DoesTableExist(string TableName, string DatabaseName)
+        public static bool DoesTableExist(string tableName, string databaseName)
         {
-            return clsCodeGeneratorData.DoesTableExist(TableName, DatabaseName);
+            return clsCodeGeneratorData.DoesTableExist(tableName, databaseName);
         }
 
-        public static DataTable GetColumnsNameWithInfo(string TableName, string DatabaseName)
+        public static DataTable GetColumnsNameWithInfo(string tableName, string databaseName)
         {
-            return clsCodeGeneratorData.GetColumnsNameWithInfo(TableName, DatabaseName);
+            return clsCodeGeneratorData.GetColumnsNameWithInfo(tableName, databaseName);
         }
 
-        public static bool DoesDataBaseExist(string DatabaseName)
+        public static bool DoesDataBaseExist(string databaseName)
         {
-            return clsCodeGeneratorData.DoesDataBaseExist(DatabaseName);
+            return clsCodeGeneratorData.DoesDataBaseExist(databaseName);
         }
 
-        public static DataTable GetAllTablesNameInASpecificDatabase(string DatabaseName)
+        public static DataTable GetAllTablesNameInASpecificDatabase(string databaseName)
         {
-            return clsCodeGeneratorData.GetAllTablesNameInASpecificDatabase(DatabaseName);
+            return clsCodeGeneratorData.GetAllTablesNameInASpecificDatabase(databaseName);
         }
 
         public static DataTable GetAllDatabaseName()
@@ -36,9 +30,9 @@ namespace CodeGenerator_Business
             return clsCodeGeneratorData.GetAllDatabaseName();
         }
 
-        public static bool ExecuteStoredProcedure(string DatabaseName, string StoredProcedures)
+        public static bool ExecuteStoredProcedure(string databaseName, string storedProcedures)
         {
-            return clsCodeGeneratorData.ExecuteStoredProcedure(DatabaseName, StoredProcedures);
+            return clsCodeGeneratorData.ExecuteStoredProcedure(databaseName, storedProcedures);
         }
     }
 }
