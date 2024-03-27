@@ -336,9 +336,9 @@ namespace Code_Generator
             return text.ToString().Trim();
         }
 
-        private void _CreateFindMethod()
+        private void _CreateGetInfoMethod()
         {
-            _tempText.Append($"public static bool Get{_tableSingleName}InfoByID{_MakeParametersForFindMethod()}");
+            _tempText.Append($"public static bool GetInfoByID{_MakeParametersForFindMethod()}");
             _tempText.AppendLine();
             _tempText.AppendLine("{");
 
@@ -508,10 +508,10 @@ namespace Code_Generator
             return Text.ToString().Trim();
         }
 
-        private void _CreateFindMethodForUsername()
+        private void _CreateGetInfoMethodForUsername()
         {
             _tempText.AppendLine();
-            _tempText.AppendLine($"public static bool Get{_tableSingleName}InfoByUsername{_MakeParametersForFindMethodForUsername()}");
+            _tempText.AppendLine($"public static bool GetInfoByUsername{_MakeParametersForFindMethodForUsername()}");
             _tempText.AppendLine("{");
             _tempText.AppendLine("    bool isFound = false;");
             _tempText.AppendLine();
@@ -690,10 +690,10 @@ namespace Code_Generator
             return text.ToString().Trim();
         }
 
-        private void _CreateFindMethodForUsernameAndPassword()
+        private void _CreateGetInfoMethodForUsernameAndPassword()
         {
             _tempText.AppendLine();
-            _tempText.AppendLine($"public static bool Get{_tableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindMethodForUsernameAndPassword()}");
+            _tempText.AppendLine($"public static bool GetInfoByUsernameAndPassword{_MakeParametersForFindMethodForUsernameAndPassword()}");
             _tempText.AppendLine("{");
             _tempText.AppendLine("    bool isFound = false;");
             _tempText.AppendLine();
@@ -802,10 +802,10 @@ namespace Code_Generator
             return text.ToString().Trim();
         }
 
-        private void _CreateAddNewMethod()
+        private void _CreateAddMethod()
         {
             _tempText.AppendLine();
-            _tempText.AppendLine($"public static int? AddNew{_tableSingleName}{_MakeParametersForAddNewMethod()}");
+            _tempText.AppendLine($"public static int? Add{_MakeParametersForAddNewMethod()}");
             _tempText.AppendLine("{");
             _tempText.AppendLine("// This function will return the new person id if succeeded and null if not");
             _tempText.AppendLine($"    int? {_tableSingleName.ToCamelCase()}ID = null;");
@@ -884,7 +884,7 @@ namespace Code_Generator
         private void _CreateUpdateMethod()
         {
             _tempText.AppendLine();
-            _tempText.AppendLine($"public static bool Update{_tableSingleName}{_MakeParametersForUpdateMethod()}");
+            _tempText.AppendLine($"public static bool Update{_MakeParametersForUpdateMethod()}");
             _tempText.AppendLine("{");
             _tempText.AppendLine("    int rowAffected = 0;");
             _tempText.AppendLine();
@@ -936,7 +936,7 @@ namespace Code_Generator
         private void _CreateDeleteMethod()
         {
             _tempText.AppendLine();
-            _tempText.AppendLine($"public static bool Delete{_tableSingleName}{_MakeParametersForDeleteMethod()}");
+            _tempText.AppendLine($"public static bool Delete{_MakeParametersForDeleteMethod()}");
             _tempText.AppendLine("{");
             _tempText.AppendLine("    int rowAffected = 0;");
             _tempText.AppendLine();
@@ -964,10 +964,10 @@ namespace Code_Generator
             _tempText.AppendLine("}");
         }
 
-        private void _CreateDoesExistMethod()
+        private void _CreateExistsMethod()
         {
             _tempText.AppendLine();
-            _tempText.AppendLine($"public static bool Does{_tableSingleName}Exist{_MakeParametersForDeleteMethod()}");
+            _tempText.AppendLine($"public static bool Exists{_MakeParametersForDeleteMethod()}");
             _tempText.AppendLine("{");
             _tempText.AppendLine("    bool isFound = false;");
             _tempText.AppendLine();
@@ -1002,10 +1002,10 @@ namespace Code_Generator
             _tempText.AppendLine("}");
         }
 
-        private void _CreateDoesExistMethodForUsername()
+        private void _CreateExistsMethodForUsername()
         {
             _tempText.AppendLine();
-            _tempText.AppendLine($"public static bool Does{_tableSingleName}Exist(string username)");
+            _tempText.AppendLine($"public static bool Exists(string username)");
             _tempText.AppendLine("{");
             _tempText.AppendLine("    bool isFound = false;");
             _tempText.AppendLine();
@@ -1040,10 +1040,10 @@ namespace Code_Generator
             _tempText.AppendLine("}");
         }
 
-        private void _CreateDoesExistMethodForUsernameAndPassword()
+        private void _CreateExistsMethodForUsernameAndPassword()
         {
             _tempText.AppendLine();
-            _tempText.AppendLine($"public static bool Does{_tableSingleName}Exist(string username, string password)");
+            _tempText.AppendLine($"public static bool Exists(string username, string password)");
             _tempText.AppendLine("{");
             _tempText.AppendLine("    bool isFound = false;");
             _tempText.AppendLine();
@@ -1079,12 +1079,12 @@ namespace Code_Generator
             _tempText.AppendLine("}");
         }
 
-        private void _CreateGetAllMethod()
+        private void _CreateAllMethod()
         {
             _tempText.AppendLine();
-            _tempText.AppendLine($"public static DataTable GetAll{_tableName}()");
+            _tempText.AppendLine($"public static DataTable All()");
             _tempText.AppendLine("{");
-            _tempText.AppendLine($"return clsDataAccessHelper.GetAll(\"SP_GetAll{_tableName}\");");
+            _tempText.AppendLine($"return clsDataAccessHelper.All(\"SP_GetAll{_tableName}\");");
             _tempText.AppendLine("}");
         }
 
@@ -1202,10 +1202,10 @@ namespace Code_Generator
             _tempText.AppendLine("}");
         }
 
-        private void _CreateGetAllMethodHelper()
+        private void _CreateAllMethodHelper()
         {
             _tempText.AppendLine();
-            _tempText.AppendLine("public static DataTable GetAll(string storedProcedureName)");
+            _tempText.AppendLine("public static DataTable All(string storedProcedureName)");
             _tempText.AppendLine("{");
             _tempText.AppendLine("    DataTable dt = new DataTable();");
             _tempText.AppendLine();
@@ -1251,7 +1251,7 @@ namespace Code_Generator
             _CreateCountMethodHelper();
 
             // Generate GetAll method
-            _CreateGetAllMethodHelper();
+            _CreateAllMethodHelper();
 
             _tempText.AppendLine("    }");
             _tempText.AppendLine("}");
@@ -1273,26 +1273,26 @@ namespace Code_Generator
 
         private void _DataAccessAsLoginInfo()
         {
-            _CreateFindMethod();
-            _CreateFindMethodForUsername();
-            _CreateFindMethodForUsernameAndPassword();
-            _CreateAddNewMethod();
+            _CreateGetInfoMethod();
+            _CreateGetInfoMethodForUsername();
+            _CreateGetInfoMethodForUsernameAndPassword();
+            _CreateAddMethod();
             _CreateUpdateMethod();
             _CreateDeleteMethod();
-            _CreateDoesExistMethod();
-            _CreateDoesExistMethodForUsername();
-            _CreateDoesExistMethodForUsernameAndPassword();
-            _CreateGetAllMethod();
+            _CreateExistsMethod();
+            _CreateExistsMethodForUsername();
+            _CreateExistsMethodForUsernameAndPassword();
+            _CreateAllMethod();
         }
 
         private void _DataAccessAsNormal()
         {
-            _CreateFindMethod();
-            _CreateAddNewMethod();
+            _CreateGetInfoMethod();
+            _CreateAddMethod();
             _CreateUpdateMethod();
             _CreateDeleteMethod();
-            _CreateDoesExistMethod();
-            _CreateGetAllMethod();
+            _CreateExistsMethod();
+            _CreateAllMethod();
         }
 
         private void _GenerateAllClassesInDataAccess(string path)
@@ -1481,13 +1481,13 @@ namespace Code_Generator
             return parameters.ToString().Trim();
         }
 
-        private string _GetAddNewInBusinessLayer()
+        private string _GetAddMethodInBusinessLayer()
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"private bool _AddNew{_tableSingleName}()");
+            Text.AppendLine($"private bool _Add()");
             Text.AppendLine("{");
-            Text.AppendLine($"    {_tableSingleName}ID = cls{_tableSingleName}Data.AddNew{_tableSingleName}{_MakeParametersForAddNewMethodInBusinessLayer()}");
+            Text.AppendLine($"    {_tableSingleName}ID = cls{_tableSingleName}Data.Add{_MakeParametersForAddNewMethodInBusinessLayer()}");
             Text.AppendLine();
             Text.AppendLine($"    return ({_tableSingleName}ID.HasValue);");
             Text.AppendLine("}");
@@ -1517,13 +1517,13 @@ namespace Code_Generator
             return parameters.ToString().Trim();
         }
 
-        private string _GetUpdateInBusinessLayer()
+        private string _GetUpdateMethodInBusinessLayer()
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"private bool _Update{_tableSingleName}()");
+            Text.AppendLine($"private bool _Update()");
             Text.AppendLine("{");
-            Text.AppendLine($"return cls{_tableSingleName}Data.Update{_tableSingleName}{_MakeParametersForUpdateMethodInBusinessLayer()}");
+            Text.AppendLine($"return cls{_tableSingleName}Data.Update{_MakeParametersForUpdateMethodInBusinessLayer()}");
             Text.AppendLine("}");
 
             return Text.ToString().Trim();
@@ -1538,7 +1538,7 @@ namespace Code_Generator
             Text.AppendLine("switch (Mode)");
             Text.AppendLine("{");
             Text.AppendLine("case enMode.AddNew:");
-            Text.AppendLine($"if (_AddNew{_tableSingleName}())");
+            Text.AppendLine($"if (_Add())");
             Text.AppendLine("{");
             Text.AppendLine("Mode = enMode.Update;");
             Text.AppendLine("return true;");
@@ -1549,7 +1549,7 @@ namespace Code_Generator
             Text.AppendLine("}");
             Text.AppendLine();
             Text.AppendLine("case enMode.Update:");
-            Text.AppendLine($"return _Update{_tableSingleName}();");
+            Text.AppendLine($"return _Update();");
             Text.AppendLine("}");
             Text.AppendLine();
             Text.AppendLine("return false;");
@@ -1707,7 +1707,7 @@ namespace Code_Generator
             Text.AppendLine(_MakeInitialParametersForFindMethodInBusinessLayer());
             Text.AppendLine();
 
-            Text.AppendLine($"bool isFound = cls{_tableSingleName}Data.Get{_tableSingleName}InfoByID{_MakeParametersForFindMethodInBusinessLayer()}");
+            Text.AppendLine($"bool isFound = cls{_tableSingleName}Data.GetInfoByID{_MakeParametersForFindMethodInBusinessLayer()}");
             Text.AppendLine();
 
             Text.Append("return (isFound) ? ")
@@ -1722,21 +1722,21 @@ namespace Code_Generator
         {
             StringBuilder text = new StringBuilder();
 
-            text.AppendLine($"public static bool Delete{_tableSingleName}{_MakeParametersForDeleteMethod()}");
+            text.AppendLine($"public static bool Delete{_MakeParametersForDeleteMethod()}");
             text.AppendLine("{");
-            text.AppendLine($"return cls{_tableSingleName}Data.Delete{_tableSingleName}({_tableSingleName?.ToCamelCase()}ID);");
+            text.AppendLine($"return cls{_tableSingleName}Data.Delete({_tableSingleName?.ToCamelCase()}ID);");
             text.AppendLine("}");
 
             return text.ToString().Trim();
         }
 
-        private string _GetDoesExistMethodInBusinessLayer()
+        private string _GetExistsMethodInBusinessLayer()
         {
             StringBuilder text = new StringBuilder();
 
-            text.AppendLine($"public static bool Does{_tableSingleName}Exist{_MakeParametersForDeleteMethod()}");
+            text.AppendLine($"public static bool Exists{_MakeParametersForDeleteMethod()}");
             text.AppendLine("{");
-            text.AppendLine($"return cls{_tableSingleName}Data.Does{_tableSingleName}Exist({_tableSingleName?.ToCamelCase()}ID);");
+            text.AppendLine($"return cls{_tableSingleName}Data.Exists({_tableSingleName?.ToCamelCase()}ID);");
             text.AppendLine("}");
 
             return text.ToString().Trim();
@@ -1746,9 +1746,9 @@ namespace Code_Generator
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static DataTable GetAll{_tableName}()");
+            Text.AppendLine($"public static DataTable All()");
             Text.AppendLine("{");
-            Text.AppendLine($"return cls{_tableSingleName}Data.GetAll{_tableName}();");
+            Text.AppendLine($"return cls{_tableSingleName}Data.All();");
             Text.AppendLine("}");
 
             return Text.ToString().Trim();
@@ -1880,7 +1880,7 @@ namespace Code_Generator
             Text.AppendLine($"public static cls{_tableSingleName} Find(string username)")
                 .AppendLine("{")
                 .AppendLine(_MakeInitialParametersForFindUsernameMethodInBusinessLayer()).AppendLine()
-                .AppendLine($"    bool isFound = cls{_tableSingleName}Data.Get{_tableSingleName}InfoByUsername{_MakeParametersForFindUsernameMethodInBusinessLayer()}").AppendLine();
+                .AppendLine($"    bool isFound = cls{_tableSingleName}Data.GetInfoByUsername{_MakeParametersForFindUsernameMethodInBusinessLayer()}").AppendLine();
 
             Text.Append("return (isFound) ? ")
                 .Append(_MakeReturnParametersForFindMethodInBusinessLayer())
@@ -2017,7 +2017,7 @@ namespace Code_Generator
                 .AppendLine("{")
                 .AppendLine(_MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer());
 
-            Text.AppendLine($"    bool isFound = cls{_tableSingleName}Data.Get{_tableSingleName}InfoByUsernameAndPassword{_MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()}").AppendLine();
+            Text.AppendLine($"    bool isFound = cls{_tableSingleName}Data.GetInfoByUsernameAndPassword{_MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()}").AppendLine();
 
             Text.Append("return (isFound) ? ")
                 .Append(_MakeReturnParametersForFindMethodInBusinessLayer())
@@ -2027,25 +2027,25 @@ namespace Code_Generator
             return Text.ToString().Trim();
         }
 
-        private string _GetDoesUsernameExistMethodInBusinessLayer()
+        private string _GetExistsMethodInBusinessLayerForUsername()
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static bool Does{_tableSingleName}Exist(string username)")
+            Text.AppendLine($"public static bool Exists(string username)")
                 .AppendLine("{")
-                .AppendLine($"    return cls{_tableSingleName}Data.Does{_tableSingleName}Exist(username);")
+                .AppendLine($"    return cls{_tableSingleName}Data.Exists(username);")
                 .AppendLine("}");
 
             return Text.ToString().Trim();
         }
 
-        private string _GetDoesUsernameAndPasswordExistMethodInBusinessLayer()
+        private string _GetExistsMethodInBusinessLayerForUsernameAndPassword()
         {
             StringBuilder Text = new StringBuilder();
 
-            Text.AppendLine($"public static bool Does{_tableSingleName}Exist(string username, string password)")
+            Text.AppendLine($"public static bool Exists(string username, string password)")
                 .AppendLine("{")
-                .AppendLine($"    return cls{_tableSingleName}Data.Does{_tableSingleName}Exist(username, password);")
+                .AppendLine($"    return cls{_tableSingleName}Data.Exists(username, password);")
                 .AppendLine("}");
 
             return Text.ToString().Trim();
@@ -2060,8 +2060,8 @@ namespace Code_Generator
             _tempText.AppendLine(_MakeParametersForBusinessLayer()).AppendLine();
             _tempText.AppendLine(_GetPublicConstructor()).AppendLine();
             _tempText.AppendLine(_GetPrivateConstructor()).AppendLine();
-            _tempText.AppendLine(_GetAddNewInBusinessLayer()).AppendLine();
-            _tempText.AppendLine(_GetUpdateInBusinessLayer()).AppendLine();
+            _tempText.AppendLine(_GetAddMethodInBusinessLayer()).AppendLine();
+            _tempText.AppendLine(_GetUpdateMethodInBusinessLayer()).AppendLine();
             _tempText.AppendLine(_GetSaveMethod()).AppendLine();
             _tempText.AppendLine(_GetFindMethodInBusinessLayer()).AppendLine();
 
@@ -2072,16 +2072,16 @@ namespace Code_Generator
             }
 
             _tempText.AppendLine(_GetDeleteMethodInBusinessLayer()).AppendLine();
-            _tempText.AppendLine(_GetDoesExistMethodInBusinessLayer()).AppendLine();
+            _tempText.AppendLine(_GetExistsMethodInBusinessLayer()).AppendLine();
 
             if (_isLogin)
             {
-                _tempText.AppendLine(_GetDoesUsernameExistMethodInBusinessLayer()).AppendLine();
-                _tempText.AppendLine(_GetDoesUsernameAndPasswordExistMethodInBusinessLayer()).AppendLine();
+                _tempText.AppendLine(_GetExistsMethodInBusinessLayerForUsername()).AppendLine();
+                _tempText.AppendLine(_GetExistsMethodInBusinessLayerForUsernameAndPassword()).AppendLine();
             }
 
-            _tempText.AppendLine(_GetAllMethodInBusinessLayer()).AppendLine();
-            _tempText.AppendLine("}");
+            _tempText.AppendLine(_GetAllMethodInBusinessLayer());
+            _tempText.Append("}");
         }
 
         private void _GenerateAllClassesInBusiness(string path)
