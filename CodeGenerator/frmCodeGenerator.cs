@@ -241,6 +241,24 @@ namespace Code_Generator
             showMessageAfterGenerating?.Invoke();
         }
 
+        private void _GenerateHelperClasses(Action generateHelperClass)
+        {
+            if (generateHelperClass is null)
+                return;
+
+            if (!_IsDatabaseSelected())
+                return;
+
+            _tempText = new StringBuilder();
+
+            txtData.Clear();
+
+            generateHelperClass?.Invoke();
+
+            txtData.Text = _tempText.ToString();
+
+        }
+
         #region Data Access Layer
         private string _GetConnectionString()
         {
@@ -249,12 +267,12 @@ namespace Code_Generator
 
         private string _CreateCatchBlockWithIsFound()
         {
-            return "catch (SqlException ex)\r\n            {\r\n                isFound = false;\r\n\r\n                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);\r\n                loggerToEventViewer.LogError(\"Database Exception\", ex);\r\n            }\r\n            catch (Exception ex)\r\n            {\r\n                isFound = false;\r\n\r\n                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);\r\n                loggerToEventViewer.LogError(\"General Exception\", ex);\r\n            }";
+            return "catch (Exception ex)\r\n            {\r\n                isFound = false;\r\n                clsDataAccessHelper.HandleException(ex);\r\n            }";
         }
 
         private string _CreateCatchBlockWithoutIsFound()
         {
-            return "catch (SqlException ex)\r\n            {\r\n                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);\r\n                loggerToEventViewer.LogError(\"Database Exception\", ex);\r\n            }\r\n            catch (Exception ex)\r\n            {\r\n                clsErrorLogger loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);\r\n                loggerToEventViewer.LogError(\"General Exception\", ex);\r\n            }";
+            return "catch (Exception ex)\r\n            {\r\n                clsDataAccessHelper.HandleException(ex);\r\n            }";
         }
 
         private string _MakeParametersForFindMethod()
@@ -937,237 +955,110 @@ namespace Code_Generator
         {
             _tempText.AppendLine();
             _tempText.AppendLine($"public static bool Delete{_MakeParametersForDeleteMethod()}");
-            _tempText.AppendLine("{");
-            _tempText.AppendLine("    int rowAffected = 0;");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine("    try");
-            _tempText.AppendLine("    {");
-            _tempText.AppendLine($"        using ({_GetConnectionString()})");
-            _tempText.AppendLine("        {");
-            _tempText.AppendLine("            connection.Open();");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Delete{_tableSingleName}\", connection))");
-            _tempText.AppendLine("            {");
-            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_tableSingleName}ID\", (object){_tableSingleName?.ToCamelCase()}ID ?? DBNull.Value);");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine("                rowAffected = command.ExecuteNonQuery();");
-            _tempText.AppendLine("            }");
-            _tempText.AppendLine("        }");
-            _tempText.AppendLine("    }");
-            _tempText.AppendLine(_CreateCatchBlockWithoutIsFound());
-            _tempText.AppendLine();
-            _tempText.AppendLine($"    return (rowAffected > 0);");
-            _tempText.AppendLine("}");
+            _tempText.AppendLine($"=> clsDataAccessHelper.Delete(\"SP_Delete{_tableSingleName}\", \"{_tableSingleName}ID\", {_tableSingleName?.ToCamelCase()}ID);");
         }
 
         private void _CreateExistsMethod()
         {
             _tempText.AppendLine();
             _tempText.AppendLine($"public static bool Exists{_MakeParametersForDeleteMethod()}");
-            _tempText.AppendLine("{");
-            _tempText.AppendLine("    bool isFound = false;");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine("    try");
-            _tempText.AppendLine("    {");
-            _tempText.AppendLine($"        using ({_GetConnectionString()})");
-            _tempText.AppendLine("        {");
-            _tempText.AppendLine("            connection.Open();");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_tableSingleName}Exist\", connection))");
-            _tempText.AppendLine("            {");
-            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@{_tableSingleName}ID\", (object){_tableSingleName?.ToCamelCase()}ID ?? DBNull.Value);");
-            _tempText.AppendLine();
-            _tempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
-            _tempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
-            _tempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
-            _tempText.AppendLine("command.Parameters.Add(returnParameter);");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine("command.ExecuteNonQuery();");
-            _tempText.AppendLine();
-            _tempText.AppendLine("isFound = (int)returnParameter.Value == 1;");
-            _tempText.AppendLine("            }");
-            _tempText.AppendLine("        }");
-            _tempText.AppendLine("    }");
-            _tempText.AppendLine(_CreateCatchBlockWithIsFound());
-            _tempText.AppendLine();
-            _tempText.AppendLine("    return isFound;");
-            _tempText.AppendLine("}");
+            _tempText.AppendLine($"=> clsDataAccessHelper.Exists(\"SP_Does{_tableSingleName}Exist\", \"{_tableSingleName}ID\", {_tableSingleName?.ToCamelCase()}ID);");
         }
 
         private void _CreateExistsMethodForUsername()
         {
             _tempText.AppendLine();
             _tempText.AppendLine($"public static bool Exists(string username)");
-            _tempText.AppendLine("{");
-            _tempText.AppendLine("    bool isFound = false;");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine("    try");
-            _tempText.AppendLine("    {");
-            _tempText.AppendLine($"        using ({_GetConnectionString()})");
-            _tempText.AppendLine("        {");
-            _tempText.AppendLine("            connection.Open();");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_tableSingleName}ExistByUsername\", connection))");
-            _tempText.AppendLine("            {");
-            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", username);");
-            _tempText.AppendLine();
-            _tempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
-            _tempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
-            _tempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
-            _tempText.AppendLine("command.Parameters.Add(returnParameter);");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine("command.ExecuteNonQuery();");
-            _tempText.AppendLine();
-            _tempText.AppendLine("isFound = (int)returnParameter.Value == 1;");
-            _tempText.AppendLine("            }");
-            _tempText.AppendLine("        }");
-            _tempText.AppendLine("    }");
-            _tempText.AppendLine(_CreateCatchBlockWithIsFound());
-            _tempText.AppendLine();
-            _tempText.AppendLine("    return isFound;");
-            _tempText.AppendLine("}");
+            _tempText.AppendLine($"=> clsDataAccessHelper.Exists(\"SP_Does{_tableSingleName}ExistByUsername\", \"Username\", username);");
         }
 
         private void _CreateExistsMethodForUsernameAndPassword()
         {
             _tempText.AppendLine();
             _tempText.AppendLine($"public static bool Exists(string username, string password)");
-            _tempText.AppendLine("{");
-            _tempText.AppendLine("    bool isFound = false;");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine("    try");
-            _tempText.AppendLine("    {");
-            _tempText.AppendLine($"        using ({_GetConnectionString()})");
-            _tempText.AppendLine("        {");
-            _tempText.AppendLine("            connection.Open();");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine($"            using (SqlCommand command = new SqlCommand(\"SP_Does{_tableSingleName}ExistByUsernameAndPassword\", connection))");
-            _tempText.AppendLine("            {");
-            _tempText.AppendLine("command.CommandType = CommandType.StoredProcedure;").AppendLine();
-            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@Username\", username);");
-            _tempText.AppendLine($"                command.Parameters.AddWithValue(\"@Password\", password);");
-            _tempText.AppendLine();
-            _tempText.AppendLine("// @ReturnVal could be any name, and we don't need to add it to the SP, just use it here in the code.");
-            _tempText.AppendLine("SqlParameter returnParameter = new SqlParameter(\"@ReturnVal\", SqlDbType.Int)");
-            _tempText.AppendLine("{").AppendLine("Direction = ParameterDirection.ReturnValue").AppendLine("};");
-            _tempText.AppendLine("command.Parameters.Add(returnParameter);");
-            _tempText.AppendLine();
-
-            _tempText.AppendLine("command.ExecuteNonQuery();");
-            _tempText.AppendLine();
-            _tempText.AppendLine("isFound = (int)returnParameter.Value == 1;");
-            _tempText.AppendLine("            }");
-            _tempText.AppendLine("        }");
-            _tempText.AppendLine("    }");
-            _tempText.AppendLine(_CreateCatchBlockWithIsFound());
-            _tempText.AppendLine();
-            _tempText.AppendLine("    return isFound;");
-            _tempText.AppendLine("}");
+            _tempText.AppendLine($"=> clsDataAccessHelper.Exists(\"SP_Does{_tableSingleName}ExistByUsernameAndPassword\", \"Username\", username, \"Password\", password);");
         }
 
         private void _CreateAllMethod()
         {
             _tempText.AppendLine();
             _tempText.AppendLine($"public static DataTable All()");
-            _tempText.AppendLine("{");
-            _tempText.AppendLine($"return clsDataAccessHelper.All(\"SP_GetAll{_tableName}\");");
-            _tempText.AppendLine("}");
+            _tempText.AppendLine($"=> clsDataAccessHelper.All(\"SP_GetAll{_tableName}\");");
         }
 
+        #region Data Access Helper Classes
         private void _CreateDataAccessSettingsClass()
         {
-            _tempText.Clear();
+            _tempText.Append($@"using System.Configuration;
 
-            _tempText.Append($"using System.Configuration;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{\r\n    static class clsDataAccessSettings\r\n    {{\r\n        public static string ConnectionString = ConfigurationManager.ConnectionStrings[\"ConnectionString\"].ConnectionString;\r\n    }}\r\n}}");
-
-            StringBuilder path = new StringBuilder();
-
-            path.Append(txtDataAccessPath.Text.Trim() + "clsDataAccessSettings.cs");
-
-            if (_isAdvancedMode)
-                _WriteToFile(path.ToString(), _tempText.ToString());
+namespace {comboDatabaseName.Text}DataAccess
+{{
+    static class clsDataAccessSettings
+    {{
+        public static string ConnectionString = ConfigurationManager.ConnectionStrings[""ConnectionString""].ConnectionString;
+    }}
+}}");
         }
 
         private void _CreateLogHandlerClass()
         {
-            _tempText.Clear();
+            _tempText.Append($@"using System;
+using System.Configuration;
+using System.Diagnostics;
 
-            _tempText.Append("using System;\r\n" +
-                             "using System.Configuration;\r\n" +
-                             "using System.Diagnostics;\r\n\r\n" +
-                             $"namespace {comboDatabaseName.Text}_DataAccess\r\n{{\r\n" +
-                             "public class clsLogHandler\r\n" +
-                             "{\r\n" +
-                             "public static void LogToEventViewer(string errorType, Exception ex)\r\n" +
-                             "{\r\n string sourceName = ConfigurationManager.AppSettings[\"ProjectName\"];\r\n\r\n" +
-                             "// Create the event source if it does not exist\r\n" +
-                             "if (!EventLog.SourceExists(sourceName))\r\n" +
-                             "{\r\n" +
-                             "EventLog.CreateEventSource(sourceName, \"Application\");\r\n" +
-                             "}\r\n\r\n" +
-                             "string errorMessage = $\"{errorType} in {ex.Source}\\n\\nException Message:\"" +
-                             " +\r\n$\" {ex.Message}\\n\\nException Type: {ex.GetType().Name}\\n\\nStack Trace:" +
-                             "\" +\r\n$\" {ex.StackTrace}\\n\\nException Location: " +
-                             "{ex.TargetSite}\";\r\n\r\n" +
-                             "// Log an error event\r\n" +
-                             "EventLog.WriteEntry(sourceName, errorMessage, EventLogEntryType.Error);\r\n" +
-                             "}\r\n}\r\n}");
+namespace {comboDatabaseName.Text}DataAccess
+{{
+    public class clsLogHandler
+    {{
+        public static void LogToEventViewer(string errorType, Exception ex)
+        {{
+            string sourceName = ConfigurationManager.AppSettings[""ProjectName""];
 
-            StringBuilder path = new StringBuilder();
+            // Create the event source if it does not exist
+            if (!EventLog.SourceExists(sourceName))
+            {{
+                EventLog.CreateEventSource(sourceName, ""Application"");
+            }}
 
-            path.Append(txtDataAccessPath.Text.Trim() + "clsLogHandler.cs");
+            string errorMessage = $""{{errorType}} in {{ex.Source}}\\n\\nException Message: {{ex.Message}}\\n\\nException Type: {{ex.GetType().Name}}\\n\\nStack Trace: {{ex.StackTrace}}\\n\\nException Location: {{ex.TargetSite}}"";
 
-            if (_isAdvancedMode)
-                _WriteToFile(path.ToString(), _tempText.ToString());
+            // Log an error event
+            EventLog.WriteEntry(sourceName, errorMessage, EventLogEntryType.Error);
+        }}
+    }}
+}}");
         }
 
         private void _CreateErrorLoggerClass()
         {
-            _tempText.Clear();
+            _tempText.Append($@"using System;
 
-            _tempText.Append("using System;\r\n\r\n" +
-                             $"namespace {comboDatabaseName.Text}_DataAccess\r\n{{\r\n" +
-                             "public class clsErrorLogger\r\n" +
-                             "{\r\n" +
-                             "private Action<string, Exception> _logAction;\r\n\r\n" +
-                             "public clsErrorLogger(Action<string, Exception> logAction)\r\n" +
-                             "{\r\n" +
-                             "_logAction = logAction;\r\n" +
-                             "}\r\n\r\n" +
-                             "public void LogError(string errorType, Exception ex)\r\n" +
-                             "{\r\n" +
-                             "_logAction?.Invoke(errorType, ex);\r\n" +
-                             "}\r\n}\r\n}");
+namespace {comboDatabaseName.Text}DataAccess
+{{
+    public class clsErrorLogger
+    {{
+        private Action<string, Exception> _logAction;
 
-            StringBuilder path = new StringBuilder();
+        public clsErrorLogger(Action<string, Exception> logAction)
+        {{
+            _logAction = logAction;
+        }}
 
-            path.Append(txtDataAccessPath.Text.Trim() + "clsErrorLogger.cs");
-
-            if (_isAdvancedMode)
-                _WriteToFile(path.ToString(), _tempText.ToString());
+        public void LogError(string errorType, Exception ex)
+        {{
+            _logAction?.Invoke(errorType, ex);
+        }}
+    }}
+}}");
         }
 
         private void _CreateClassesThatRelatedToLoggingErrors()
         {
             // Main class
-            _CreateErrorLoggerClass();
+            _CreateErrorLoggerClassToTheFile();
 
             // sub classes to handle where you want to log the errors
-            _CreateLogHandlerClass();
+            _CreateLogHandlerClassToTheFile();
         }
 
         private void _CreateCountMethodHelper()
@@ -1202,7 +1093,7 @@ namespace Code_Generator
             _tempText.AppendLine("}");
         }
 
-        private void _CreateAllMethodHelper()
+        private void _CreateAllMethodWithNoParameterHelper()
         {
             _tempText.AppendLine();
             _tempText.AppendLine("public static DataTable All(string storedProcedureName)");
@@ -1235,23 +1126,318 @@ namespace Code_Generator
             _tempText.AppendLine("}");
         }
 
+        private void _CreateAllMethodWithOneParameterHelper()
+        {
+            _tempText.Append($@"public static DataTable All<T>(string storedProcedureName, string parameterName, T value)
+{{
+    DataTable dt = new DataTable();
+
+    try
+    {{
+        using ({_GetConnectionString()})
+        {{
+            connection.Open();
+
+            using (SqlCommand command = new SqlCommand(storedProcedureName, connection))
+            {{
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.AddWithValue($""@{{parameterName}}"", (object)value ?? DBNull.Value);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {{
+                    if (reader.HasRows)
+                    {{
+                        dt.Load(reader);
+                    }}
+                }}
+            }}
+        }}
+    }}
+    {_CreateCatchBlockWithoutIsFound()}
+
+    return dt;
+}}");
+        }
+
+        private void _CreateAllMethodWithTwoParametersHelper()
+        {
+            _tempText.Append($@"public static DataTable All<T1, T2>(string storedProcedureName, string parameterName1, T1 value1, string parameterName2, T2 value2)
+{{
+    DataTable dt = new DataTable();
+
+    try
+    {{
+        using ({_GetConnectionString()})
+        {{
+            connection.Open();
+
+            using (SqlCommand command = new SqlCommand(storedProcedureName, connection))
+            {{
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.AddWithValue($""@{{parameterName1}}"", (object)value1 ?? DBNull.Value);
+                command.Parameters.AddWithValue($""@{{parameterName2}}"", (object)value2 ?? DBNull.Value);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {{
+                    if (reader.HasRows)
+                    {{
+                        dt.Load(reader);
+                    }}
+                }}
+            }}
+        }}
+    }}
+    {_CreateCatchBlockWithoutIsFound()}
+
+    return dt;
+}}");
+        }
+
+        private void _CreateAllMethodWithMoreTwoParametersHelper()
+        {
+            _tempText.Append($@"public static DataTable All<T>(string storedProcedureName, Dictionary<string, T> parameters)
+{{
+    DataTable dt = new DataTable();
+
+    try
+    {{
+        using ({_GetConnectionString()})
+        {{
+            connection.Open();
+
+            using (SqlCommand command = new SqlCommand(storedProcedureName, connection))
+            {{
+                command.CommandType = CommandType.StoredProcedure;
+
+                // Add parameters from the dictionary
+                if (parameters != null)
+                {{
+                    foreach (var parameter in parameters)
+                    {{
+                        command.Parameters.AddWithValue($""@{{parameter.Key}}"", (object)parameter.Value ?? DBNull.Value);
+                    }}
+                }}
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {{
+                    if (reader.HasRows)
+                    {{
+                        dt.Load(reader);
+                    }}
+                }}
+            }}
+        }}
+    }}
+    {_CreateCatchBlockWithoutIsFound()}
+
+    return dt;
+}}");
+        }
+
+        private void _CreateAllInPagesMethodHelper()
+        {
+            _tempText.Append($@"public static DataTable AllInPages(short pageNumber, int rowsPerPage, string storedProcedureName)
+{{
+    DataTable dt = new DataTable();
+
+    try
+    {{
+        using ({_GetConnectionString()})
+        {{
+            connection.Open();
+
+            using (SqlCommand command = new SqlCommand(storedProcedureName, connection))
+            {{
+                command.CommandType = CommandType.StoredProcedure;
+
+                // Add paging parameters to the command
+                command.Parameters.AddWithValue(""@PageNumber"", pageNumber);
+                command.Parameters.AddWithValue(""@RowsPerPage"", rowsPerPage);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {{
+                    if (reader.HasRows)
+                    {{
+                        dt.Load(reader);
+                    }}
+                }}
+            }}
+        }}
+    }}
+    {_CreateCatchBlockWithoutIsFound()}
+
+    return dt;
+}}");
+        }
+
+        private void _CreateHandleExceptionMethodHelper()
+        {
+            _tempText.Append($@"public static void HandleException(Exception ex)
+{{
+    if (ex is SqlException sqlEx)
+    {{
+        var loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+        loggerToEventViewer.LogError(""Database Exception"", sqlEx);
+    }}
+    else
+    {{
+        var loggerToEventViewer = new clsErrorLogger(clsLogHandler.LogToEventViewer);
+        loggerToEventViewer.LogError(""General Exception"", ex);
+    }}
+}}");
+        }
+
+        private void _CreateDeleteMethodHelper()
+        {
+            _tempText.Append($@"public static bool Delete<T>(string storedProcedureName, string parameterName, T value)
+{{
+    int rowAffected = 0;
+
+    try
+    {{
+        using ({_GetConnectionString()})
+        {{
+            connection.Open();
+
+            using (SqlCommand command = new SqlCommand(storedProcedureName, connection))
+            {{
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.AddWithValue($""@{{parameterName}}"", (object)value ?? DBNull.Value);
+
+                rowAffected = command.ExecuteNonQuery();
+            }}
+        }}
+    }}
+    {_CreateCatchBlockWithoutIsFound()}
+    
+    return rowAffected > 0;
+}}");
+        }
+
+        private void _CreateExistMethodWithOneParameterHelper()
+        {
+            _tempText.Append($@"public static bool Exists<T>(string storedProcedureName, string parameterName, T value)
+{{
+    bool isFound = false;
+
+    try
+    {{
+        using ({_GetConnectionString()})
+        {{
+            connection.Open();
+
+            using (SqlCommand command = new SqlCommand(storedProcedureName, connection))
+            {{
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.AddWithValue($""@{{parameterName}}"", (object)value ?? DBNull.Value);
+
+                var returnParameter = new SqlParameter(""@ReturnVal"", SqlDbType.Int)
+                {{
+                    Direction = ParameterDirection.ReturnValue
+                }};
+                command.Parameters.Add(returnParameter);
+
+                command.ExecuteNonQuery();
+
+                isFound = (int)returnParameter.Value == 1;
+            }}
+        }}
+    }}
+    {_CreateCatchBlockWithIsFound()}
+
+    return isFound;
+}}");
+        }
+
+        private void _CreateExistMethodWithTowParametersHelper()
+        {
+            _tempText.Append($@"public static bool Exists<T1, T2>(string storedProcedureName, string parameterName1, T1 value1, string parameterName2, T2 value2)
+{{
+    bool isFound = false;
+
+    try
+    {{
+        using ({_GetConnectionString()})
+        {{
+            connection.Open();
+
+            using (SqlCommand command = new SqlCommand(storedProcedureName, connection))
+            {{
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.AddWithValue($""@{{parameterName1}}"", (object)value1 ?? DBNull.Value);
+                command.Parameters.AddWithValue($""@{{parameterName2}}"", (object)value2 ?? DBNull.Value);
+
+                var returnParameter = new SqlParameter(""@ReturnVal"", SqlDbType.Int)
+                {{
+                    Direction = ParameterDirection.ReturnValue
+                }};
+                command.Parameters.Add(returnParameter);
+
+                command.ExecuteNonQuery();
+
+                isFound = (int)returnParameter.Value == 1;
+            }}
+        }}
+    }}
+    {_CreateCatchBlockWithIsFound()}
+
+    return isFound;
+}}");
+        }
+
         private void _CreateDataAccessHelperClass()
         {
             _tempText.AppendLine("using System;");
             _tempText.AppendLine("using System.Data;");
+            _tempText.AppendLine("using System.Collections.Generic;");
             _tempText.AppendLine("using System.Data.SqlClient;");
             _tempText.AppendLine();
 
-            _tempText.AppendLine($"namespace {comboDatabaseName.Text}_DataAccess");
+            _tempText.AppendLine($"namespace {comboDatabaseName.Text}DataAccess");
             _tempText.AppendLine("{");
             _tempText.AppendLine("    public static class clsDataAccessHelper");
             _tempText.AppendLine("    {");
 
+            // Generate Handle Exception method
+            _CreateHandleExceptionMethodHelper();
+
+            _tempText.AppendLine().AppendLine();
+
+            // Generate Delete method
+            _CreateDeleteMethodHelper();
+
+            _tempText.AppendLine().AppendLine();
+
+            // Generate Exist methods
+            _CreateExistMethodWithOneParameterHelper();
+            _tempText.AppendLine().AppendLine();
+            _CreateExistMethodWithTowParametersHelper();
+
+            _tempText.AppendLine();
+
             // Generate Count method
             _CreateCountMethodHelper();
 
-            // Generate GetAll method
-            _CreateAllMethodHelper();
+            // Generate GetAll methods
+            _CreateAllMethodWithNoParameterHelper();
+            _tempText.AppendLine();
+
+            _CreateAllMethodWithOneParameterHelper();
+            _tempText.AppendLine().AppendLine();
+
+            _CreateAllMethodWithTwoParametersHelper();
+            _tempText.AppendLine().AppendLine();
+
+            _CreateAllMethodWithMoreTwoParametersHelper();
+            _tempText.AppendLine().AppendLine();
+
+            _CreateAllInPagesMethodHelper();
+            _tempText.AppendLine().AppendLine();
 
             _tempText.AppendLine("    }");
             _tempText.AppendLine("}");
@@ -1270,6 +1456,51 @@ namespace Code_Generator
             if (_isAdvancedMode)
                 _WriteToFile(path.ToString(), _tempText.ToString());
         }
+
+        private void _CreateDataAccessSettingsClassToTheFile()
+        {
+            _tempText.Clear();
+
+            _CreateDataAccessSettingsClass();
+
+            StringBuilder path = new StringBuilder();
+
+            path.Append(txtDataAccessPath.Text.Trim() + "clsDataAccessSettings.cs");
+
+            if (_isAdvancedMode)
+                _WriteToFile(path.ToString(), _tempText.ToString());
+        }
+
+        private void _CreateErrorLoggerClassToTheFile()
+        {
+            _tempText.Clear();
+
+            _CreateErrorLoggerClass();
+
+            StringBuilder path = new StringBuilder();
+            path.Append(txtDataAccessPath.Text.Trim() + "clsErrorLogger.cs");
+
+            if (_isAdvancedMode)
+            {
+                _WriteToFile(path.ToString(), _tempText.ToString());
+            }
+        }
+
+        private void _CreateLogHandlerClassToTheFile()
+        {
+            _tempText.Clear();
+
+            _CreateLogHandlerClass();
+
+            StringBuilder path = new StringBuilder();
+            path.Append(txtDataAccessPath.Text.Trim() + "clsLogHandler.cs");
+
+            if (_isAdvancedMode)
+            {
+                _WriteToFile(path.ToString(), _tempText.ToString());
+            }
+        }
+        #endregion
 
         private void _DataAccessAsLoginInfo()
         {
@@ -1723,9 +1954,7 @@ namespace Code_Generator
             StringBuilder text = new StringBuilder();
 
             text.AppendLine($"public static bool Delete{_MakeParametersForDeleteMethod()}");
-            text.AppendLine("{");
-            text.AppendLine($"return cls{_tableSingleName}Data.Delete({_tableSingleName?.ToCamelCase()}ID);");
-            text.AppendLine("}");
+            text.AppendLine($"=> cls{_tableSingleName}Data.Delete({_tableSingleName?.ToCamelCase()}ID);");
 
             return text.ToString().Trim();
         }
@@ -1735,9 +1964,7 @@ namespace Code_Generator
             StringBuilder text = new StringBuilder();
 
             text.AppendLine($"public static bool Exists{_MakeParametersForDeleteMethod()}");
-            text.AppendLine("{");
-            text.AppendLine($"return cls{_tableSingleName}Data.Exists({_tableSingleName?.ToCamelCase()}ID);");
-            text.AppendLine("}");
+            text.AppendLine($"=> cls{_tableSingleName}Data.Exists({_tableSingleName?.ToCamelCase()}ID);");
 
             return text.ToString().Trim();
         }
@@ -1747,9 +1974,7 @@ namespace Code_Generator
             StringBuilder Text = new StringBuilder();
 
             Text.AppendLine($"public static DataTable All()");
-            Text.AppendLine("{");
-            Text.AppendLine($"return cls{_tableSingleName}Data.All();");
-            Text.AppendLine("}");
+            Text.AppendLine($"=> cls{_tableSingleName}Data.All();");
 
             return Text.ToString().Trim();
         }
@@ -2032,9 +2257,7 @@ namespace Code_Generator
             StringBuilder Text = new StringBuilder();
 
             Text.AppendLine($"public static bool Exists(string username)")
-                .AppendLine("{")
-                .AppendLine($"    return cls{_tableSingleName}Data.Exists(username);")
-                .AppendLine("}");
+                .AppendLine($"=> cls{_tableSingleName}Data.Exists(username);");
 
             return Text.ToString().Trim();
         }
@@ -2044,9 +2267,7 @@ namespace Code_Generator
             StringBuilder Text = new StringBuilder();
 
             Text.AppendLine($"public static bool Exists(string username, string password)")
-                .AppendLine("{")
-                .AppendLine($"    return cls{_tableSingleName}Data.Exists(username, password);")
-                .AppendLine("}");
+                .AppendLine($"=> cls{_tableSingleName}Data.Exists(username, password);");
 
             return Text.ToString().Trim();
         }
@@ -2464,6 +2685,17 @@ namespace Code_Generator
 
         private void btnShowDateAccessLayer_Click(object sender, EventArgs e)
         {
+            if (!_isAdvancedMode &&
+                MessageBox.Show(
+                "Please ensure you've added all the necessary helper classes to your data access layer to prevent compilation errors. Would you like to proceed?",
+                "Confirm Action",
+                MessageBoxButtons.OKCancel,
+                MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button2) == DialogResult.Cancel)
+            {
+                return;
+            }
+
             if (int.Parse(lblNumberOfColumnsRecords.Text) <= 0)
             {
                 MessageBox.Show("You have to select a column at least!", "Miss Data",
@@ -2473,10 +2705,7 @@ namespace Code_Generator
             {
                 _tempText = new StringBuilder();
 
-                if (_isAdvancedMode)
-                {
-                    _tempText.AppendLine($"using System;\r\nusing System.Data;\r\nusing System.Data.SqlClient;\r\n\r\nnamespace {comboDatabaseName.Text}_DataAccess\r\n{{");
-                }
+                _tempText.AppendLine($"using System;\r\nusing System.Data;\r\nusing System.Data.SqlClient;\r\n\r\nnamespace {comboDatabaseName.Text}DataAccess\r\n{{");
 
                 txtData.Clear();
 
@@ -2495,10 +2724,8 @@ namespace Code_Generator
 
                 _tempText.Append("}");
 
-                if (_isAdvancedMode)
-                {
-                    _tempText.Append("\n}");
-                }
+
+                _tempText.Append("\n}");
 
                 txtData.Text = _tempText.ToString();
             }
@@ -2515,19 +2742,13 @@ namespace Code_Generator
             {
                 _tempText = new StringBuilder();
 
-                if (_isAdvancedMode)
-                {
-                    _tempText.AppendLine($"using {comboDatabaseName.Text}_DataAccess;\r\nusing System;\r\nusing System.Data;\r\n\r\nnamespace {comboDatabaseName.Text}_Business\r\n{{");
-                }
+                _tempText.AppendLine($"using {comboDatabaseName.Text}DataAccess;\r\nusing System;\r\nusing System.Data;\r\n\r\nnamespace {comboDatabaseName.Text}Business\r\n{{");
 
                 txtData.Clear();
 
                 _CreateBusinessLayer();
 
-                if (_isAdvancedMode)
-                {
-                    _tempText.Append("\n}");
-                }
+                _tempText.Append("\n}");
 
                 txtData.Text = _tempText.ToString();
             }
@@ -2659,7 +2880,7 @@ namespace Code_Generator
                           );
 
             // common classes for all tables
-            _CreateDataAccessSettingsClass();
+            _CreateDataAccessSettingsClassToTheFile();
             _CreateClassesThatRelatedToLoggingErrors();
             _CreateDataAccessHelperClassToTheFile();
 
@@ -2730,6 +2951,26 @@ namespace Code_Generator
             MessageBox.Show("App.config created successfully.");
 
             txtAppConfigPath.Clear();
+        }
+
+        private void btnGenerateDataAccessSettings_Click(object sender, EventArgs e)
+        {
+            _GenerateHelperClasses(() => _CreateDataAccessSettingsClass());
+        }
+
+        private void btnGenerateErrorLogger_Click(object sender, EventArgs e)
+        {
+            _GenerateHelperClasses(() => _CreateErrorLoggerClass());
+        }
+
+        private void GenerateLogHandler_Click(object sender, EventArgs e)
+        {
+            _GenerateHelperClasses(() => _CreateLogHandlerClass());
+        }
+
+        private void btnGenerateDataAccessHelper_Click(object sender, EventArgs e)
+        {
+            _GenerateHelperClasses(() => _CreateDataAccessHelperClass());
         }
     }
 }
