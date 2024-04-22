@@ -2,7 +2,7 @@
 using System.Configuration;
 using System.Diagnostics;
 
-namespace CodeGenerator_DataAccess
+namespace CodeGeneratorDataAccess
 {
     public class clsLogHandler
     {

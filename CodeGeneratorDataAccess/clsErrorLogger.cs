@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CodeGenerator_DataAccess
+namespace CodeGeneratorDataAccess
 {
     public class clsErrorLogger
     {

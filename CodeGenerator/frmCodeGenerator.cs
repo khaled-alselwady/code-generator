@@ -1,5 +1,5 @@
 ﻿using Code_Generator.Extensions;
-using CodeGenerator_Business;
+using CodeGeneratorBusiness;
 using System;
 using System.Data;
 using System.IO;

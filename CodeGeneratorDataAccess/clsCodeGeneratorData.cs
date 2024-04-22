@@ -2,7 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 
-namespace CodeGenerator_DataAccess
+namespace CodeGeneratorDataAccess
 {
     public class clsCodeGeneratorData
     {

@@ -1,7 +1,7 @@
-﻿using CodeGenerator_DataAccess;
+﻿using CodeGeneratorDataAccess;
 using System.Data;
 
-namespace CodeGenerator_Business
+namespace CodeGeneratorBusiness
 {
     public class clsCodeGenerator
     {
