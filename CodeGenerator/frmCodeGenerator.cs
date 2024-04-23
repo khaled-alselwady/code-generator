@@ -286,7 +286,7 @@ namespace Code_Generator
             else
             {
                 txtData.Text = clsGenerateStoredProcedures
-                                .Generate(_columnsInfoForStoredProcedure, comboDatabaseName.Text);
+                                .Generate(_columnsInfoForStoredProcedure, comboDatabaseName.Text, _tableName);
             }
         }
 

@@ -37,9 +37,15 @@
             this.label5 = new System.Windows.Forms.Label();
             this.tcMode = new Guna.UI2.WinForms.Guna2TabControl();
             this.tbNormal = new System.Windows.Forms.TabPage();
+            this.guna2GroupBox5 = new Guna.UI2.WinForms.Guna2GroupBox();
+            this.btnGenerateDataAccessHelper = new Guna.UI2.WinForms.Guna2GradientButton();
+            this.GenerateLogHandler = new Guna.UI2.WinForms.Guna2GradientButton();
+            this.btnGenerateErrorLogger = new Guna.UI2.WinForms.Guna2GradientButton();
+            this.btnGenerateDataAccessSettings = new Guna.UI2.WinForms.Guna2GradientButton();
             this.btnGenerateStoredProcedure = new Guna.UI2.WinForms.Guna2GradientButton();
             this.btnCopy = new Guna.UI2.WinForms.Guna2GradientButton();
             this.btnGenerateDateAccessLayer = new Guna.UI2.WinForms.Guna2GradientButton();
+            this.btnGenerateBusinessLayer = new Guna.UI2.WinForms.Guna2GradientButton();
             this.txtData = new System.Windows.Forms.TextBox();
             this.lblNumberOfColumnsRecords = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -65,20 +71,14 @@
             this.btnGenerateDataAccess = new Guna.UI2.WinForms.Guna2GradientButton();
             this.label2 = new System.Windows.Forms.Label();
             this.comboDatabaseName = new Guna.UI2.WinForms.Guna2ComboBox();
-            this.guna2GroupBox5 = new Guna.UI2.WinForms.Guna2GroupBox();
-            this.btnGenerateBusinessLayer = new Guna.UI2.WinForms.Guna2GradientButton();
-            this.btnGenerateDataAccessSettings = new Guna.UI2.WinForms.Guna2GradientButton();
-            this.btnGenerateErrorLogger = new Guna.UI2.WinForms.Guna2GradientButton();
-            this.GenerateLogHandler = new Guna.UI2.WinForms.Guna2GradientButton();
-            this.btnGenerateDataAccessHelper = new Guna.UI2.WinForms.Guna2GradientButton();
             this.tcMode.SuspendLayout();
             this.tbNormal.SuspendLayout();
+            this.guna2GroupBox5.SuspendLayout();
             this.tbAdvanced.SuspendLayout();
             this.guna2GroupBox4.SuspendLayout();
             this.guna2GroupBox3.SuspendLayout();
             this.guna2GroupBox2.SuspendLayout();
             this.guna2GroupBox1.SuspendLayout();
-            this.guna2GroupBox5.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -87,7 +87,7 @@
             this.label1.ForeColor = System.Drawing.Color.MediumBlue;
             this.label1.Location = new System.Drawing.Point(1, 1);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(1582, 58);
+            this.label1.Size = new System.Drawing.Size(1515, 58);
             this.label1.TabIndex = 0;
             this.label1.Text = "Code Generator";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -99,7 +99,7 @@
             this.btnReset.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnReset.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnReset.ForeColor = System.Drawing.Color.OrangeRed;
-            this.btnReset.Location = new System.Drawing.Point(2, 894);
+            this.btnReset.Location = new System.Drawing.Point(2, 754);
             this.btnReset.Name = "btnReset";
             this.btnReset.Size = new System.Drawing.Size(75, 39);
             this.btnReset.TabIndex = 13;
@@ -110,11 +110,11 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label3.ForeColor = System.Drawing.Color.Black;
             this.label3.Location = new System.Drawing.Point(8, 59);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(129, 20);
+            this.label3.Size = new System.Drawing.Size(135, 21);
             this.label3.TabIndex = 12;
             this.label3.Text = "Database Name:";
             // 
@@ -129,9 +129,9 @@
             this.listviewTablesName.GridLines = true;
             this.listviewTablesName.HideSelection = false;
             this.listviewTablesName.LabelEdit = true;
-            this.listviewTablesName.Location = new System.Drawing.Point(82, 132);
+            this.listviewTablesName.Location = new System.Drawing.Point(18, 147);
             this.listviewTablesName.Name = "listviewTablesName";
-            this.listviewTablesName.Size = new System.Drawing.Size(231, 600);
+            this.listviewTablesName.Size = new System.Drawing.Size(231, 538);
             this.listviewTablesName.TabIndex = 15;
             this.listviewTablesName.UseCompatibleStateImageBehavior = false;
             this.listviewTablesName.View = System.Windows.Forms.View.Details;
@@ -147,7 +147,7 @@
             this.lblNumberOfTablesRecords.AutoSize = true;
             this.lblNumberOfTablesRecords.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblNumberOfTablesRecords.ForeColor = System.Drawing.Color.Fuchsia;
-            this.lblNumberOfTablesRecords.Location = new System.Drawing.Point(233, 735);
+            this.lblNumberOfTablesRecords.Location = new System.Drawing.Point(176, 694);
             this.lblNumberOfTablesRecords.Name = "lblNumberOfTablesRecords";
             this.lblNumberOfTablesRecords.Size = new System.Drawing.Size(20, 24);
             this.lblNumberOfTablesRecords.TabIndex = 17;
@@ -157,7 +157,7 @@
             // 
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(78, 736);
+            this.label5.Location = new System.Drawing.Point(14, 694);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(158, 20);
             this.label5.TabIndex = 16;
@@ -168,10 +168,10 @@
             this.tcMode.Controls.Add(this.tbNormal);
             this.tcMode.Controls.Add(this.tbAdvanced);
             this.tcMode.ItemSize = new System.Drawing.Size(180, 40);
-            this.tcMode.Location = new System.Drawing.Point(383, 88);
+            this.tcMode.Location = new System.Drawing.Point(296, 88);
             this.tcMode.Name = "tcMode";
             this.tcMode.SelectedIndex = 0;
-            this.tcMode.Size = new System.Drawing.Size(1190, 845);
+            this.tcMode.Size = new System.Drawing.Size(1212, 695);
             this.tcMode.TabButtonHoverState.BorderColor = System.Drawing.Color.Empty;
             this.tcMode.TabButtonHoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(52)))), ((int)(((byte)(70)))));
             this.tcMode.TabButtonHoverState.Font = new System.Drawing.Font("Segoe UI Semibold", 10F);
@@ -209,9 +209,96 @@
             this.tbNormal.Location = new System.Drawing.Point(4, 44);
             this.tbNormal.Name = "tbNormal";
             this.tbNormal.Padding = new System.Windows.Forms.Padding(3);
-            this.tbNormal.Size = new System.Drawing.Size(1182, 797);
+            this.tbNormal.Size = new System.Drawing.Size(1204, 647);
             this.tbNormal.TabIndex = 0;
             this.tbNormal.Text = "Normal";
+            // 
+            // guna2GroupBox5
+            // 
+            this.guna2GroupBox5.BorderColor = System.Drawing.Color.Gray;
+            this.guna2GroupBox5.Controls.Add(this.btnGenerateDataAccessHelper);
+            this.guna2GroupBox5.Controls.Add(this.GenerateLogHandler);
+            this.guna2GroupBox5.Controls.Add(this.btnGenerateErrorLogger);
+            this.guna2GroupBox5.Controls.Add(this.btnGenerateDataAccessSettings);
+            this.guna2GroupBox5.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.guna2GroupBox5.ForeColor = System.Drawing.Color.Black;
+            this.guna2GroupBox5.Location = new System.Drawing.Point(497, 397);
+            this.guna2GroupBox5.Name = "guna2GroupBox5";
+            this.guna2GroupBox5.Size = new System.Drawing.Size(699, 155);
+            this.guna2GroupBox5.TabIndex = 35;
+            this.guna2GroupBox5.Text = "Helper Classes For Data Access Layer";
+            // 
+            // btnGenerateDataAccessHelper
+            // 
+            this.btnGenerateDataAccessHelper.Animated = true;
+            this.btnGenerateDataAccessHelper.BorderRadius = 22;
+            this.btnGenerateDataAccessHelper.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateDataAccessHelper.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateDataAccessHelper.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateDataAccessHelper.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateDataAccessHelper.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.btnGenerateDataAccessHelper.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnGenerateDataAccessHelper.ForeColor = System.Drawing.Color.White;
+            this.btnGenerateDataAccessHelper.Location = new System.Drawing.Point(13, 98);
+            this.btnGenerateDataAccessHelper.Name = "btnGenerateDataAccessHelper";
+            this.btnGenerateDataAccessHelper.Size = new System.Drawing.Size(327, 45);
+            this.btnGenerateDataAccessHelper.TabIndex = 34;
+            this.btnGenerateDataAccessHelper.Text = "Generate Data Access Helper";
+            this.btnGenerateDataAccessHelper.Click += new System.EventHandler(this.btnGenerateDataAccessHelper_Click);
+            // 
+            // GenerateLogHandler
+            // 
+            this.GenerateLogHandler.Animated = true;
+            this.GenerateLogHandler.BorderRadius = 22;
+            this.GenerateLogHandler.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.GenerateLogHandler.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.GenerateLogHandler.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.GenerateLogHandler.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.GenerateLogHandler.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.GenerateLogHandler.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.GenerateLogHandler.ForeColor = System.Drawing.Color.White;
+            this.GenerateLogHandler.Location = new System.Drawing.Point(360, 98);
+            this.GenerateLogHandler.Name = "GenerateLogHandler";
+            this.GenerateLogHandler.Size = new System.Drawing.Size(327, 45);
+            this.GenerateLogHandler.TabIndex = 33;
+            this.GenerateLogHandler.Text = "Generate Log Handler";
+            this.GenerateLogHandler.Click += new System.EventHandler(this.GenerateLogHandler_Click);
+            // 
+            // btnGenerateErrorLogger
+            // 
+            this.btnGenerateErrorLogger.Animated = true;
+            this.btnGenerateErrorLogger.BorderRadius = 22;
+            this.btnGenerateErrorLogger.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateErrorLogger.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateErrorLogger.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateErrorLogger.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateErrorLogger.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.btnGenerateErrorLogger.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnGenerateErrorLogger.ForeColor = System.Drawing.Color.White;
+            this.btnGenerateErrorLogger.Location = new System.Drawing.Point(360, 47);
+            this.btnGenerateErrorLogger.Name = "btnGenerateErrorLogger";
+            this.btnGenerateErrorLogger.Size = new System.Drawing.Size(327, 45);
+            this.btnGenerateErrorLogger.TabIndex = 32;
+            this.btnGenerateErrorLogger.Text = "Generate Error Logger";
+            this.btnGenerateErrorLogger.Click += new System.EventHandler(this.btnGenerateErrorLogger_Click);
+            // 
+            // btnGenerateDataAccessSettings
+            // 
+            this.btnGenerateDataAccessSettings.Animated = true;
+            this.btnGenerateDataAccessSettings.BorderRadius = 22;
+            this.btnGenerateDataAccessSettings.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateDataAccessSettings.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateDataAccessSettings.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateDataAccessSettings.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateDataAccessSettings.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.btnGenerateDataAccessSettings.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnGenerateDataAccessSettings.ForeColor = System.Drawing.Color.White;
+            this.btnGenerateDataAccessSettings.Location = new System.Drawing.Point(13, 47);
+            this.btnGenerateDataAccessSettings.Name = "btnGenerateDataAccessSettings";
+            this.btnGenerateDataAccessSettings.Size = new System.Drawing.Size(327, 45);
+            this.btnGenerateDataAccessSettings.TabIndex = 31;
+            this.btnGenerateDataAccessSettings.Text = "Generate Data Access Settings";
+            this.btnGenerateDataAccessSettings.Click += new System.EventHandler(this.btnGenerateDataAccessSettings_Click);
             // 
             // btnGenerateStoredProcedure
             // 
@@ -224,7 +311,7 @@
             this.btnGenerateStoredProcedure.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
             this.btnGenerateStoredProcedure.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnGenerateStoredProcedure.ForeColor = System.Drawing.Color.White;
-            this.btnGenerateStoredProcedure.Location = new System.Drawing.Point(858, 684);
+            this.btnGenerateStoredProcedure.Location = new System.Drawing.Point(716, 594);
             this.btnGenerateStoredProcedure.Name = "btnGenerateStoredProcedure";
             this.btnGenerateStoredProcedure.Size = new System.Drawing.Size(304, 45);
             this.btnGenerateStoredProcedure.TabIndex = 33;
@@ -242,7 +329,7 @@
             this.btnCopy.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
             this.btnCopy.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCopy.ForeColor = System.Drawing.Color.White;
-            this.btnCopy.Location = new System.Drawing.Point(1069, 748);
+            this.btnCopy.Location = new System.Drawing.Point(1088, 596);
             this.btnCopy.Name = "btnCopy";
             this.btnCopy.Size = new System.Drawing.Size(109, 45);
             this.btnCopy.TabIndex = 32;
@@ -260,23 +347,41 @@
             this.btnGenerateDateAccessLayer.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
             this.btnGenerateDateAccessLayer.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold);
             this.btnGenerateDateAccessLayer.ForeColor = System.Drawing.Color.White;
-            this.btnGenerateDateAccessLayer.Location = new System.Drawing.Point(858, 582);
+            this.btnGenerateDateAccessLayer.Location = new System.Drawing.Point(35, 594);
             this.btnGenerateDateAccessLayer.Name = "btnGenerateDateAccessLayer";
             this.btnGenerateDateAccessLayer.Size = new System.Drawing.Size(304, 45);
             this.btnGenerateDateAccessLayer.TabIndex = 31;
             this.btnGenerateDateAccessLayer.Text = "Generate Data Access Layer";
             this.btnGenerateDateAccessLayer.Click += new System.EventHandler(this.btnShowDateAccessLayer_Click);
             // 
+            // btnGenerateBusinessLayer
+            // 
+            this.btnGenerateBusinessLayer.Animated = true;
+            this.btnGenerateBusinessLayer.BorderRadius = 22;
+            this.btnGenerateBusinessLayer.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateBusinessLayer.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.btnGenerateBusinessLayer.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateBusinessLayer.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnGenerateBusinessLayer.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.btnGenerateBusinessLayer.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnGenerateBusinessLayer.ForeColor = System.Drawing.Color.White;
+            this.btnGenerateBusinessLayer.Location = new System.Drawing.Point(373, 594);
+            this.btnGenerateBusinessLayer.Name = "btnGenerateBusinessLayer";
+            this.btnGenerateBusinessLayer.Size = new System.Drawing.Size(304, 45);
+            this.btnGenerateBusinessLayer.TabIndex = 30;
+            this.btnGenerateBusinessLayer.Text = "Generate Business Layer";
+            this.btnGenerateBusinessLayer.Click += new System.EventHandler(this.btnShowBusinessLayer_Click);
+            // 
             // txtData
             // 
             this.txtData.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtData.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtData.Location = new System.Drawing.Point(500, 14);
+            this.txtData.Location = new System.Drawing.Point(497, 14);
             this.txtData.Multiline = true;
             this.txtData.Name = "txtData";
             this.txtData.ReadOnly = true;
             this.txtData.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtData.Size = new System.Drawing.Size(643, 502);
+            this.txtData.Size = new System.Drawing.Size(699, 377);
             this.txtData.TabIndex = 29;
             // 
             // lblNumberOfColumnsRecords
@@ -284,7 +389,7 @@
             this.lblNumberOfColumnsRecords.AutoSize = true;
             this.lblNumberOfColumnsRecords.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblNumberOfColumnsRecords.ForeColor = System.Drawing.Color.Fuchsia;
-            this.lblNumberOfColumnsRecords.Location = new System.Drawing.Point(180, 521);
+            this.lblNumberOfColumnsRecords.Location = new System.Drawing.Point(180, 557);
             this.lblNumberOfColumnsRecords.Name = "lblNumberOfColumnsRecords";
             this.lblNumberOfColumnsRecords.Size = new System.Drawing.Size(20, 24);
             this.lblNumberOfColumnsRecords.TabIndex = 28;
@@ -294,7 +399,7 @@
             // 
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(6, 522);
+            this.label6.Location = new System.Drawing.Point(6, 558);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(173, 20);
             this.label6.TabIndex = 27;
@@ -315,7 +420,7 @@
             this.listviewColumnsInfo.LabelEdit = true;
             this.listviewColumnsInfo.Location = new System.Drawing.Point(10, 14);
             this.listviewColumnsInfo.Name = "listviewColumnsInfo";
-            this.listviewColumnsInfo.Size = new System.Drawing.Size(474, 502);
+            this.listviewColumnsInfo.Size = new System.Drawing.Size(474, 538);
             this.listviewColumnsInfo.TabIndex = 26;
             this.listviewColumnsInfo.UseCompatibleStateImageBehavior = false;
             this.listviewColumnsInfo.View = System.Windows.Forms.View.Details;
@@ -353,7 +458,7 @@
             this.tbAdvanced.Location = new System.Drawing.Point(4, 44);
             this.tbAdvanced.Name = "tbAdvanced";
             this.tbAdvanced.Padding = new System.Windows.Forms.Padding(3);
-            this.tbAdvanced.Size = new System.Drawing.Size(1182, 797);
+            this.tbAdvanced.Size = new System.Drawing.Size(1204, 647);
             this.tbAdvanced.TabIndex = 1;
             this.tbAdvanced.Text = "Advanced";
             // 
@@ -363,11 +468,11 @@
             this.guna2GroupBox4.Controls.Add(this.txtAppConfigPath);
             this.guna2GroupBox4.Controls.Add(this.btnGenerateAppConfig);
             this.guna2GroupBox4.Controls.Add(this.label7);
-            this.guna2GroupBox4.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.guna2GroupBox4.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.guna2GroupBox4.ForeColor = System.Drawing.Color.Black;
-            this.guna2GroupBox4.Location = new System.Drawing.Point(6, 415);
+            this.guna2GroupBox4.Location = new System.Drawing.Point(18, 348);
             this.guna2GroupBox4.Name = "guna2GroupBox4";
-            this.guna2GroupBox4.Size = new System.Drawing.Size(1164, 185);
+            this.guna2GroupBox4.Size = new System.Drawing.Size(1164, 152);
             this.guna2GroupBox4.TabIndex = 28;
             this.guna2GroupBox4.Text = "App.config";
             // 
@@ -378,7 +483,7 @@
             this.txtAppConfigPath.Location = new System.Drawing.Point(55, 54);
             this.txtAppConfigPath.Multiline = true;
             this.txtAppConfigPath.Name = "txtAppConfigPath";
-            this.txtAppConfigPath.Size = new System.Drawing.Size(1096, 71);
+            this.txtAppConfigPath.Size = new System.Drawing.Size(1096, 32);
             this.txtAppConfigPath.TabIndex = 24;
             // 
             // btnGenerateAppConfig
@@ -392,7 +497,7 @@
             this.btnGenerateAppConfig.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
             this.btnGenerateAppConfig.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold);
             this.btnGenerateAppConfig.ForeColor = System.Drawing.Color.White;
-            this.btnGenerateAppConfig.Location = new System.Drawing.Point(967, 135);
+            this.btnGenerateAppConfig.Location = new System.Drawing.Point(967, 97);
             this.btnGenerateAppConfig.Name = "btnGenerateAppConfig";
             this.btnGenerateAppConfig.Size = new System.Drawing.Size(188, 43);
             this.btnGenerateAppConfig.TabIndex = 25;
@@ -402,11 +507,11 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label7.ForeColor = System.Drawing.Color.Black;
             this.label7.Location = new System.Drawing.Point(3, 51);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(43, 21);
+            this.label7.Size = new System.Drawing.Size(46, 21);
             this.label7.TabIndex = 23;
             this.label7.Text = "Path:";
             // 
@@ -415,11 +520,11 @@
             this.guna2GroupBox3.BorderColor = System.Drawing.Color.Gainsboro;
             this.guna2GroupBox3.Controls.Add(this.btnGenerateStoredProceduresToAllTables);
             this.guna2GroupBox3.Controls.Add(this.brnGenerateStoredProceduresToSelectedTable);
-            this.guna2GroupBox3.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.guna2GroupBox3.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.guna2GroupBox3.ForeColor = System.Drawing.Color.Black;
-            this.guna2GroupBox3.Location = new System.Drawing.Point(6, 626);
+            this.guna2GroupBox3.Location = new System.Drawing.Point(18, 516);
             this.guna2GroupBox3.Name = "guna2GroupBox3";
-            this.guna2GroupBox3.Size = new System.Drawing.Size(1164, 126);
+            this.guna2GroupBox3.Size = new System.Drawing.Size(1164, 113);
             this.guna2GroupBox3.TabIndex = 28;
             this.guna2GroupBox3.Text = "Stored Procedures";
             // 
@@ -434,7 +539,7 @@
             this.btnGenerateStoredProceduresToAllTables.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
             this.btnGenerateStoredProceduresToAllTables.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold);
             this.btnGenerateStoredProceduresToAllTables.ForeColor = System.Drawing.Color.White;
-            this.btnGenerateStoredProceduresToAllTables.Location = new System.Drawing.Point(688, 71);
+            this.btnGenerateStoredProceduresToAllTables.Location = new System.Drawing.Point(688, 56);
             this.btnGenerateStoredProceduresToAllTables.Name = "btnGenerateStoredProceduresToAllTables";
             this.btnGenerateStoredProceduresToAllTables.Size = new System.Drawing.Size(375, 43);
             this.btnGenerateStoredProceduresToAllTables.TabIndex = 26;
@@ -452,7 +557,7 @@
             this.brnGenerateStoredProceduresToSelectedTable.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
             this.brnGenerateStoredProceduresToSelectedTable.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold);
             this.brnGenerateStoredProceduresToSelectedTable.ForeColor = System.Drawing.Color.White;
-            this.brnGenerateStoredProceduresToSelectedTable.Location = new System.Drawing.Point(160, 71);
+            this.brnGenerateStoredProceduresToSelectedTable.Location = new System.Drawing.Point(160, 56);
             this.brnGenerateStoredProceduresToSelectedTable.Name = "brnGenerateStoredProceduresToSelectedTable";
             this.brnGenerateStoredProceduresToSelectedTable.Size = new System.Drawing.Size(375, 43);
             this.brnGenerateStoredProceduresToSelectedTable.TabIndex = 25;
@@ -465,11 +570,11 @@
             this.guna2GroupBox2.Controls.Add(this.txtBusinessPath);
             this.guna2GroupBox2.Controls.Add(this.btnGenerateBusiness);
             this.guna2GroupBox2.Controls.Add(this.label4);
-            this.guna2GroupBox2.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.guna2GroupBox2.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.guna2GroupBox2.ForeColor = System.Drawing.Color.Black;
-            this.guna2GroupBox2.Location = new System.Drawing.Point(6, 207);
+            this.guna2GroupBox2.Location = new System.Drawing.Point(18, 179);
             this.guna2GroupBox2.Name = "guna2GroupBox2";
-            this.guna2GroupBox2.Size = new System.Drawing.Size(1164, 185);
+            this.guna2GroupBox2.Size = new System.Drawing.Size(1164, 151);
             this.guna2GroupBox2.TabIndex = 27;
             this.guna2GroupBox2.Text = "Business Layer";
             // 
@@ -480,7 +585,7 @@
             this.txtBusinessPath.Location = new System.Drawing.Point(55, 54);
             this.txtBusinessPath.Multiline = true;
             this.txtBusinessPath.Name = "txtBusinessPath";
-            this.txtBusinessPath.Size = new System.Drawing.Size(1096, 71);
+            this.txtBusinessPath.Size = new System.Drawing.Size(1096, 32);
             this.txtBusinessPath.TabIndex = 24;
             // 
             // btnGenerateBusiness
@@ -494,7 +599,7 @@
             this.btnGenerateBusiness.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
             this.btnGenerateBusiness.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold);
             this.btnGenerateBusiness.ForeColor = System.Drawing.Color.White;
-            this.btnGenerateBusiness.Location = new System.Drawing.Point(967, 135);
+            this.btnGenerateBusiness.Location = new System.Drawing.Point(967, 98);
             this.btnGenerateBusiness.Name = "btnGenerateBusiness";
             this.btnGenerateBusiness.Size = new System.Drawing.Size(188, 43);
             this.btnGenerateBusiness.TabIndex = 25;
@@ -504,11 +609,11 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.ForeColor = System.Drawing.Color.Black;
             this.label4.Location = new System.Drawing.Point(3, 51);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(43, 21);
+            this.label4.Size = new System.Drawing.Size(46, 21);
             this.label4.TabIndex = 23;
             this.label4.Text = "Path:";
             // 
@@ -518,11 +623,11 @@
             this.guna2GroupBox1.Controls.Add(this.txtDataAccessPath);
             this.guna2GroupBox1.Controls.Add(this.btnGenerateDataAccess);
             this.guna2GroupBox1.Controls.Add(this.label2);
-            this.guna2GroupBox1.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.guna2GroupBox1.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.guna2GroupBox1.ForeColor = System.Drawing.Color.Black;
-            this.guna2GroupBox1.Location = new System.Drawing.Point(6, 6);
+            this.guna2GroupBox1.Location = new System.Drawing.Point(18, 9);
             this.guna2GroupBox1.Name = "guna2GroupBox1";
-            this.guna2GroupBox1.Size = new System.Drawing.Size(1164, 185);
+            this.guna2GroupBox1.Size = new System.Drawing.Size(1164, 154);
             this.guna2GroupBox1.TabIndex = 26;
             this.guna2GroupBox1.Text = "Data Access Layer";
             // 
@@ -533,7 +638,7 @@
             this.txtDataAccessPath.Location = new System.Drawing.Point(55, 54);
             this.txtDataAccessPath.Multiline = true;
             this.txtDataAccessPath.Name = "txtDataAccessPath";
-            this.txtDataAccessPath.Size = new System.Drawing.Size(1096, 71);
+            this.txtDataAccessPath.Size = new System.Drawing.Size(1096, 32);
             this.txtDataAccessPath.TabIndex = 24;
             // 
             // btnGenerateDataAccess
@@ -547,7 +652,7 @@
             this.btnGenerateDataAccess.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
             this.btnGenerateDataAccess.Font = new System.Drawing.Font("Tahoma", 15.75F, System.Drawing.FontStyle.Bold);
             this.btnGenerateDataAccess.ForeColor = System.Drawing.Color.White;
-            this.btnGenerateDataAccess.Location = new System.Drawing.Point(967, 135);
+            this.btnGenerateDataAccess.Location = new System.Drawing.Point(967, 100);
             this.btnGenerateDataAccess.Name = "btnGenerateDataAccess";
             this.btnGenerateDataAccess.Size = new System.Drawing.Size(188, 43);
             this.btnGenerateDataAccess.TabIndex = 25;
@@ -557,11 +662,11 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.ForeColor = System.Drawing.Color.Black;
             this.label2.Location = new System.Drawing.Point(3, 51);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(43, 21);
+            this.label2.Size = new System.Drawing.Size(46, 21);
             this.label2.TabIndex = 23;
             this.label2.Text = "Path:";
             // 
@@ -579,122 +684,18 @@
             this.comboDatabaseName.ItemHeight = 30;
             this.comboDatabaseName.Location = new System.Drawing.Point(12, 80);
             this.comboDatabaseName.Name = "comboDatabaseName";
-            this.comboDatabaseName.Size = new System.Drawing.Size(301, 36);
+            this.comboDatabaseName.Size = new System.Drawing.Size(237, 36);
             this.comboDatabaseName.TabIndex = 27;
             this.comboDatabaseName.SelectedIndexChanged += new System.EventHandler(this.comboDatabaseName_SelectedIndexChanged);
             this.comboDatabaseName.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.comboDatabaseName_KeyPress);
             this.comboDatabaseName.MouseDown += new System.Windows.Forms.MouseEventHandler(this.comboDatabaseName_MouseDown);
-            // 
-            // guna2GroupBox5
-            // 
-            this.guna2GroupBox5.Controls.Add(this.btnGenerateDataAccessHelper);
-            this.guna2GroupBox5.Controls.Add(this.GenerateLogHandler);
-            this.guna2GroupBox5.Controls.Add(this.btnGenerateErrorLogger);
-            this.guna2GroupBox5.Controls.Add(this.btnGenerateDataAccessSettings);
-            this.guna2GroupBox5.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.guna2GroupBox5.ForeColor = System.Drawing.Color.Black;
-            this.guna2GroupBox5.Location = new System.Drawing.Point(500, 535);
-            this.guna2GroupBox5.Name = "guna2GroupBox5";
-            this.guna2GroupBox5.Size = new System.Drawing.Size(352, 253);
-            this.guna2GroupBox5.TabIndex = 35;
-            this.guna2GroupBox5.Text = "Helper Classes For Data Access Layer";
-            // 
-            // btnGenerateBusinessLayer
-            // 
-            this.btnGenerateBusinessLayer.Animated = true;
-            this.btnGenerateBusinessLayer.BorderRadius = 22;
-            this.btnGenerateBusinessLayer.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerateBusinessLayer.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerateBusinessLayer.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerateBusinessLayer.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerateBusinessLayer.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
-            this.btnGenerateBusinessLayer.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnGenerateBusinessLayer.ForeColor = System.Drawing.Color.White;
-            this.btnGenerateBusinessLayer.Location = new System.Drawing.Point(858, 633);
-            this.btnGenerateBusinessLayer.Name = "btnGenerateBusinessLayer";
-            this.btnGenerateBusinessLayer.Size = new System.Drawing.Size(304, 45);
-            this.btnGenerateBusinessLayer.TabIndex = 30;
-            this.btnGenerateBusinessLayer.Text = "Generate Business Layer";
-            this.btnGenerateBusinessLayer.Click += new System.EventHandler(this.btnShowBusinessLayer_Click);
-            // 
-            // btnGenerateDataAccessSettings
-            // 
-            this.btnGenerateDataAccessSettings.Animated = true;
-            this.btnGenerateDataAccessSettings.BorderRadius = 22;
-            this.btnGenerateDataAccessSettings.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerateDataAccessSettings.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerateDataAccessSettings.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerateDataAccessSettings.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerateDataAccessSettings.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
-            this.btnGenerateDataAccessSettings.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnGenerateDataAccessSettings.ForeColor = System.Drawing.Color.White;
-            this.btnGenerateDataAccessSettings.Location = new System.Drawing.Point(13, 47);
-            this.btnGenerateDataAccessSettings.Name = "btnGenerateDataAccessSettings";
-            this.btnGenerateDataAccessSettings.Size = new System.Drawing.Size(327, 45);
-            this.btnGenerateDataAccessSettings.TabIndex = 31;
-            this.btnGenerateDataAccessSettings.Text = "Generate Data Access Settings";
-            this.btnGenerateDataAccessSettings.Click += new System.EventHandler(this.btnGenerateDataAccessSettings_Click);
-            // 
-            // btnGenerateErrorLogger
-            // 
-            this.btnGenerateErrorLogger.Animated = true;
-            this.btnGenerateErrorLogger.BorderRadius = 22;
-            this.btnGenerateErrorLogger.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerateErrorLogger.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerateErrorLogger.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerateErrorLogger.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerateErrorLogger.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
-            this.btnGenerateErrorLogger.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnGenerateErrorLogger.ForeColor = System.Drawing.Color.White;
-            this.btnGenerateErrorLogger.Location = new System.Drawing.Point(13, 98);
-            this.btnGenerateErrorLogger.Name = "btnGenerateErrorLogger";
-            this.btnGenerateErrorLogger.Size = new System.Drawing.Size(327, 45);
-            this.btnGenerateErrorLogger.TabIndex = 32;
-            this.btnGenerateErrorLogger.Text = "Generate Error Logger";
-            this.btnGenerateErrorLogger.Click += new System.EventHandler(this.btnGenerateErrorLogger_Click);
-            // 
-            // GenerateLogHandler
-            // 
-            this.GenerateLogHandler.Animated = true;
-            this.GenerateLogHandler.BorderRadius = 22;
-            this.GenerateLogHandler.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
-            this.GenerateLogHandler.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
-            this.GenerateLogHandler.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.GenerateLogHandler.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.GenerateLogHandler.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
-            this.GenerateLogHandler.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.GenerateLogHandler.ForeColor = System.Drawing.Color.White;
-            this.GenerateLogHandler.Location = new System.Drawing.Point(13, 149);
-            this.GenerateLogHandler.Name = "GenerateLogHandler";
-            this.GenerateLogHandler.Size = new System.Drawing.Size(327, 45);
-            this.GenerateLogHandler.TabIndex = 33;
-            this.GenerateLogHandler.Text = "Generate Log Handler";
-            this.GenerateLogHandler.Click += new System.EventHandler(this.GenerateLogHandler_Click);
-            // 
-            // btnGenerateDataAccessHelper
-            // 
-            this.btnGenerateDataAccessHelper.Animated = true;
-            this.btnGenerateDataAccessHelper.BorderRadius = 22;
-            this.btnGenerateDataAccessHelper.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerateDataAccessHelper.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
-            this.btnGenerateDataAccessHelper.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerateDataAccessHelper.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.btnGenerateDataAccessHelper.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
-            this.btnGenerateDataAccessHelper.Font = new System.Drawing.Font("Tahoma", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnGenerateDataAccessHelper.ForeColor = System.Drawing.Color.White;
-            this.btnGenerateDataAccessHelper.Location = new System.Drawing.Point(13, 200);
-            this.btnGenerateDataAccessHelper.Name = "btnGenerateDataAccessHelper";
-            this.btnGenerateDataAccessHelper.Size = new System.Drawing.Size(327, 45);
-            this.btnGenerateDataAccessHelper.TabIndex = 34;
-            this.btnGenerateDataAccessHelper.Text = "Generate Data Access Helper";
-            this.btnGenerateDataAccessHelper.Click += new System.EventHandler(this.btnGenerateDataAccessHelper_Click);
             // 
             // frmCodeGenerator
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(1583, 935);
+            this.ClientSize = new System.Drawing.Size(1516, 795);
             this.Controls.Add(this.comboDatabaseName);
             this.Controls.Add(this.tcMode);
             this.Controls.Add(this.lblNumberOfTablesRecords);
@@ -712,6 +713,7 @@
             this.tcMode.ResumeLayout(false);
             this.tbNormal.ResumeLayout(false);
             this.tbNormal.PerformLayout();
+            this.guna2GroupBox5.ResumeLayout(false);
             this.tbAdvanced.ResumeLayout(false);
             this.guna2GroupBox4.ResumeLayout(false);
             this.guna2GroupBox4.PerformLayout();
@@ -720,7 +722,6 @@
             this.guna2GroupBox2.PerformLayout();
             this.guna2GroupBox1.ResumeLayout(false);
             this.guna2GroupBox1.PerformLayout();
-            this.guna2GroupBox5.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -137,8 +137,10 @@ namespace GenerateStoredProcedureLibrary
             }
 
             if (sb.Length > 0 && StartIndex != 1)
+            {
                 // Remove the ", " from the end of the query in case update SP
-                sb.Length -= 3;
+                return _GetQueryAfterRemovingTheTrailingCommaAndSpaces(sb);
+            }
 
             return sb.ToString();
         }
@@ -183,11 +185,7 @@ namespace GenerateStoredProcedureLibrary
                 }
             }
 
-            // Remove the trailing comma and space
-            query.Length -= 2;
-            query.Append(")");
-
-            return query.ToString();
+            return $"{_GetQueryAfterRemovingTheTrailingCommaAndSpaces(query)})";
         }
 
         private static string _GetScopeIdentity()
@@ -249,11 +247,17 @@ namespace GenerateStoredProcedureLibrary
                 }
             }
 
+            return _GetQueryAfterRemovingTheTrailingCommaAndSpaces(query);
+        }
+
+        private static string _GetQueryAfterRemovingTheTrailingCommaAndSpaces(StringBuilder query)
+        {
             // Remove the trailing comma and space
-            if (_isGenerateAllMode)
-                query.Length -= 4;
-            else
-                query.Length -= 3;
+            int lastCommaIndex = query.ToString().LastIndexOf(",");
+            if (lastCommaIndex != -1)
+            {
+                return query.ToString().Remove(lastCommaIndex);
+            }
 
             return query.ToString();
         }
@@ -422,7 +426,7 @@ namespace GenerateStoredProcedureLibrary
             return "";
         }
 
-        public static string Generate(List<List<clsColumnInfoForStoredProcedure>> columnsInfo, string databaseName)
+        public static string Generate(List<List<clsColumnInfoForStoredProcedure>> columnsInfo, string databaseName, string tableName)
         {
             _tempText.Clear();
 
@@ -431,14 +435,12 @@ namespace GenerateStoredProcedureLibrary
                 return "";
 
             _columnsInfo = columnsInfo;
+            _tableName = tableName;
             _databaseName = databaseName;
 
             _tableSingleName = _GetSingleColumnName();
 
-            if (!_isGenerateAllMode)
-            {
-                _isLogin = _DoesTableHaveUsernameAndPassword();
-            }
+            _isLogin = _DoesTableHaveUsernameAndPassword();
 
             _CreateStoredProcedures();
 
@@ -450,7 +452,7 @@ namespace GenerateStoredProcedureLibrary
             _isGenerateAllMode = true;
             _tableName = tableName;
 
-            Generate(columnsInfo, databaseName);
+            Generate(columnsInfo, databaseName, tableName);
 
             _isGenerateAllMode = false;
             return clsCodeGenerator.ExecuteStoredProcedure(databaseName, _tempText.ToString());
