@@ -96,6 +96,22 @@
       <Project>{1ee78a04-06f0-4000-9fe5-49f1f832657b}</Project>
       <Name>CodeGeneratorBusiness</Name>
     </ProjectReference>
+    <ProjectReference Include="..\GenerateAppConfigFileLibrary\GenerateAppConfigFileLibrary.csproj">
+      <Project>{327f0837-03be-4512-adef-6714caf887ef}</Project>
+      <Name>GenerateAppConfigFileLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GenerateBusinessLayerLibrary\GenerateBusinessLayerLibrary.csproj">
+      <Project>{23faa42d-0113-4060-a147-24780e1c2589}</Project>
+      <Name>GenerateBusinessLayerLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GenerateDataAccessLayerLibrary\GenerateDataAccessLayerLibrary.csproj">
+      <Project>{68d97af1-5ea2-4572-b942-349d05e0f5c5}</Project>
+      <Name>GenerateDataAccessLayerLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GenerateStoredProcedureLibrary\GenerateStoredProcedureLibrary.csproj">
+      <Project>{25e41f66-261f-417a-9ed1-e6d8ff20e7e8}</Project>
+      <Name>GenerateStoredProcedureLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
