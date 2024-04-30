@@ -259,7 +259,7 @@ namespace Code_Generator
             }
             else
             {
-                txtData.Text = clsGenerateDataAccessLayer.Generate(_columnsInfoForDataAccess, comboDatabaseName.Text);
+                txtData.Text = clsGenerateDataAccessLayer.Generate(_columnsInfoForDataAccess, comboDatabaseName.Text, _tableName);
             }
         }
 

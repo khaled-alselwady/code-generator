@@ -1010,8 +1010,6 @@ namespace GenerateBusinessLayerLibrary
             _isGenerateAllMode = true;
             _databaseName = databaseName;
 
-            string fullPath = string.Empty;
-
             for (byte i = 0; i < tablesNames.Count; i++)
             {
                 _tableName = tablesNames[i];
@@ -1020,8 +1018,7 @@ namespace GenerateBusinessLayerLibrary
 
                 _isLogin = _DoesTableHaveUsernameAndPassword();
 
-                fullPath = path + $"cls{_tableSingleName}Data.cs";
-
+                string fullPath = path + $"cls{_tableSingleName}Data.cs";
                 _GenerateAllClasses(fullPath);
             }
 

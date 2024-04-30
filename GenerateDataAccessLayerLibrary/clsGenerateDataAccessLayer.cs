@@ -868,7 +868,7 @@ namespace GenerateDataAccessLayerLibrary
 
         private static void _GenerateAllClasses(string path)
         {
-            Generate(_columnsInfo, _databaseName);
+            Generate(_columnsInfo, _databaseName, _tableName);
 
             WriteToFile(path.Trim(), _tempText.ToString());
         }
@@ -908,12 +908,13 @@ namespace GenerateDataAccessLayerLibrary
             return "";
         }
 
-        public static string Generate(List<List<clsColumnInfoForDataAccess>> columnsInfo, string databaseName)
+        public static string Generate(List<List<clsColumnInfoForDataAccess>> columnsInfo, string databaseName, string tableName)
         {
             _tempText.Clear();
 
-            _columnsInfo = columnsInfo;
             _databaseName = databaseName;
+            _tableName = tableName;
+            _columnsInfo = columnsInfo;
 
             _tableSingleName = _GetSingleColumnName();
 
@@ -948,8 +949,6 @@ namespace GenerateDataAccessLayerLibrary
             _isGenerateAllMode = true;
             _databaseName = databaseName;
 
-            string fullPath = string.Empty;
-
             for (byte i = 0; i < tablesNames.Count; i++)
             {
                 _tableName = tablesNames[i];
@@ -958,8 +957,7 @@ namespace GenerateDataAccessLayerLibrary
 
                 _isLogin = _DoesTableHaveUsernameAndPassword();
 
-                fullPath = path + $"cls{_tableSingleName}Data.cs";
-
+                string fullPath = path + $"cls{_tableSingleName}Data.cs";
                 _GenerateAllClasses(fullPath);
             }
 
