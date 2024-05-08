@@ -43,6 +43,8 @@
   <ItemGroup>
     <Compile Include="clsColumnInfoForBusiness.cs" />
     <Compile Include="clsGenerateBusinessLayer.cs" />
+    <Compile Include="clsSqlDbTypeToCSharpTypeMapper.cs" />
+    <Compile Include="Extensions\SqlDbTypeExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

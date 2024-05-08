@@ -1,4 +1,5 @@
-﻿using CodeGeneratorBusiness;
+﻿using Code_Generator.Extensions;
+using CodeGeneratorBusiness;
 using GenerateAppConfigFileLibrary;
 using GenerateBusinessLayerLibrary;
 using GenerateDataAccessLayerLibrary;
@@ -71,7 +72,7 @@ namespace Code_Generator
                         new clsColumnInfoForBusiness
                         {
                             ColumnName = firstItem.SubItems[0].Text,
-                            DataType = firstItem.SubItems[1].Text,
+                            DataType = firstItem.SubItems[1].Text.ToSqlDbType(),
                             IsNullable = firstItem.SubItems[2].Text.ToLower() == "yes"
                         }
                     };

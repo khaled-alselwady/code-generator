@@ -1,5 +1,6 @@
 ﻿using CodeGeneratorBusiness;
 using GenerateBusinessLayerLibrary.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -52,57 +53,73 @@ namespace GenerateBusinessLayerLibrary
             return (_DoesTableHaveColumn("username") && _DoesTableHaveColumn("password"));
         }
 
-        private static string _GetDataTypeCSharp(string DataType)
+        private static string _GetDefaultInitialization(string identifierName, SqlDbType sqlDbType)
         {
-            switch (DataType.ToLower())
+            switch (sqlDbType)
             {
-                case "int":
-                    return "int";
+                case SqlDbType.Int:
+                case SqlDbType.BigInt:
+                case SqlDbType.SmallInt:
+                    return $"{identifierName} = -1;"; // Default for integer types
 
-                case "bigint":
-                    return "long";
+                case SqlDbType.Float:
+                    return $"{identifierName} = -1F;"; // Default for float
 
-                case "float":
-                    return "float";
+                case SqlDbType.Decimal:
+                case SqlDbType.Money:
+                case SqlDbType.SmallMoney:
+                    return $"{identifierName} = -1M;"; // Default for decimal types
 
-                case "decimal":
-                case "money":
-                case "smallmoney":
-                    return "decimal";
+                case SqlDbType.TinyInt:
+                    return $"{identifierName} = 0;"; // Default for tinyint (byte)
 
-                case "smallint":
-                    return "short";
+                case SqlDbType.VarChar:
+                case SqlDbType.NVarChar:
+                case SqlDbType.Text:
+                    return $"{identifierName} = string.Empty;"; // Default for variable-length strings
 
-                case "tinyint":
-                    return "byte";
+                case SqlDbType.Char:
+                case SqlDbType.NChar:
+                    return $"{identifierName} = ' ';"; // Default for fixed-length strings
 
-                case "nvarchar":
-                case "varchar":
-                case "char":
-                    return "string";
+                case SqlDbType.DateTime:
+                case SqlDbType.Date:
+                case SqlDbType.SmallDateTime:
+                case SqlDbType.DateTime2:
+                    return $"{identifierName} = DateTime.Now;"; // Default for DateTime
 
-                case "datetime":
-                case "date":
-                case "smalldatetime":
-                case "datetime2":
-                    return "DateTime";
+                case SqlDbType.Time:
+                    return $"{identifierName} = TimeSpan.Zero;"; // Default for TimeSpan
 
-                case "time":
-                    return "TimeSpan";
+                case SqlDbType.Bit:
+                    return $"{identifierName} = false;"; // Default for boolean
 
-                case "bit":
-                    return "bool";
+                case SqlDbType.UniqueIdentifier:
+                    return $"{identifierName} = Guid.Empty;"; // Default for GUIDs
+
+                case SqlDbType.Binary:
+                case SqlDbType.VarBinary:
+                case SqlDbType.Timestamp:
+                case SqlDbType.Image:
+                    return $"{identifierName} = new byte[0];"; // Default for binary data
+
+                case SqlDbType.Xml:
+                    return $"{identifierName} = string.Empty;"; // Default for XML data
+
+                case SqlDbType.Real:
+                    return $"{identifierName} = -1.0F;"; // Default for Real (single-precision float)
+
+                case SqlDbType.Variant:
+                case SqlDbType.Udt:
+                case SqlDbType.Structured:
+                    return $"{identifierName} = null;"; // Default for Variant, UDT, Structured
+
+                case SqlDbType.DateTimeOffset:
+                    return $"{identifierName} = DateTimeOffset.Now;"; // Default for DateTime with timezone
 
                 default:
-                    return "string";
+                    return $"{identifierName} = null;"; // Default for any other types
             }
-        }
-
-        private static bool _IsDataTypeString(string DateType)
-        {
-            string Result = _GetDataTypeCSharp(DateType);
-
-            return (Result.ToLower() == "string");
         }
 
         private static string _MakeParametersForBusinessLayer()
@@ -116,22 +133,24 @@ namespace GenerateBusinessLayerLibrary
                 if (firstItem.Count > 0)
                 {
                     string columnName = firstItem[0].ColumnName;
-                    string dataType = firstItem[0].DataType;
+                    SqlDbType dataType = firstItem[0].DataType;
                     bool isNullable = firstItem[0].IsNullable;
+
+                    string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
 
                     if (i == 0)
                     {
-                        Parameters.AppendLine($"public {_GetDataTypeCSharp(dataType)}? {columnName} {{ get; set; }}");
+                        Parameters.AppendLine($"public {csharpType}? {columnName} {{ get; set; }}");
                     }
                     else
                     {
-                        if (isNullable && !_IsDataTypeString(dataType))
+                        if (isNullable && csharpType.ToLower() != "string")
                         {
-                            Parameters.AppendLine($"public {_GetDataTypeCSharp(dataType)}? {columnName} {{ get; set; }}");
+                            Parameters.AppendLine($"public {csharpType}? {columnName} {{ get; set; }}");
                         }
                         else
                         {
-                            Parameters.AppendLine($"public {_GetDataTypeCSharp(dataType)} {columnName} {{ get; set; }}");
+                            Parameters.AppendLine($"public {csharpType} {columnName} {{ get; set; }}");
                         }
                     }
                 }
@@ -151,22 +170,24 @@ namespace GenerateBusinessLayerLibrary
                 if (firstItem.Count > 0)
                 {
                     string columnName = firstItem[0].ColumnName.ToCamelCase();
-                    string dataType = firstItem[0].DataType;
+                    SqlDbType dataType = firstItem[0].DataType;
                     bool isNullable = firstItem[0].IsNullable;
+
+                    string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
 
                     if (i == 0)
                     {
-                        Parameters.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + ", ");
+                        Parameters.Append(csharpType + "? " + columnName + ", ");
                     }
                     else
                     {
-                        if (isNullable && !_IsDataTypeString(dataType))
+                        if (isNullable && csharpType.ToLower() != "string")
                         {
-                            Parameters.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + ", ");
+                            Parameters.Append(csharpType + "? " + columnName + ", ");
                         }
                         else
                         {
-                            Parameters.Append(_GetDataTypeCSharp(dataType) + " " + columnName + ", ");
+                            Parameters.Append(csharpType + " " + columnName + ", ");
                         }
                     }
                 }
@@ -194,7 +215,7 @@ namespace GenerateBusinessLayerLibrary
                 if (firstItem.Count > 0)
                 {
                     string columnName = firstItem[0].ColumnName;
-                    string dataType = firstItem[0].DataType;
+                    SqlDbType dataType = firstItem[0].DataType;
                     bool isNullable = firstItem[0].IsNullable;
 
                     if (i == 0)
@@ -209,52 +230,8 @@ namespace GenerateBusinessLayerLibrary
                         }
                         else
                         {
-                            switch (dataType.ToLower())
-                            {
-                                case "int":
-                                case "bigint":
-                                    Constructor.AppendLine($"    {columnName} = -1;");
-                                    break;
-
-                                case "float":
-                                    Constructor.AppendLine($"    {columnName} = -1F;");
-                                    break;
-
-                                case "decimal":
-                                case "money":
-                                case "smallmoney":
-                                    Constructor.AppendLine($"    {columnName} = -1M;");
-                                    break;
-
-                                case "tinyint":
-                                    Constructor.AppendLine($"    {columnName} = 0;");
-                                    break;
-
-                                case "smallint":
-                                    Constructor.AppendLine($"    {columnName} = -1;");
-                                    break;
-
-                                case "nvarchar":
-                                case "varchar":
-                                case "char":
-                                    Constructor.AppendLine($"    {columnName} = string.Empty;");
-                                    break;
-
-                                case "datetime":
-                                case "date":
-                                case "smalldatetime":
-                                case "datetime2":
-                                    Constructor.AppendLine($"    {columnName} = DateTime.Now;");
-                                    break;
-
-                                case "time":
-                                    Constructor.AppendLine($"    {columnName} = DateTime.Now.TimeOfDay;");
-                                    break;
-
-                                case "bit":
-                                    Constructor.AppendLine($"    {columnName} = false;");
-                                    break;
-                            }
+                            string defaultInit = _GetDefaultInitialization(columnName, dataType);
+                            Constructor.AppendLine($"    {defaultInit}");
                         }
                     }
                 }
@@ -281,8 +258,6 @@ namespace GenerateBusinessLayerLibrary
                 if (firstItem.Count > 0)
                 {
                     string columnName = firstItem[0].ColumnName;
-                    string dataType = firstItem[0].DataType;
-                    bool isNullable = firstItem[0].IsNullable;
 
                     Constructor.AppendLine($"    {columnName} = {columnName.ToCamelCase()};");
                 }
@@ -398,7 +373,7 @@ namespace GenerateBusinessLayerLibrary
 
         private static string _MakeInitialParametersForFindMethodInBusinessLayer()
         {
-            StringBuilder Variable = new StringBuilder();
+            StringBuilder variable = new StringBuilder();
 
             for (int i = 1; i < _columnsInfo.Count; i++)
             {
@@ -407,76 +382,31 @@ namespace GenerateBusinessLayerLibrary
                 if (secondItem.Count > 0)
                 {
                     string columnName = secondItem[0].ColumnName.ToCamelCase();
-                    string dataType = secondItem[0].DataType;
+                    SqlDbType dataType = secondItem[0].DataType;
                     bool isNullable = secondItem[0].IsNullable;
+
+                    string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
 
                     if (isNullable)
                     {
-                        if (!_IsDataTypeString(dataType))
+                        if (csharpType.ToLower() != "string")
                         {
-                            Variable.AppendLine($"{_GetDataTypeCSharp(dataType)}? {columnName} = null;");
+                            variable.AppendLine($"{csharpType}? {columnName} = null;");
                         }
                         else
                         {
-                            Variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = null;");
+                            variable.AppendLine($"{csharpType} {columnName} = null;");
                         }
                     }
                     else
                     {
-                        switch (dataType.ToLower())
-                        {
-                            case "int":
-                            case "bigint":
-                                Variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1;");
-                                break;
-
-                            case "float":
-                                Variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1F;");
-                                break;
-
-                            case "decimal":
-                            case "money":
-                            case "smallmoney":
-                                Variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1M;");
-                                break;
-
-                            case "tinyint":
-                                Variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = 0;");
-                                break;
-
-                            case "smallint":
-                                Variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1;");
-                                break;
-
-                            case "nvarchar":
-                            case "varchar":
-                                Variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = string.Empty;");
-                                break;
-
-                            case "char":
-                                Variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = ' ';");
-                                break;
-
-                            case "datetime":
-                            case "date":
-                            case "smalldatetime":
-                            case "datetime2":
-                                Variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = DateTime.Now;");
-                                break;
-
-                            case "time":
-                                Variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = DateTime.Now.TimeOfDay;");
-                                break;
-
-                            case "bit":
-                                Variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = false;");
-                                break;
-                        }
+                        string defaultInit = _GetDefaultInitialization($"{csharpType} {columnName}", dataType);
+                        variable.AppendLine($"    {defaultInit}");
                     }
                 }
             }
 
-            return Variable.ToString().Trim();
+            return variable.ToString().Trim();
         }
 
         private static string _MakeParametersForFindMethodInBusinessLayer()
@@ -545,9 +475,11 @@ namespace GenerateBusinessLayerLibrary
             if (firstItem.Count > 0)
             {
                 string columnName = firstItem[0].ColumnName.ToCamelCase();
-                string dataType = firstItem[0].DataType;
+                SqlDbType dataType = firstItem[0].DataType;
 
-                parameters.Append(_GetDataTypeCSharp(dataType))
+                string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
+
+                parameters.Append(csharpType)
                       .Append("? ")
                       .Append(columnName)
                       .Append(")");
@@ -607,6 +539,42 @@ namespace GenerateBusinessLayerLibrary
 
         private static string _MakeInitialParametersForFindUsernameMethodInBusinessLayer()
         {
+            return _MakeInitialParametersForFindMethodInBusinessLayerWithFilter
+                    (columnName =>
+                    {
+                        return columnName.ToLower() != "username";
+                    });
+        }
+
+        private static string _MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer()
+        {
+            return _MakeInitialParametersForFindMethodInBusinessLayerWithFilter
+                    (columnName =>
+                    {
+                        return columnName.ToLower() != "username" &&
+                               columnName.ToLower() != "password";
+                    });
+        }
+
+        private static string _MakeParametersForFindUsernameMethodInBusinessLayer()
+        {
+            return _MakeParametersForFindMethodInBusinessLayerWithFilter(columnName =>
+            {
+                return columnName.ToLower() == "username";
+            });
+        }
+
+        private static string _MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()
+        {
+            return _MakeParametersForFindMethodInBusinessLayerWithFilter(columnName =>
+            {
+                return columnName.ToLower() == "username" ||
+                       columnName.ToLower() == "password";
+            });
+        }
+
+        private static string _MakeInitialParametersForFindMethodInBusinessLayerWithFilter(Predicate<string> filter)
+        {
             StringBuilder variable = new StringBuilder();
 
             for (int i = 0; i < _columnsInfo.Count; i++)
@@ -616,76 +584,34 @@ namespace GenerateBusinessLayerLibrary
                 if (firstItem.Count > 0)
                 {
                     string columnName = firstItem[0].ColumnName.ToCamelCase();
-                    string dataType = firstItem[0].DataType;
+                    SqlDbType dataType = firstItem[0].DataType;
                     bool isNullable = firstItem[0].IsNullable;
 
-                    if (columnName.ToLower() != "username")
+                    string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
+
+                    if (filter?.Invoke(columnName) ?? false)
                     {
                         if (i == 0)
                         {
-                            variable.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + " = null;").AppendLine();
+                            variable.AppendLine($"{csharpType}? {columnName} = null;");
                             continue;
                         }
 
                         if (isNullable)
                         {
-                            if (!_IsDataTypeString(dataType))
+                            if (csharpType.ToLower() != "string")
                             {
-                                variable.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + " = null;").AppendLine();
+                                variable.Append($"{csharpType}? {columnName} = null;").AppendLine();
                             }
                             else
                             {
-                                variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = null;").AppendLine();
+                                variable.Append($"{csharpType} {columnName} = null;").AppendLine();
                             }
                         }
                         else
                         {
-                            switch (dataType.ToLower())
-                            {
-                                case "int":
-                                case "bigint":
-                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = -1;").AppendLine();
-                                    break;
-
-                                case "float":
-                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = -1F;").AppendLine();
-                                    break;
-
-                                case "decimal":
-                                case "money":
-                                case "smallmoney":
-                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = -1M;").AppendLine();
-                                    break;
-
-                                case "tinyint":
-                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = 0;").AppendLine();
-                                    break;
-
-                                case "smallint":
-                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = -1;").AppendLine();
-                                    break;
-
-                                case "nvarchar":
-                                case "varchar":
-                                case "char":
-                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = string.Empty;").AppendLine();
-                                    break;
-
-                                case "datetime":
-                                case "date":
-                                case "smalldatetime":
-                                case "datetime2":
-                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = DateTime.Now;").AppendLine();
-                                    break;
-
-                                case "time":
-                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = DateTime.Now.TimeOfDay;").AppendLine();
-                                    break;
-
-                                case "bit":
-                                    variable.Append(_GetDataTypeCSharp(dataType) + " " + columnName + " = false;").AppendLine();
-                                    break;
-                            }
+                            string defaultInit = _GetDefaultInitialization($"{csharpType} {columnName}", dataType);
+                            variable.AppendLine($"    {defaultInit}");
                         }
                     }
                 }
@@ -694,7 +620,7 @@ namespace GenerateBusinessLayerLibrary
             return variable.ToString().Trim();
         }
 
-        private static string _MakeParametersForFindUsernameMethodInBusinessLayer()
+        private static string _MakeParametersForFindMethodInBusinessLayerWithFilter(Predicate<string> filter)
         {
             StringBuilder parameters = new StringBuilder("(");
 
@@ -706,20 +632,20 @@ namespace GenerateBusinessLayerLibrary
                 {
                     string columnName = firstItem[0].ColumnName.ToCamelCase();
 
-                    if (columnName.ToLower() == "username")
+                    if (filter?.Invoke(columnName) ?? false)
                     {
-                        parameters.Append(columnName + ", ");
+                        parameters.Append($"{columnName}, ");
                     }
                     else
                     {
-                        parameters.Append("ref " + columnName + ", ");
+                        parameters.Append($"ref {columnName}, ");
                     }
                 }
             }
 
             // To remove the ", " from the end of the text
             parameters.Remove(parameters.Length - 2, 2);
-            parameters.Append(");").AppendLine();
+            parameters.AppendLine(");");
 
             return parameters.ToString().Trim();
         }
@@ -739,125 +665,6 @@ namespace GenerateBusinessLayerLibrary
                 .AppendLine("}");
 
             return Text.ToString().Trim();
-        }
-
-        private static string _MakeInitialParametersForFindUsernameAndPasswordMethodInBusinessLayer()
-        {
-            StringBuilder variable = new StringBuilder();
-
-            for (int i = 0; i < _columnsInfo.Count; i++)
-            {
-                List<clsColumnInfoForBusiness> firstItem = _columnsInfo[i];
-
-                if (firstItem.Count > 0)
-                {
-                    string columnName = firstItem[0].ColumnName.ToCamelCase();
-                    string dataType = firstItem[0].DataType;
-                    bool isNullable = firstItem[0].IsNullable;
-
-                    if (columnName.ToLower() != "username" && columnName.ToLower() != "password")
-                    {
-                        if (i == 0)
-                        {
-                            variable.AppendLine($"{_GetDataTypeCSharp(dataType)}? {columnName} = null;");
-                            continue;
-                        }
-
-                        if (isNullable)
-                        {
-                            if (!_IsDataTypeString(dataType))
-                            {
-                                variable.AppendLine($"{_GetDataTypeCSharp(dataType)}? {columnName} = null;");
-                            }
-                            else
-                            {
-                                variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = null;");
-                            }
-                        }
-                        else
-                        {
-                            switch (dataType.ToLower())
-                            {
-                                case "int":
-                                case "bigint":
-                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1;");
-                                    break;
-
-                                case "float":
-                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1F;");
-                                    break;
-
-                                case "decimal":
-                                case "money":
-                                case "smallmoney":
-                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1M;");
-                                    break;
-
-                                case "tinyint":
-                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = 0;");
-                                    break;
-
-                                case "smallint":
-                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = -1;");
-                                    break;
-
-                                case "nvarchar":
-                                case "varchar":
-                                case "char":
-                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = string.Empty;");
-                                    break;
-
-                                case "datetime":
-                                case "date":
-                                case "smalldatetime":
-                                case "datetime2":
-                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = DateTime.Now;");
-                                    break;
-
-                                case "time":
-                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = DateTime.Now.TimeOfDay;");
-                                    break;
-
-                                case "bit":
-                                    variable.AppendLine($"{_GetDataTypeCSharp(dataType)} {columnName} = false;");
-                                    break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return variable.ToString().Trim();
-        }
-
-        private static string _MakeParametersForFindUsernameAndPasswordMethodInBusinessLayer()
-        {
-            StringBuilder parameters = new StringBuilder("(");
-
-            for (int i = 0; i < _columnsInfo.Count; i++)
-            {
-                List<clsColumnInfoForBusiness> firstItem = _columnsInfo[i];
-
-                if (firstItem.Count > 0)
-                {
-                    string columnName = firstItem[0].ColumnName.ToCamelCase();
-
-                    if (columnName.ToLower() == "username" || columnName.ToLower() == "password")
-                    {
-                        parameters.Append($"{columnName}, ");
-                    }
-                    else
-                    {
-                        parameters.Append($"ref {columnName}, ");
-                    }
-                }
-            }
-
-            // To remove the ", " from the end of the text
-            parameters.Remove(parameters.Length - 2, 2);
-            parameters.AppendLine(");");
-
-            return parameters.ToString().Trim();
         }
 
         private static string _GetFindUsernameAndPasswordMethodInBusinessLayer()
@@ -955,7 +762,7 @@ namespace GenerateBusinessLayerLibrary
                     new clsColumnInfoForBusiness
                     {
                         ColumnName = row["Column Name"].ToString(),
-                        DataType = row["Data Type"].ToString(),
+                        DataType = row["Data Type"].ToString().ToSqlDbType(),
                         IsNullable = row["Is Nullable"].ToString().ToLower() == "yes"
                     }
                 };
@@ -1018,7 +825,7 @@ namespace GenerateBusinessLayerLibrary
 
                 _isLogin = _DoesTableHaveUsernameAndPassword();
 
-                string fullPath = path + $"cls{_tableSingleName}Data.cs";
+                string fullPath = path + $"cls{_tableSingleName}.cs";
                 _GenerateAllClasses(fullPath);
             }
 
