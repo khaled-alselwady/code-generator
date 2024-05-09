@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿using CommonLibrary;
 using System.Text;
 
 namespace GenerateAppConfigFileLibrary
@@ -10,14 +10,6 @@ namespace GenerateAppConfigFileLibrary
         static clsGenerateAppConfigFile()
         {
             _tempText = new StringBuilder();
-        }
-
-        internal static void WriteToFile(string path, string value)
-        {
-            using (StreamWriter writer = new StreamWriter(path.Trim()))
-            {
-                writer.Write(value);
-            }
         }
 
         public static void CreateAppConfigFile(string path, string databaseName)
@@ -41,7 +33,7 @@ namespace GenerateAppConfigFileLibrary
             _tempText.AppendLine();
             _tempText.AppendLine("</configuration>");
 
-            WriteToFile(path, _tempText.ToString());
+            clsHelperMethods.WriteToFile(path, _tempText.ToString());
         }
     }
 }

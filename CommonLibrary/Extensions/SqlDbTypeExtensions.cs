@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data;
 
-namespace GenerateBusinessLayerLibrary.Extensions
+namespace CommonLibrary.Extensions
 {
     public static class SqlDbTypeExtensions
     {

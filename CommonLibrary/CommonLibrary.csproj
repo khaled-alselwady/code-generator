@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{68D97AF1-5EA2-4572-B942-349D05E0F5C5}</ProjectGuid>
+    <ProjectGuid>{06E86B6A-0420-41EB-B323-B6127350846E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GenerateDataAccessLayerLibrary</RootNamespace>
-    <AssemblyName>GenerateDataAccessLayerLibrary</AssemblyName>
+    <RootNamespace>CommonLibrary</RootNamespace>
+    <AssemblyName>CommonLibrary</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -41,14 +41,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="clsGenerateDataAccessLayer.cs" />
-    <Compile Include="clsGenerateHelperClasses.cs" />
+    <Compile Include="clsColumnInfo.cs" />
+    <Compile Include="clsHelperMethods.cs" />
+    <Compile Include="clsSqlDbTypeToCSharpTypeMapper.cs" />
+    <Compile Include="Extensions\SqlDbTypeExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CommonLibrary\CommonLibrary.csproj">
-      <Project>{06e86b6a-0420-41eb-b323-b6127350846e}</Project>
-      <Name>CommonLibrary</Name>
+    <ProjectReference Include="..\CodeGeneratorBusiness\CodeGeneratorBusiness.csproj">
+      <Project>{1ee78a04-06f0-4000-9fe5-49f1f832657b}</Project>
+      <Name>CodeGeneratorBusiness</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

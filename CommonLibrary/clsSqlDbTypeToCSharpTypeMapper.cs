@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 
-namespace GenerateBusinessLayerLibrary
+namespace CommonLibrary
 {
     public static class SqlDbTypeToCSharpTypeMapper
     {

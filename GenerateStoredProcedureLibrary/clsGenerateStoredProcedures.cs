@@ -1,6 +1,5 @@
 ﻿using CodeGeneratorBusiness;
-using GenerateStoredProcedureLibrary.Extensions;
-using System;
+using CommonLibrary;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
@@ -15,7 +14,7 @@ namespace GenerateStoredProcedureLibrary
         private static bool _isLogin;
         private static bool _isGenerateAllMode;
         private static StringBuilder _tempText;
-        private static List<List<clsColumnInfoForStoredProcedure>> _columnsInfo;
+        private static List<List<clsColumnInfo>> _columnsInfo;
 
         static clsGenerateStoredProcedures()
         {
@@ -25,31 +24,7 @@ namespace GenerateStoredProcedureLibrary
             _isLogin = false;
             _isGenerateAllMode = false;
             _tempText = new StringBuilder();
-            _columnsInfo = new List<List<clsColumnInfoForStoredProcedure>>();
-        }
-
-        private static bool _DoesTableHaveColumn(string columnName)
-        {
-            for (int i = 0; i < _columnsInfo.Count; i++)
-            {
-
-                var firstItem = _columnsInfo[i]; // Access the first row (index 0)
-
-                if (firstItem.Count > 0)
-                {
-                    if (firstItem[0].ColumnName.ToLower() == columnName.ToLower())
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private static bool _DoesTableHaveUsernameAndPassword()
-        {
-            return (_DoesTableHaveColumn("username") && _DoesTableHaveColumn("password"));
+            _columnsInfo = new List<List<clsColumnInfo>>();
         }
 
         private static void _CreateGetInfoByID_SP()
@@ -69,7 +44,7 @@ namespace GenerateStoredProcedureLibrary
         {
             for (int i = 0; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForStoredProcedure> firstItem = _columnsInfo[i];
+                List<clsColumnInfo> firstItem = _columnsInfo[i];
 
                 if (firstItem.Count > 0)
                 {
@@ -143,7 +118,7 @@ namespace GenerateStoredProcedureLibrary
 
             for (int i = StartIndex; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForStoredProcedure> firstItem = _columnsInfo[i];
+                List<clsColumnInfo> firstItem = _columnsInfo[i];
 
                 if (firstItem.Count > 0)
                 {
@@ -430,18 +405,7 @@ namespace GenerateStoredProcedureLibrary
             _CreateGetAll_SP();
         }
 
-        private static string _GetSingleColumnName()
-        {
-            if (_columnsInfo.Count > 0)
-            {
-                string firstValue = _columnsInfo[0][0].ColumnName;
-                return firstValue.Remove(firstValue.Length - 2);
-            }
-
-            return "";
-        }
-
-        public static string Generate(List<List<clsColumnInfoForStoredProcedure>> columnsInfo, string databaseName, string tableName)
+        public static string Generate(List<List<clsColumnInfo>> columnsInfo, string databaseName, string tableName)
         {
             _tempText.Clear();
 
@@ -453,16 +417,16 @@ namespace GenerateStoredProcedureLibrary
             _tableName = tableName;
             _databaseName = databaseName;
 
-            _tableSingleName = _GetSingleColumnName();
+            _tableSingleName = clsHelperMethods.GetSingleColumnName(_columnsInfo);
 
-            _isLogin = _DoesTableHaveUsernameAndPassword();
+            _isLogin = clsHelperMethods.DoesTableHaveUsernameAndPassword(_columnsInfo);
 
             _CreateStoredProcedures();
 
             return _tempText.ToString();
         }
 
-        public static bool GenerateForOneTableToDatabase(List<List<clsColumnInfoForStoredProcedure>> columnsInfo, string databaseName, string tableName)
+        public static bool GenerateForOneTableToDatabase(List<List<clsColumnInfo>> columnsInfo, string databaseName, string tableName)
         {
             _isGenerateAllMode = true;
             _tableName = tableName;
@@ -471,32 +435,6 @@ namespace GenerateStoredProcedureLibrary
 
             _isGenerateAllMode = false;
             return clsCodeGenerator.ExecuteStoredProcedure(databaseName, _tempText.ToString());
-        }
-
-        private static void _LoadColumnInfo()
-        {
-            _columnsInfo.Clear();
-
-            DataTable dt = clsCodeGenerator.GetColumnsNameWithInfo(_tableName, _databaseName);
-
-            foreach (DataRow row in dt.Rows)
-            {
-
-                var columnInfo = new List<clsColumnInfoForStoredProcedure>
-                    {
-                        new clsColumnInfoForStoredProcedure
-                        {
-                            ColumnName = row["Column Name"].ToString(),
-                            DataType = row["Data Type"].ToString().ToSqlDbType(),
-                            IsNullable = row["Is Nullable"].ToString().ToLower() == "yes",
-                            MaxLength = string.IsNullOrWhiteSpace(row["Max Length"].ToString()) ? null : (int?)Convert.ToInt32(row["Max Length"].ToString())
-                        }
-                    };
-
-                _columnsInfo.Add(columnInfo);
-            }
-
-            _tableSingleName = _GetSingleColumnName();
         }
 
         public static bool GenerateAllToDatabase(List<string> tablesNames, string databaseName)
@@ -508,9 +446,11 @@ namespace GenerateStoredProcedureLibrary
             {
                 _tableName = tablesNames[i];
 
-                _LoadColumnInfo();
+                _columnsInfo = clsHelperMethods.LoadColumnsInfo(_tableName, _databaseName);
 
-                _isLogin = _DoesTableHaveUsernameAndPassword();
+                _tableSingleName = clsHelperMethods.GetSingleColumnName(_columnsInfo);
+
+                _isLogin = clsHelperMethods.DoesTableHaveUsernameAndPassword(_columnsInfo);
 
                 if (!GenerateForOneTableToDatabase(_columnsInfo, _databaseName, _tableName))
                     return false;

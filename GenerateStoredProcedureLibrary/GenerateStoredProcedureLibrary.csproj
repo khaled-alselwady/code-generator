@@ -41,15 +41,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="clsColumnInfoForStoredProcedure.cs" />
     <Compile Include="clsGenerateStoredProcedures.cs" />
-    <Compile Include="Extensions\SqlDbTypeExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CodeGeneratorBusiness\CodeGeneratorBusiness.csproj">
       <Project>{1ee78a04-06f0-4000-9fe5-49f1f832657b}</Project>
       <Name>CodeGeneratorBusiness</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CommonLibrary\CommonLibrary.csproj">
+      <Project>{06e86b6a-0420-41eb-b323-b6127350846e}</Project>
+      <Name>CommonLibrary</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

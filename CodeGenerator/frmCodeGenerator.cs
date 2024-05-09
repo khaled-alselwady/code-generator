@@ -1,5 +1,6 @@
 ﻿using Code_Generator.Extensions;
 using CodeGeneratorBusiness;
+using CommonLibrary;
 using GenerateAppConfigFileLibrary;
 using GenerateBusinessLayerLibrary;
 using GenerateDataAccessLayerLibrary;
@@ -16,14 +17,14 @@ namespace Code_Generator
         private string _tableName = string.Empty;
         private bool _isAdvancedMode = false;
 
-        private List<List<clsColumnInfoForDataAccess>> _columnsInfoForDataAccess
-            = new List<List<clsColumnInfoForDataAccess>>();
+        private List<List<clsColumnInfo>> _columnsInfoForDataAccess
+            = new List<List<clsColumnInfo>>();
 
-        private List<List<clsColumnInfoForBusiness>> _columnsInfoForBusiness
-            = new List<List<clsColumnInfoForBusiness>>();
+        private List<List<clsColumnInfo>> _columnsInfoForBusiness
+            = new List<List<clsColumnInfo>>();
 
-        private List<List<clsColumnInfoForStoredProcedure>> _columnsInfoForStoredProcedure
-            = new List<List<clsColumnInfoForStoredProcedure>>();
+        private List<List<clsColumnInfo>> _columnsInfoForStoredProcedure
+            = new List<List<clsColumnInfo>>();
 
         private List<string> _tableNames = new List<string>();
 
@@ -42,9 +43,9 @@ namespace Code_Generator
 
                 if (firstItem.SubItems.Count > 0)
                 {
-                    var columnInfo = new List<clsColumnInfoForDataAccess>
+                    var columnInfo = new List<clsColumnInfo>
                     {
-                        new clsColumnInfoForDataAccess
+                        new clsColumnInfo
                         {
                             ColumnName = firstItem.SubItems[0].Text,
                             DataType = firstItem.SubItems[1].Text.ToSqlDbType(),
@@ -67,9 +68,9 @@ namespace Code_Generator
 
                 if (firstItem.SubItems.Count > 0)
                 {
-                    var columnInfo = new List<clsColumnInfoForBusiness>
+                    var columnInfo = new List<clsColumnInfo>
                     {
-                        new clsColumnInfoForBusiness
+                        new clsColumnInfo
                         {
                             ColumnName = firstItem.SubItems[0].Text,
                             DataType = firstItem.SubItems[1].Text.ToSqlDbType(),
@@ -92,9 +93,9 @@ namespace Code_Generator
 
                 if (firstItem.SubItems.Count > 0)
                 {
-                    var columnInfo = new List<clsColumnInfoForStoredProcedure>
+                    var columnInfo = new List<clsColumnInfo>
                     {
-                        new clsColumnInfoForStoredProcedure
+                        new clsColumnInfo
                         {
                             ColumnName = firstItem.SubItems[0].Text,
                             DataType = firstItem.SubItems[1].Text.ToSqlDbType(),

@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateStoredProcedureLibr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateAppConfigFileLibrary", "..\GenerateAppConfigFileLibrary\GenerateAppConfigFileLibrary.csproj", "{327F0837-03BE-4512-ADEF-6714CAF887EF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonLibrary", "..\CommonLibrary\CommonLibrary.csproj", "{06E86B6A-0420-41EB-B323-B6127350846E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{327F0837-03BE-4512-ADEF-6714CAF887EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{327F0837-03BE-4512-ADEF-6714CAF887EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{327F0837-03BE-4512-ADEF-6714CAF887EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06E86B6A-0420-41EB-B323-B6127350846E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06E86B6A-0420-41EB-B323-B6127350846E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06E86B6A-0420-41EB-B323-B6127350846E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06E86B6A-0420-41EB-B323-B6127350846E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

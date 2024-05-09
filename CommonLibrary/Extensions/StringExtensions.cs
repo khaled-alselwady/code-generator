@@ -1,11 +1,13 @@
-﻿namespace GenerateBusinessLayerLibrary.Extensions
+﻿namespace CommonLibrary.Extensions
 {
     public static class StringExtensions
     {
         public static string ToCamelCase(this string pascalCase)
         {
             if (string.IsNullOrWhiteSpace(pascalCase))
+            {
                 return pascalCase;
+            }
 
             pascalCase = pascalCase.TrimStart();
 

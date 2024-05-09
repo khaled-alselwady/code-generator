@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using CommonLibrary;
+using System.Text;
 
 namespace GenerateDataAccessLayerLibrary
 {
@@ -489,7 +490,7 @@ namespace {databaseName}DataAccess
 
             fullPath.Append(path + "clsDataAccessHelper.cs");
 
-            clsGenerateDataAccessLayer.WriteToFile(fullPath.ToString(), _tempText.ToString());
+            clsHelperMethods.WriteToFile(fullPath.ToString(), _tempText.ToString());
         }
 
         private static void _CreateDataAccessSettingsClassToTheFile(string path, string databaseName)
@@ -500,7 +501,7 @@ namespace {databaseName}DataAccess
 
             fullPath.Append(path + "clsDataAccessSettings.cs");
 
-            clsGenerateDataAccessLayer.WriteToFile(fullPath.ToString(), _tempText.ToString());
+            clsHelperMethods.WriteToFile(fullPath.ToString(), _tempText.ToString());
         }
 
         private static void _CreateErrorLoggerClassToTheFile(string path, string databaseName)
@@ -510,7 +511,7 @@ namespace {databaseName}DataAccess
             StringBuilder fullPath = new StringBuilder();
             fullPath.Append(path + "clsErrorLogger.cs");
 
-            clsGenerateDataAccessLayer.WriteToFile(fullPath.ToString(), _tempText.ToString());
+            clsHelperMethods.WriteToFile(fullPath.ToString(), _tempText.ToString());
         }
 
         private static void _CreateClassesThatRelatedToLoggingErrorsToFile(string path, string databaseName)
@@ -529,7 +530,7 @@ namespace {databaseName}DataAccess
             StringBuilder fullPath = new StringBuilder();
             fullPath.Append(path + "clsLogHandler.cs");
 
-            clsGenerateDataAccessLayer.WriteToFile(fullPath.ToString(), _tempText.ToString());
+            clsHelperMethods.WriteToFile(fullPath.ToString(), _tempText.ToString());
         }
     }
 }

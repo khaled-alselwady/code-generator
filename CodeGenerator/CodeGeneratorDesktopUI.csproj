@@ -98,6 +98,10 @@
       <Project>{1ee78a04-06f0-4000-9fe5-49f1f832657b}</Project>
       <Name>CodeGeneratorBusiness</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CommonLibrary\CommonLibrary.csproj">
+      <Project>{06e86b6a-0420-41eb-b323-b6127350846e}</Project>
+      <Name>CommonLibrary</Name>
+    </ProjectReference>
     <ProjectReference Include="..\GenerateAppConfigFileLibrary\GenerateAppConfigFileLibrary.csproj">
       <Project>{327f0837-03be-4512-adef-6714caf887ef}</Project>
       <Name>GenerateAppConfigFileLibrary</Name>

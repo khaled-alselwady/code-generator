@@ -1,9 +1,8 @@
-﻿using CodeGeneratorBusiness;
-using GenerateBusinessLayerLibrary.Extensions;
+﻿using CommonLibrary;
+using CommonLibrary.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Text;
 
 namespace GenerateBusinessLayerLibrary
@@ -16,7 +15,7 @@ namespace GenerateBusinessLayerLibrary
         private static bool _isLogin;
         private static bool _isGenerateAllMode;
         private static StringBuilder _tempText;
-        private static List<List<clsColumnInfoForBusiness>> _columnsInfo;
+        private static List<List<clsColumnInfo>> _columnsInfo;
 
         static clsGenerateBusinessLayer()
         {
@@ -26,31 +25,7 @@ namespace GenerateBusinessLayerLibrary
             _isLogin = false;
             _isGenerateAllMode = false;
             _tempText = new StringBuilder();
-            _columnsInfo = new List<List<clsColumnInfoForBusiness>>();
-        }
-
-        private static bool _DoesTableHaveColumn(string columnName)
-        {
-            for (int i = 0; i < _columnsInfo.Count; i++)
-            {
-
-                var firstItem = _columnsInfo[i]; // Access the first row (index 0)
-
-                if (firstItem.Count > 0)
-                {
-                    if (firstItem[0].ColumnName.ToLower() == columnName.ToLower())
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private static bool _DoesTableHaveUsernameAndPassword()
-        {
-            return (_DoesTableHaveColumn("username") && _DoesTableHaveColumn("password"));
+            _columnsInfo = new List<List<clsColumnInfo>>();
         }
 
         private static string _GetDefaultInitialization(string value, SqlDbType sqlDbType)
@@ -128,7 +103,7 @@ namespace GenerateBusinessLayerLibrary
 
             for (int i = 0; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForBusiness> firstItem = _columnsInfo[i];
+                List<clsColumnInfo> firstItem = _columnsInfo[i];
 
                 if (firstItem.Count > 0)
                 {
@@ -165,7 +140,7 @@ namespace GenerateBusinessLayerLibrary
 
             for (int i = 0; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForBusiness> firstItem = _columnsInfo[i];
+                List<clsColumnInfo> firstItem = _columnsInfo[i];
 
                 if (firstItem.Count > 0)
                 {
@@ -210,7 +185,7 @@ namespace GenerateBusinessLayerLibrary
 
             for (int i = 0; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForBusiness> firstItem = _columnsInfo[i];
+                List<clsColumnInfo> firstItem = _columnsInfo[i];
 
                 if (firstItem.Count > 0)
                 {
@@ -253,7 +228,7 @@ namespace GenerateBusinessLayerLibrary
 
             for (int i = 0; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForBusiness> firstItem = _columnsInfo[i];
+                List<clsColumnInfo> firstItem = _columnsInfo[i];
 
                 if (firstItem.Count > 0)
                 {
@@ -276,7 +251,7 @@ namespace GenerateBusinessLayerLibrary
 
             for (int i = 1; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForBusiness> secondItem = _columnsInfo[i];
+                List<clsColumnInfo> secondItem = _columnsInfo[i];
 
                 if (secondItem.Count > 0)
                 {
@@ -315,7 +290,7 @@ namespace GenerateBusinessLayerLibrary
 
             for (int i = 0; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForBusiness> firstItem = _columnsInfo[i];
+                List<clsColumnInfo> firstItem = _columnsInfo[i];
 
                 if (firstItem.Count > 0)
                 {
@@ -377,7 +352,7 @@ namespace GenerateBusinessLayerLibrary
 
             for (int i = 1; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForBusiness> secondItem = _columnsInfo[i];
+                List<clsColumnInfo> secondItem = _columnsInfo[i];
 
                 if (secondItem.Count > 0)
                 {
@@ -417,7 +392,7 @@ namespace GenerateBusinessLayerLibrary
 
             for (int i = 0; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForBusiness> firstItem = _columnsInfo[i];
+                List<clsColumnInfo> firstItem = _columnsInfo[i];
 
                 if (firstItem.Count > 0)
                 {
@@ -449,7 +424,7 @@ namespace GenerateBusinessLayerLibrary
 
             for (int i = 0; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForBusiness> firstItem = _columnsInfo[i];
+                List<clsColumnInfo> firstItem = _columnsInfo[i];
 
                 if (firstItem.Count > 0)
                 {
@@ -470,7 +445,7 @@ namespace GenerateBusinessLayerLibrary
         {
             StringBuilder parameters = new StringBuilder("(");
 
-            List<clsColumnInfoForBusiness> firstItem = _columnsInfo[0];
+            List<clsColumnInfo> firstItem = _columnsInfo[0];
 
             if (firstItem.Count > 0)
             {
@@ -579,7 +554,7 @@ namespace GenerateBusinessLayerLibrary
 
             for (int i = 0; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForBusiness> firstItem = _columnsInfo[i];
+                List<clsColumnInfo> firstItem = _columnsInfo[i];
 
                 if (firstItem.Count > 0)
                 {
@@ -626,7 +601,7 @@ namespace GenerateBusinessLayerLibrary
 
             for (int i = 0; i < _columnsInfo.Count; i++)
             {
-                List<clsColumnInfoForBusiness> firstItem = _columnsInfo[i];
+                List<clsColumnInfo> firstItem = _columnsInfo[i];
 
                 if (firstItem.Count > 0)
                 {
@@ -738,68 +713,25 @@ namespace GenerateBusinessLayerLibrary
             _tempText.Append("}");
         }
 
-        private static string _GetSingleColumnName()
-        {
-            if (_columnsInfo.Count > 0)
-            {
-                string firstValue = _columnsInfo[0][0].ColumnName;
-                return firstValue.Remove(firstValue.Length - 2);
-            }
-
-            return "";
-        }
-
-        private static void _LoadColumnInfo()
-        {
-            _columnsInfo.Clear();
-
-            DataTable dt = clsCodeGenerator.GetColumnsNameWithInfo(_tableName, _databaseName);
-
-            foreach (DataRow row in dt.Rows)
-            {
-                var columnInfo = new List<clsColumnInfoForBusiness>
-                {
-                    new clsColumnInfoForBusiness
-                    {
-                        ColumnName = row["Column Name"].ToString(),
-                        DataType = row["Data Type"].ToString().ToSqlDbType(),
-                        IsNullable = row["Is Nullable"].ToString().ToLower() == "yes"
-                    }
-                };
-
-                _columnsInfo.Add(columnInfo);
-            }
-
-            _tableSingleName = _GetSingleColumnName();
-        }
-
-        internal static void WriteToFile(string path, string value)
-        {
-            using (StreamWriter writer = new StreamWriter(path.Trim()))
-            {
-                writer.Write(value);
-            }
-        }
-
         private static void _GenerateAllClasses(string path)
         {
             Generate(_columnsInfo, _databaseName);
 
-            WriteToFile(path.Trim(), _tempText.ToString());
+            clsHelperMethods.WriteToFile(path.Trim(), _tempText.ToString());
         }
 
-        public static string Generate(List<List<clsColumnInfoForBusiness>> columnsInfo, string databaseName)
+        public static string Generate(List<List<clsColumnInfo>> columnsInfo, string databaseName)
         {
             _tempText.Clear();
 
             _columnsInfo = columnsInfo;
             _databaseName = databaseName;
 
-            _tableSingleName = _GetSingleColumnName();
+            _tableSingleName = clsHelperMethods.GetSingleColumnName(_columnsInfo);
 
             if (!_isGenerateAllMode)
             {
-                _isLogin = _DoesTableHaveUsernameAndPassword();
+                _isLogin = clsHelperMethods.DoesTableHaveUsernameAndPassword(_columnsInfo);
             }
 
             _tempText.AppendLine($"using {_databaseName}DataAccess;\r\nusing System;\r\nusing System.Data;\r\n\r\nnamespace {_databaseName}Business\r\n{{");
@@ -821,9 +753,11 @@ namespace GenerateBusinessLayerLibrary
             {
                 _tableName = tablesNames[i];
 
-                _LoadColumnInfo();
+                _columnsInfo = clsHelperMethods.LoadColumnsInfo(_tableName, _databaseName);
 
-                _isLogin = _DoesTableHaveUsernameAndPassword();
+                _tableSingleName = clsHelperMethods.GetSingleColumnName(_columnsInfo);
+
+                _isLogin = clsHelperMethods.DoesTableHaveUsernameAndPassword(_columnsInfo);
 
                 string fullPath = path + $"cls{_tableSingleName}.cs";
                 _GenerateAllClasses(fullPath);
