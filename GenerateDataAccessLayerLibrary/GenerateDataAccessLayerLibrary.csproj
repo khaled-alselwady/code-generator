@@ -44,6 +44,8 @@
     <Compile Include="clsGenerateDataAccessLayer.cs" />
     <Compile Include="clsColumnInfoForDataAccess.cs" />
     <Compile Include="clsGenerateHelperClasses.cs" />
+    <Compile Include="clsSqlDbTypeToCSharpTypeMapper.cs" />
+    <Compile Include="Extensions\SqlDbTypeExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

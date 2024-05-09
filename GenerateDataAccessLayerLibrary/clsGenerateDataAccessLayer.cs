@@ -1,5 +1,6 @@
 ﻿using CodeGeneratorBusiness;
 using GenerateDataAccessLayerLibrary.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -52,59 +53,6 @@ namespace GenerateDataAccessLayerLibrary
             return (_DoesTableHaveColumn("username") && _DoesTableHaveColumn("password"));
         }
 
-        private static string _GetDataTypeCSharp(string DataType)
-        {
-            switch (DataType.ToLower())
-            {
-                case "int":
-                    return "int";
-
-                case "bigint":
-                    return "long";
-
-                case "float":
-                    return "float";
-
-                case "decimal":
-                case "money":
-                case "smallmoney":
-                    return "decimal";
-
-                case "smallint":
-                    return "short";
-
-                case "tinyint":
-                    return "byte";
-
-                case "nvarchar":
-                case "varchar":
-                case "char":
-                    return "string";
-
-                case "datetime":
-                case "date":
-                case "smalldatetime":
-                case "datetime2":
-                    return "DateTime";
-
-                case "time":
-                    return "TimeSpan";
-
-                case "bit":
-                    return "bool";
-
-                default:
-                    return "string";
-            }
-        }
-
-        private static bool _IsDataTypeString(string DateType)
-        {
-            string Result = _GetDataTypeCSharp(DateType);
-
-            return (Result.ToLower() == "string");
-        }
-
         internal static string GetConnectionString()
         {
             return "SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString)";
@@ -133,22 +81,24 @@ namespace GenerateDataAccessLayerLibrary
                 if (firstItem.Count > 0)
                 {
                     string columnName = firstItem[0].ColumnName.ToCamelCase();
-                    string dataType = firstItem[0].DataType;
+                    SqlDbType dataType = firstItem[0].DataType;
                     bool isNullable = firstItem[0].IsNullable;
+
+                    string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
 
                     if (i == 0)
                     {
-                        parameters.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + ", ");
+                        parameters.Append($"{csharpType}? {columnName}, ");
                     }
                     else
                     {
-                        if (isNullable && !_IsDataTypeString(dataType))
+                        if (isNullable && csharpType.ToLower() != "string")
                         {
-                            parameters.Append("ref " + _GetDataTypeCSharp(dataType) + "? " + columnName + ", ");
+                            parameters.Append($"ref {csharpType}? {columnName}, ");
                         }
                         else
                         {
-                            parameters.Append("ref " + _GetDataTypeCSharp(dataType) + " " + columnName + ", ");
+                            parameters.Append($"ref {csharpType} {columnName}, ");
                         }
                     }
                 }
@@ -173,25 +123,27 @@ namespace GenerateDataAccessLayerLibrary
                 if (secondItem.Count > 0)
                 {
                     string columnName = secondItem[0].ColumnName;
-                    string dataType = secondItem[0].DataType;
+                    SqlDbType dataType = secondItem[0].DataType;
                     bool isNullable = secondItem[0].IsNullable;
+
+                    string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
 
                     if (isNullable)
                     {
-                        if (!_IsDataTypeString(dataType))
+                        if (csharpType.ToLower() != "string")
                         {
-                            text.Append($"{columnName.ToCamelCase()} = (reader[\"{columnName}\"] != DBNull.Value) ? ({_GetDataTypeCSharp(dataType)}?)reader[\"{columnName}\"] : null;");
+                            text.Append($"{columnName.ToCamelCase()} = (reader[\"{columnName}\"] != DBNull.Value) ? ({csharpType}?)reader[\"{columnName}\"] : null;");
                         }
                         else
                         {
-                            text.Append($"{columnName.ToCamelCase()} = (reader[\"{columnName}\"] != DBNull.Value) ? ({_GetDataTypeCSharp(dataType)})reader[\"{columnName}\"] : null;");
+                            text.Append($"{columnName.ToCamelCase()} = (reader[\"{columnName}\"] != DBNull.Value) ? ({csharpType})reader[\"{columnName}\"] : null;");
                         }
 
                         text.AppendLine();
                     }
                     else
                     {
-                        text.AppendLine($"{columnName.ToCamelCase()} = ({_GetDataTypeCSharp(dataType)})reader[\"{columnName}\"];");
+                        text.AppendLine($"{columnName.ToCamelCase()} = ({csharpType})reader[\"{columnName}\"];");
                     }
                 }
             }
@@ -246,131 +198,6 @@ namespace GenerateDataAccessLayerLibrary
             _tempText.AppendLine("}");
         }
 
-        private static string _MakeParametersForFindMethodForUsername()
-        {
-            StringBuilder parameters = new StringBuilder("(");
-
-            for (int i = 0; i < _columnsInfo.Count; i++)
-            {
-                List<clsColumnInfoForDataAccess> firstItem = _columnsInfo[i];
-
-                if (firstItem.Count > 0)
-                {
-                    string columnName = firstItem[0].ColumnName.ToCamelCase();
-                    string dataType = firstItem[0].DataType;
-                    bool isNullable = firstItem[0].IsNullable;
-
-                    if (i == 0)
-                    {
-                        parameters.Append("ref ").Append(_GetDataTypeCSharp(dataType)).Append("? ").Append(columnName).Append(", ");
-                    }
-                    else
-                    {
-                        if (columnName.ToLower() == "username")
-                        {
-                            parameters.Append(_GetDataTypeCSharp(dataType)).Append(" ").Append(columnName).Append(", ");
-                        }
-                        else
-                        {
-                            if (isNullable && !_IsDataTypeString(dataType))
-                            {
-                                parameters.Append("ref ").Append(_GetDataTypeCSharp(dataType)).Append("? ").Append(columnName).Append(", ");
-                            }
-                            else
-                            {
-                                parameters.Append("ref ").Append(_GetDataTypeCSharp(dataType)).Append(" ").Append(columnName).Append(", ");
-                            }
-                        }
-                    }
-                }
-            }
-
-            // To remove the ", " from the end of the text
-            parameters.Length -= 2;
-
-            parameters.Append(")");
-
-            return parameters.ToString().Trim();
-        }
-
-        private static string _FillTheVariableWithDataThatComingFromDatabaseForUsername()
-        {
-            StringBuilder Text = new StringBuilder();
-
-            for (int i = 0; i < _columnsInfo.Count; i++)
-            {
-                List<clsColumnInfoForDataAccess> firstItem = _columnsInfo[i];
-
-                if (firstItem.Count > 0)
-                {
-                    string columnName = firstItem[0].ColumnName;
-                    string dataType = firstItem[0].DataType;
-                    bool isNullable = firstItem[0].IsNullable;
-
-                    if (columnName.ToLower() != "username")
-                    {
-                        if (i == 0)
-                        {
-                            Text.Append(columnName.ToCamelCase())
-                                .Append(" = ")
-                                .Append("(reader[\"")
-                                .Append(columnName)
-                                .Append("\"] != DBNull.Value) ? (")
-                                .Append(_GetDataTypeCSharp(dataType))
-                                .Append("?)reader[\"")
-                                .Append(columnName)
-                                .Append("\"] : null;")
-                                .AppendLine();
-                            continue;
-                        }
-
-                        if (isNullable)
-                        {
-                            if (!_IsDataTypeString(dataType))
-                            {
-                                Text.Append(columnName.ToCamelCase())
-                                    .Append(" = ")
-                                    .Append("(reader[\"")
-                                    .Append(columnName)
-                                    .Append("\"] != DBNull.Value) ? (")
-                                    .Append(_GetDataTypeCSharp(dataType))
-                                    .Append("?)reader[\"")
-                                    .Append(columnName)
-                                    .Append("\"] : null;")
-                                    .AppendLine();
-                            }
-                            else
-                            {
-                                Text.Append(columnName.ToCamelCase())
-                                    .Append(" = ")
-                                    .Append("(reader[\"")
-                                    .Append(columnName)
-                                    .Append("\"] != DBNull.Value) ? (")
-                                    .Append(_GetDataTypeCSharp(dataType))
-                                    .Append(")reader[\"")
-                                    .Append(columnName)
-                                    .Append("\"] : null;")
-                                    .AppendLine();
-                            }
-                        }
-                        else
-                        {
-                            Text.Append(columnName.ToCamelCase())
-                                .Append(" = ")
-                                .Append("(")
-                                .Append(_GetDataTypeCSharp(dataType))
-                                .Append(")reader[\"")
-                                .Append(columnName)
-                                .Append("\"];")
-                                .AppendLine();
-                        }
-                    }
-                }
-            }
-
-            return Text.ToString().Trim();
-        }
-
         private static void _CreateGetInfoMethodForUsername()
         {
             _tempText.AppendLine();
@@ -415,7 +242,24 @@ namespace GenerateDataAccessLayerLibrary
             _tempText.AppendLine("}");
         }
 
+        private static string _MakeParametersForFindMethodForUsername()
+        {
+            return _MakeParametersForFindMethodWithFilter(columnName =>
+            {
+                return columnName.ToLower() == "username";
+            });
+        }
+
         private static string _MakeParametersForFindMethodForUsernameAndPassword()
+        {
+            return _MakeParametersForFindMethodWithFilter(columnName =>
+            {
+                return columnName.ToLower() == "username" ||
+                       columnName.ToLower() == "password";
+            });
+        }
+
+        private static string _MakeParametersForFindMethodWithFilter(Predicate<string> filter)
         {
             StringBuilder parameters = new StringBuilder();
 
@@ -428,32 +272,34 @@ namespace GenerateDataAccessLayerLibrary
                 if (firstItem.Count > 0)
                 {
                     string columnName = firstItem[0].ColumnName.ToCamelCase();
-                    string dataType = firstItem[0].DataType;
+                    SqlDbType dataType = firstItem[0].DataType;
                     bool isNullable = firstItem[0].IsNullable;
+
+                    string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
 
                     if (i == 0)
                     {
                         parameters.Append("ref ")
-                            .Append(_GetDataTypeCSharp(dataType))
+                            .Append(csharpType)
                             .Append("? ")
                             .Append(columnName)
                             .Append(", ");
                         continue;
                     }
 
-                    if (columnName.ToLower() == "username" || columnName.ToLower() == "password")
+                    if (filter?.Invoke(columnName) ?? false)
                     {
-                        parameters.Append(_GetDataTypeCSharp(dataType))
+                        parameters.Append(csharpType)
                             .Append(" ")
                             .Append(columnName)
                             .Append(", ");
                     }
                     else
                     {
-                        if (isNullable && !_IsDataTypeString(dataType))
+                        if (isNullable && csharpType.ToLower() != "string")
                         {
                             parameters.Append("ref ")
-                                .Append(_GetDataTypeCSharp(dataType))
+                                .Append(csharpType)
                                 .Append("? ")
                                 .Append(columnName)
                                 .Append(", ");
@@ -461,7 +307,7 @@ namespace GenerateDataAccessLayerLibrary
                         else
                         {
                             parameters.Append("ref ")
-                                .Append(_GetDataTypeCSharp(dataType))
+                                .Append(csharpType)
                                 .Append(" ")
                                 .Append(columnName)
                                 .Append(", ");
@@ -478,7 +324,24 @@ namespace GenerateDataAccessLayerLibrary
             return parameters.ToString().Trim();
         }
 
+        private static string _FillTheVariableWithDataThatComingFromDatabaseForUsername()
+        {
+            return _FillTheVariableWithDataThatComingFromDatabaseWithFilter(columnName =>
+            {
+                return columnName.ToLower() != "username";
+            });
+        }
+
         private static string _FillTheVariableWithDataThatComingFromDatabaseForUsernameAndPassword()
+        {
+            return _FillTheVariableWithDataThatComingFromDatabaseWithFilter(columnName =>
+            {
+                return columnName.ToLower() != "username" &&
+                       columnName.ToLower() != "password";
+            });
+        }
+
+        private static string _FillTheVariableWithDataThatComingFromDatabaseWithFilter(Predicate<string> filter)
         {
             StringBuilder text = new StringBuilder();
 
@@ -489,10 +352,12 @@ namespace GenerateDataAccessLayerLibrary
                 if (firstItem.Count > 0)
                 {
                     string columnName = firstItem[0].ColumnName;
-                    string dataType = firstItem[0].DataType;
+                    SqlDbType dataType = firstItem[0].DataType;
                     bool isNullable = firstItem[0].IsNullable;
 
-                    if (columnName.ToLower() != "username" && columnName.ToLower() != "password")
+                    string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
+
+                    if (filter?.Invoke(columnName) ?? false)
                     {
                         if (i == 0)
                         {
@@ -500,7 +365,7 @@ namespace GenerateDataAccessLayerLibrary
                                 .Append(" = (reader[\"")
                                 .Append(columnName)
                                 .Append("\"] != DBNull.Value) ? (")
-                                .Append(_GetDataTypeCSharp(dataType))
+                                .Append(csharpType)
                                 .Append("?)reader[\"")
                                 .Append(columnName)
                                 .Append("\"] : null;")
@@ -511,13 +376,13 @@ namespace GenerateDataAccessLayerLibrary
 
                         if (isNullable)
                         {
-                            if (!_IsDataTypeString(dataType))
+                            if (csharpType.ToLower() != "string")
                             {
                                 text.Append(columnName.ToCamelCase())
                                     .Append(" = (reader[\"")
                                     .Append(columnName)
                                     .Append("\"] != DBNull.Value) ? (")
-                                    .Append(_GetDataTypeCSharp(dataType))
+                                    .Append(csharpType)
                                     .Append("?)reader[\"")
                                     .Append(columnName)
                                     .Append("\"] : null;")
@@ -529,7 +394,7 @@ namespace GenerateDataAccessLayerLibrary
                                     .Append(" = (reader[\"")
                                     .Append(columnName)
                                     .Append("\"] != DBNull.Value) ? (")
-                                    .Append(_GetDataTypeCSharp(dataType))
+                                    .Append(csharpType)
                                     .Append(")reader[\"")
                                     .Append(columnName)
                                     .Append("\"] : null;")
@@ -540,7 +405,7 @@ namespace GenerateDataAccessLayerLibrary
                         {
                             text.Append(columnName.ToCamelCase())
                                 .Append(" = (")
-                                .Append(_GetDataTypeCSharp(dataType))
+                                .Append(csharpType)
                                 .Append(")reader[\"")
                                 .Append(columnName)
                                 .Append("\"];")
@@ -609,16 +474,18 @@ namespace GenerateDataAccessLayerLibrary
                 if (firstItem.Count > 0)
                 {
                     string columnName = firstItem[0].ColumnName.ToCamelCase();
-                    string dataType = firstItem[0].DataType;
+                    SqlDbType dataType = firstItem[0].DataType;
                     bool isNullable = firstItem[0].IsNullable;
 
-                    if (isNullable && !_IsDataTypeString(dataType))
+                    string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
+
+                    if (isNullable && csharpType.ToLower() != "string")
                     {
-                        parameters.Append(_GetDataTypeCSharp(dataType)).Append("? ").Append(columnName).Append(", ");
+                        parameters.Append(csharpType).Append("? ").Append(columnName).Append(", ");
                     }
                     else
                     {
-                        parameters.Append(_GetDataTypeCSharp(dataType)).Append(" ").Append(columnName).Append(", ");
+                        parameters.Append(csharpType).Append(" ").Append(columnName).Append(", ");
                     }
                 }
             }
@@ -715,22 +582,24 @@ namespace GenerateDataAccessLayerLibrary
                 if (firstItem.Count > 0)
                 {
                     string columnName = firstItem[0].ColumnName.ToCamelCase();
-                    string dataType = firstItem[0].DataType;
+                    SqlDbType dataType = firstItem[0].DataType;
                     bool isNullable = firstItem[0].IsNullable;
+
+                    string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
 
                     if (i == 0)
                     {
-                        Parameters.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + ", ");
+                        Parameters.Append($"{csharpType}? {columnName}, ");
                     }
                     else
                     {
-                        if (isNullable && !_IsDataTypeString(dataType))
+                        if (isNullable && csharpType.ToLower() != "string")
                         {
-                            Parameters.Append(_GetDataTypeCSharp(dataType) + "? " + columnName + ", ");
+                            Parameters.Append($"{csharpType}? {columnName}, ");
                         }
                         else
                         {
-                            Parameters.Append(_GetDataTypeCSharp(dataType) + " " + columnName + ", ");
+                            Parameters.Append($"{csharpType} {columnName}, ");
                         }
                     }
                 }
@@ -785,9 +654,11 @@ namespace GenerateDataAccessLayerLibrary
             if (firstItem.Count > 0)
             {
                 string columnName = firstItem[0].ColumnName.ToCamelCase();
-                string dataType = firstItem[0].DataType;
+                SqlDbType dataType = firstItem[0].DataType;
 
-                parameters.Append(_GetDataTypeCSharp(dataType))
+                string csharpType = SqlDbTypeToCSharpTypeMapper.GetCSharpType(dataType);
+
+                parameters.Append(csharpType)
                       .Append("? ")
                       .Append(columnName)
                       .Append(")");
@@ -886,7 +757,7 @@ namespace GenerateDataAccessLayerLibrary
                     new clsColumnInfoForDataAccess
                     {
                         ColumnName = row["Column Name"].ToString(),
-                        DataType = row["Data Type"].ToString(),
+                        DataType = row["Data Type"].ToString().ToSqlDbType(),
                         IsNullable = row["Is Nullable"].ToString().ToLower() == "yes"
                     }
                 };

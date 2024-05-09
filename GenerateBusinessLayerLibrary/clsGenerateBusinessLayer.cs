@@ -53,72 +53,72 @@ namespace GenerateBusinessLayerLibrary
             return (_DoesTableHaveColumn("username") && _DoesTableHaveColumn("password"));
         }
 
-        private static string _GetDefaultInitialization(string identifierName, SqlDbType sqlDbType)
+        private static string _GetDefaultInitialization(string value, SqlDbType sqlDbType)
         {
             switch (sqlDbType)
             {
                 case SqlDbType.Int:
                 case SqlDbType.BigInt:
                 case SqlDbType.SmallInt:
-                    return $"{identifierName} = -1;"; // Default for integer types
+                    return $"{value} = -1;"; // Default for integer types
 
                 case SqlDbType.Float:
-                    return $"{identifierName} = -1F;"; // Default for float
+                    return $"{value} = -1F;"; // Default for float
 
                 case SqlDbType.Decimal:
                 case SqlDbType.Money:
                 case SqlDbType.SmallMoney:
-                    return $"{identifierName} = -1M;"; // Default for decimal types
+                    return $"{value} = -1M;"; // Default for decimal types
 
                 case SqlDbType.TinyInt:
-                    return $"{identifierName} = 0;"; // Default for tinyint (byte)
+                    return $"{value} = 0;"; // Default for tinyint (byte)
 
                 case SqlDbType.VarChar:
                 case SqlDbType.NVarChar:
                 case SqlDbType.Text:
-                    return $"{identifierName} = string.Empty;"; // Default for variable-length strings
+                    return $"{value} = string.Empty;"; // Default for variable-length strings
 
                 case SqlDbType.Char:
                 case SqlDbType.NChar:
-                    return $"{identifierName} = ' ';"; // Default for fixed-length strings
+                    return $"{value} = ' ';"; // Default for fixed-length strings
 
                 case SqlDbType.DateTime:
                 case SqlDbType.Date:
                 case SqlDbType.SmallDateTime:
                 case SqlDbType.DateTime2:
-                    return $"{identifierName} = DateTime.Now;"; // Default for DateTime
+                    return $"{value} = DateTime.Now;"; // Default for DateTime
 
                 case SqlDbType.Time:
-                    return $"{identifierName} = TimeSpan.Zero;"; // Default for TimeSpan
+                    return $"{value} = TimeSpan.Zero;"; // Default for TimeSpan
 
                 case SqlDbType.Bit:
-                    return $"{identifierName} = false;"; // Default for boolean
+                    return $"{value} = false;"; // Default for boolean
 
                 case SqlDbType.UniqueIdentifier:
-                    return $"{identifierName} = Guid.Empty;"; // Default for GUIDs
+                    return $"{value} = Guid.Empty;"; // Default for GUIDs
 
                 case SqlDbType.Binary:
                 case SqlDbType.VarBinary:
                 case SqlDbType.Timestamp:
                 case SqlDbType.Image:
-                    return $"{identifierName} = new byte[0];"; // Default for binary data
+                    return $"{value} = new byte[0];"; // Default for binary data
 
                 case SqlDbType.Xml:
-                    return $"{identifierName} = string.Empty;"; // Default for XML data
+                    return $"{value} = string.Empty;"; // Default for XML data
 
                 case SqlDbType.Real:
-                    return $"{identifierName} = -1.0F;"; // Default for Real (single-precision float)
+                    return $"{value} = -1.0F;"; // Default for Real (single-precision float)
 
                 case SqlDbType.Variant:
                 case SqlDbType.Udt:
                 case SqlDbType.Structured:
-                    return $"{identifierName} = null;"; // Default for Variant, UDT, Structured
+                    return $"{value} = null;"; // Default for Variant, UDT, Structured
 
                 case SqlDbType.DateTimeOffset:
-                    return $"{identifierName} = DateTimeOffset.Now;"; // Default for DateTime with timezone
+                    return $"{value} = DateTimeOffset.Now;"; // Default for DateTime with timezone
 
                 default:
-                    return $"{identifierName} = null;"; // Default for any other types
+                    return $"{value} = null;"; // Default for any other types
             }
         }
 
