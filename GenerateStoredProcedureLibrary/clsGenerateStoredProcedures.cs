@@ -1,4 +1,5 @@
 ﻿using CodeGeneratorBusiness;
+using GenerateStoredProcedureLibrary.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -73,19 +74,33 @@ namespace GenerateStoredProcedureLibrary
                 if (firstItem.Count > 0)
                 {
                     string columnName = firstItem[0].ColumnName;
-                    string dataType = firstItem[0].DataType;
+                    SqlDbType dataType = firstItem[0].DataType;
                     int? maxLength = firstItem[0].MaxLength;
 
                     if (columnName.ToLower() == Column.ToLower())
                     {
+                        // Special cases for old data types that have specific lengths but shouldn't display with it
+                        if (dataType == SqlDbType.Text ||
+                            dataType == SqlDbType.NText ||
+                            dataType == SqlDbType.Image)
+                        {
+                            return dataType.ToString(); // Display without specific length
+                        }
+
                         if (!maxLength.HasValue) // there is no length (the data type is not nvarchar or varchar..)
-                            return dataType;
+                        {
+                            return dataType.ToString();
+                        }
                         else
                         {
                             if (maxLength == -1) // in case the max length is MAX, so it will be -1
-                                return dataType + "(MAX)";
+                            {
+                                return $"{dataType}(MAX)";
+                            }
                             else
-                                return dataType + "(" + maxLength + ")";
+                            {
+                                return $"{dataType}({maxLength})";
+                            }
                         }
 
                     }
@@ -472,7 +487,7 @@ namespace GenerateStoredProcedureLibrary
                         new clsColumnInfoForStoredProcedure
                         {
                             ColumnName = row["Column Name"].ToString(),
-                            DataType = row["Data Type"].ToString(),
+                            DataType = row["Data Type"].ToString().ToSqlDbType(),
                             IsNullable = row["Is Nullable"].ToString().ToLower() == "yes",
                             MaxLength = string.IsNullOrWhiteSpace(row["Max Length"].ToString()) ? null : (int?)Convert.ToInt32(row["Max Length"].ToString())
                         }

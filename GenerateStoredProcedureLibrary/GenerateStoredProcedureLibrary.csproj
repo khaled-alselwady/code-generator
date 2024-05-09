@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="clsColumnInfoForStoredProcedure.cs" />
     <Compile Include="clsGenerateStoredProcedures.cs" />
+    <Compile Include="Extensions\SqlDbTypeExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

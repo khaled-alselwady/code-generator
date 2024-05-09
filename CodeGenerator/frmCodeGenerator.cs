@@ -97,7 +97,7 @@ namespace Code_Generator
                         new clsColumnInfoForStoredProcedure
                         {
                             ColumnName = firstItem.SubItems[0].Text,
-                            DataType = firstItem.SubItems[1].Text,
+                            DataType = firstItem.SubItems[1].Text.ToSqlDbType(),
                             IsNullable = firstItem.SubItems[2].Text.ToLower() == "yes",
                             MaxLength = string.IsNullOrWhiteSpace(firstItem.SubItems[3].Text) ? null : (int?)Convert.ToInt32(firstItem.SubItems[3].Text)
                         }
