@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Guna.UI2.WinForms" Version="2.0.4.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodeGeneratorBusiness\CodeGeneratorBusiness.csproj" />
+    <ProjectReference Include="..\CommonLibrary\CommonLibrary.csproj" />
+    <ProjectReference Include="..\GenerateAppConfigFileLibrary\GenerateAppConfigFileLibrary.csproj" />
+    <ProjectReference Include="..\GenerateBusinessLayerLibrary\GenerateBusinessLayerLibrary.csproj" />
+    <ProjectReference Include="..\GenerateDataAccessLayerLibrary\GenerateDataAccessLayerLibrary.csproj" />
+    <ProjectReference Include="..\GenerateStoredProcedureLibrary\GenerateStoredProcedureLibrary.csproj" />
+  </ItemGroup>
+
+</Project>

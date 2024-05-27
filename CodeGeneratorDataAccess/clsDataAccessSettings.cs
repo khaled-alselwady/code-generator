@@ -4,7 +4,7 @@
     {
         public static string ConnectionString(string DatabaseName = "master")
         {
-            return $"Data Source=.;Initial Catalog={DatabaseName};Integrated Security=True";
+            return $"Data Source=.;Initial Catalog={DatabaseName};Integrated Security=True;TrustServerCertificate=True;";
         }
     }
 }

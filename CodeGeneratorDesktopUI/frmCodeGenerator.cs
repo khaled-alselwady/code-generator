@@ -1,16 +1,14 @@
-﻿using Code_Generator.Extensions;
-using CodeGeneratorBusiness;
+﻿using CodeGeneratorBusiness;
 using CommonLibrary;
+using CommonLibrary.Extensions;
 using GenerateAppConfigFileLibrary;
 using GenerateBusinessLayerLibrary;
 using GenerateDataAccessLayerLibrary;
 using GenerateStoredProcedureLibrary;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Windows.Forms;
+using System.Diagnostics;
 
-namespace Code_Generator
+namespace CodeGeneratorDesktopUI
 {
     public partial class frmCodeGenerator : Form
     {
@@ -467,6 +465,20 @@ namespace Code_Generator
         private void btnGenerateDataAccessHelper_Click(object sender, EventArgs e)
         {
             _GenerateHelperClasses(() => clsGenerateHelperClasses.CreateDataAccessHelperClass(comboDatabaseName.Text));
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            // Specify the URL you want to open
+            string url = "https://github.com/dev-khaled-yousef";
+
+            // Open the URL in the default web browser
+            var psi = new ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            };
+            Process.Start(psi);
         }
     }
 }
