@@ -8,7 +8,7 @@ The **Code Generator** is a powerful desktop application tool designed to automa
 - **Reduced Workload and Time-Saving:** Dramatically reduce development time and developers' workload by eliminating repetitive coding tasks and generating boilerplate code efficiently.
 
 ## Technologies Used:
-- **Framework:** .NET Framework (C#)
+- **Framework:** .NET 8.0 (C#)
 - **Database:** Microsoft SQL Server with ADO.NET
 - **User Interface:** Windows Forms (WinForms)
 - **Authentication:** Custom user authentication system
