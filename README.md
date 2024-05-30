@@ -5,6 +5,7 @@ The **Code Generator** is a powerful desktop application tool designed to automa
 ## Key Features:
 - **Automated Code Generation:** Generate data access layer, business logic layer, stored procedures, and App.Config files quickly and accurately.
 - **Organized Code Logic:** Organize code logic into class libraries, enabling easy rebuilding for web or mobile applications without code duplication.
+- **Enhanced Generation Speed:** Achieve nearly a **90%** performance improvement in code generation speed by using StringBuilder instead of string.
 - **Reduced Workload and Time-Saving:** Dramatically reduce development time and developers' workload by eliminating repetitive coding tasks and generating boilerplate code efficiently.
 
 ## Technologies Used:
